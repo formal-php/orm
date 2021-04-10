@@ -1,0 +1,36 @@
+{
+    "name": "formal/orm",
+    "type": "library",
+    "description": "",
+    "keywords": [],
+    "homepage": "http://github.com/formal/orm",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Baptiste Langlade",
+            "email": "baptiste.langlade@hey.com"
+        }
+    ],
+    "support": {
+        "issues": "http://github.com/formal/orm/issues"
+    },
+    "require": {
+        "php": "~7.4|~8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "formal\\orm\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\formal\\orm\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~9.0",
+        "vimeo/psalm": "~4.0",
+        "innmind/black-box": "~4.10",
+        "innmind/coding-standard": "~1.0"
+    }
+}
