@@ -10,6 +10,6 @@ final class User
     public function __construct(
         private Id $id,
         private string $username,
-        private \Closure $doNotPersist,
+        private ?\Closure $doNotPersist = null,
     ) {}
 }
