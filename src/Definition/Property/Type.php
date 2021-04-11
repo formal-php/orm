@@ -50,6 +50,17 @@ final class Type
         return $type === $class;
     }
 
+    public function declaration(): string
+    {
+        $type = $this->reflection()->getType();
+
+        if (\is_null($type)) {
+            return '';
+        }
+
+        return (string) $type;
+    }
+
     private function reflection(): \ReflectionProperty
     {
         return new \ReflectionProperty($this->class, $this->property);

@@ -19,7 +19,8 @@
         "innmind/immutable": "^3.12",
         "innmind/specification": "^2.4",
         "ramsey/uuid": "^4.1",
-        "innmind/reflection": "^4.1"
+        "innmind/reflection": "^4.1",
+        "formal/access-layer": "^1.0"
     },
     "autoload": {
         "psr-4": {
