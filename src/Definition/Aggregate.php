@@ -7,6 +7,8 @@ use Formal\ORM;
 use Innmind\Reflection\ReflectionClass;
 use Innmind\Immutable\{
     Set,
+    Maybe,
+    Str,
     Exception\NoElementMatchingPredicateFound,
 };
 
@@ -16,6 +18,8 @@ final class Aggregate
     private string $class;
     /** @var Set<string> */
     private Set $exclude;
+    /** @var Maybe<string> */
+    private Maybe $name;
 
     /**
      * @param class-string $class
@@ -24,6 +28,8 @@ final class Aggregate
     {
         $this->class = $class;
         $this->exclude = Set::strings();
+        /** @var Maybe<string> */
+        $this->name = Maybe::nothing();
     }
 
     /**
@@ -38,6 +44,17 @@ final class Aggregate
     {
         $self = clone $this;
         $self->exclude = ($this->exclude)($property);
+
+        return $self;
+    }
+
+    /**
+     * Name to use for the underlying storage
+     */
+    public function referenceAs(string $name): self
+    {
+        $self = clone $this;
+        $self->name = Maybe::just($name);
 
         return $self;
     }
@@ -71,5 +88,17 @@ final class Aggregate
                 Property::class,
                 fn($property) => Property::of($this->class, $property),
             );
+    }
+
+    public function name(): string
+    {
+        return $this->name->match(
+            static fn($name) => $name,
+            fn() => Str::of($this->class)
+                ->split('\\')
+                ->last()
+                ->toLower()
+                ->toString(),
+        );
     }
 }

@@ -53,4 +53,26 @@ class AggregateTest extends TestCase
 
         $aggregate->id();
     }
+
+    public function testNameUseClassNameByDefault()
+    {
+        $this->assertSame(
+            'user',
+            Aggregate::of(User::class)->name(),
+        );
+    }
+
+    public function testUseProvidedName()
+    {
+        $this
+            ->forAll(Set\Strings::any())
+            ->then(function($name) {
+                $aggregate1 = Aggregate::of(User::class);
+                $aggregate2 = $aggregate1->referenceAs($name);
+
+                $this->assertNotSame($aggregate1, $aggregate2);
+                $this->assertSame('user', $aggregate1->name());
+                $this->assertSame($name, $aggregate2->name());
+            });
+    }
 }
