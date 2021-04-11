@@ -3,6 +3,8 @@ declare(strict_types = 1);
 
 namespace Formal\ORM;
 
+use Innmind\Immutable\Either;
+
 interface Manager
 {
     /**
@@ -15,7 +17,12 @@ interface Manager
     public function repository(string $class): Repository;
 
     /**
-     * @param callable(): void $transaction
+     * @template L of \Throwable
+     * @template R
+     *
+     * @param callable(): Either<L, R> $transaction
+     *
+     * @return Either<L, R>
      */
-    public function transactional(callable $transaction): void;
+    public function transactional(callable $transaction): Either;
 }

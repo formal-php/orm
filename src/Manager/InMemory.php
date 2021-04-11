@@ -7,7 +7,10 @@ use Formal\ORM\{
     Manager,
     Repository,
 };
-use Innmind\Immutable\Map;
+use Innmind\Immutable\{
+    Either,
+    Map,
+};
 
 final class InMemory implements Manager
 {
@@ -44,12 +47,31 @@ final class InMemory implements Manager
         return $repository;
     }
 
-    public function transactional(callable $transaction): void
+    /**
+     * @template L of \Throwable
+     * @template R
+     *
+     * @param callable(): Either<L, R> $transaction
+     *
+     * @return Either<L, R>
+     */
+    public function transactional(callable $transaction): Either
     {
+        $this->allowMutation = true;
+
         try {
-            $this->allowMutation = true;
-            $transaction();
-            $this->commit();
+            /** @var Either<L, R> */
+            return $transaction()
+                ->map(function(mixed $value): mixed {
+                    $this->commit();
+
+                    return $value;
+                })
+                ->leftMap(function(\Throwable $error): \Throwable {
+                    $this->rollback();
+
+                    return $error;
+                });
         } catch (\Throwable $e) {
             $this->rollback();
 
