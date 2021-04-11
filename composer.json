@@ -18,7 +18,8 @@
         "php": "~8.0",
         "innmind/immutable": "^3.11",
         "innmind/specification": "^2.4",
-        "ramsey/uuid": "^4.1"
+        "ramsey/uuid": "^4.1",
+        "innmind/reflection": "^4.1"
     },
     "autoload": {
         "psr-4": {
@@ -27,7 +28,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\Formal\\ORM\\": "tests/"
+            "Tests\\Formal\\ORM\\": "tests/",
+            "Example\\Formal\\ORM\\": "example/"
         }
     },
     "require-dev": {
