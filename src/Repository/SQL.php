@@ -9,6 +9,7 @@ use Formal\ORM\{
     Definition\Aggregate,
     SQL\Types,
     SQL\MatchId,
+    SQL\Table\Normalize,
 };
 use Formal\AccessLayer\{
     Connection,
@@ -18,9 +19,7 @@ use Formal\AccessLayer\{
 };
 use Innmind\Reflection\{
     ReflectionClass,
-    ReflectionObject,
     InjectionStrategy,
-    ExtractionStrategy,
     Instanciator,
 };
 use Innmind\Specification\Specification;
@@ -28,7 +27,6 @@ use Innmind\Immutable\{
     Maybe,
     Set,
 };
-use function Innmind\Immutable\unwrap;
 
 /**
  * @template V of object
@@ -41,6 +39,7 @@ final class SQL implements Repository
     private Aggregate $aggregate;
     private Connection $connection;
     private Types $types;
+    private Normalize $normalize;
     /** @var callable(): bool */
     private $allowMutation;
 
@@ -59,6 +58,7 @@ final class SQL implements Repository
         $this->aggregate = $aggregate;
         $this->connection = $connection;
         $this->types = $types;
+        $this->normalize = new Normalize($aggregate, $types);
         $this->allowMutation = $allowMutation;
     }
 
@@ -81,35 +81,9 @@ final class SQL implements Repository
         // todo handle updates
         $this->assertMutable();
 
-        $reflection = ReflectionObject::of(
-            $aggregate,
-            null,
-            null,
-            new ExtractionStrategy\ReflectionStrategy,
-        );
-        $properties = $this
-            ->aggregate
-            ->properties()
-            ->mapTo(
-                'string',
-                static fn($property) => $property->name(),
-            );
-        $values = $reflection->extract(...unwrap($properties));
-        $columns = $this
-            ->aggregate
-            ->properties()
-            ->mapTo(
-                Row\Value::class,
-                fn($property) => new Row\Value(
-                    new Table\Column\Name($property->name()),
-                    ($this->types)($property)->normalize(
-                        $values->get($property->name()),
-                    ),
-                ),
-            );
         ($this->connection)(new Query\Insert(
             new Table\Name($this->aggregate->name()),
-            new Row(...unwrap($columns)),
+            Row::of(($this->normalize)($aggregate)),
         ));
     }
 

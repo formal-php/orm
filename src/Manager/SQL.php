@@ -26,7 +26,7 @@ final class SQL implements Manager
     private bool $allowMutation = false;
     /** @var \WeakMap<Repository\SQL<object>, class-string> */
     private \WeakMap $repositories;
-    /** @var Map<class-string, Aggregate> */
+    /** @var Map<class-string, Aggregate<object>> */
     private Map $aggregates;
 
     private function __construct(

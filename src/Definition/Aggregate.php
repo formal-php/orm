@@ -12,9 +12,12 @@ use Innmind\Immutable\{
     Exception\NoElementMatchingPredicateFound,
 };
 
+/**
+ * @template T of object
+ */
 final class Aggregate
 {
-    /** @var class-string */
+    /** @var class-string<T> */
     private string $class;
     /** @var Set<string> */
     private Set $exclude;
@@ -22,7 +25,7 @@ final class Aggregate
     private Maybe $name;
 
     /**
-     * @param class-string $class
+     * @param class-string<T> $class
      */
     private function __construct(string $class)
     {
@@ -33,7 +36,11 @@ final class Aggregate
     }
 
     /**
-     * @param class-string $class
+     * @template V of object
+     *
+     * @param class-string<V> $class
+     *
+     * @return self<V>
      */
     public static function of(string $class): self
     {
@@ -41,7 +48,7 @@ final class Aggregate
     }
 
     /**
-     * @return class-string
+     * @return class-string<T>
      */
     public function class(): string
     {
@@ -58,6 +65,8 @@ final class Aggregate
 
     /**
      * Name to use for the underlying storage
+     *
+     * @return self<T>
      */
     public function referenceAs(string $name): self
     {
