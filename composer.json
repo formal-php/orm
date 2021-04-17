@@ -37,7 +37,7 @@
     "require-dev": {
         "phpunit/phpunit": "~9.0",
         "vimeo/psalm": "~4.0",
-        "innmind/black-box": "~4.10",
+        "innmind/black-box": "~4.17",
         "innmind/coding-standard": "~1.0"
     }
 }
