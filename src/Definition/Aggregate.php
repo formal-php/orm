@@ -40,6 +40,14 @@ final class Aggregate
         return new self($class);
     }
 
+    /**
+     * @return class-string
+     */
+    public function class(): string
+    {
+        return $this->class;
+    }
+
     public function exclude(string $property): self
     {
         $self = clone $this;
