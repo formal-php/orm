@@ -71,17 +71,17 @@ final class InMemory implements Repository
         return Maybe::nothing();
     }
 
-    public function add(object $entity): void
+    public function add(object $aggregate): void
     {
         $this->assertMutable();
 
         $property = $this->definition->id()->property();
         /** @var Id<V> */
-        $id = ReflectionObject::of($entity)
+        $id = ReflectionObject::of($aggregate)
             ->extract($property)
             ->get($property);
 
-        $this->toAdd = ($this->toAdd)($id->toString(), $entity);
+        $this->toAdd = ($this->toAdd)($id->toString(), $aggregate);
     }
 
     public function remove(Id $id): void

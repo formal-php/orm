@@ -76,13 +76,13 @@ final class SQL implements Repository
         return Maybe::nothing();
     }
 
-    public function add(object $entity): void
+    public function add(object $aggregate): void
     {
         // todo handle updates
         $this->assertMutable();
 
         $reflection = ReflectionObject::of(
-            $entity,
+            $aggregate,
             null,
             null,
             new ExtractionStrategy\ReflectionStrategy,

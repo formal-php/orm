@@ -22,11 +22,11 @@ interface Repository
     public function get(Id $id): Maybe;
 
     /**
-     * @param T $entity
+     * @param T $aggregate
      *
      * @throws \LogicException When not in a transaction
      */
-    public function add(object $entity): void;
+    public function add(object $aggregate): void;
 
     /**
      * @param Id<T> $id
