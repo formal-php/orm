@@ -15,14 +15,21 @@ use Formal\AccessLayer\Table\Column;
  */
 final class Str implements Type
 {
-    private bool $nullable = false;
+    private bool $nullable;
+
+    private function __construct(bool $nullable)
+    {
+        $this->nullable = $nullable;
+    }
+
+    public static function required(): self
+    {
+        return new self(false);
+    }
 
     public static function nullable(): self
     {
-        $self = new self;
-        $self->nullable = true;
-
-        return $self;
+        return new self(true);
     }
 
     public function normalize(mixed $value): mixed

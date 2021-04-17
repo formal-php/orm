@@ -15,6 +15,15 @@ use Formal\AccessLayer\Table\Column;
  */
 final class Id implements Type
 {
+    private function __construct()
+    {
+    }
+
+    public static function required(): self
+    {
+        return new self;
+    }
+
     public function normalize(mixed $value): mixed
     {
         return $value->toString();

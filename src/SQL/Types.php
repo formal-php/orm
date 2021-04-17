@@ -36,8 +36,8 @@ final class Types
     public static function default(): array
     {
         return [
-            new Type\Id,
-            new Type\Str,
+            Type\Id::required(),
+            Type\Str::required(),
             Type\Str::nullable(),
         ];
     }
