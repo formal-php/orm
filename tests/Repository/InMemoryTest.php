@@ -8,7 +8,8 @@ use Formal\ORM\{
     Repository,
     Id,
 };
-use Example\Formal\ORM\User;
+use Example\Formal\ORM\User as Model;
+use Fixtures\Formal\ORM\User;
 use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
@@ -23,22 +24,19 @@ class InMemoryTest extends TestCase
     {
         $this->assertInstanceOf(
             Repository::class,
-            new InMemory(User::class, static fn() => true),
+            new InMemory(Model::class, static fn() => true),
         );
     }
 
     public function testThrowsWhenTryingToAddWhenNotInTransaction()
     {
         $this
-            ->forAll(
-                Set\Uuid::any(),
-                Set\Strings::any(),
-            )
-            ->then(function($uuid, $username) {
-                $repository = new InMemory(User::class, static fn() => false);
+            ->forAll(User::any())
+            ->then(function($user) {
+                $repository = new InMemory(Model::class, static fn() => false);
 
                 try {
-                    $repository->add(new User(Id::of($uuid), $username));
+                    $repository->add($user);
                     $this->fail('it should throw');
                 } catch (\LogicException $e) {
                     $this->assertSame(
@@ -53,19 +51,15 @@ class InMemoryTest extends TestCase
     public function testAdd()
     {
         $this
-            ->forAll(
-                Set\Uuid::any(),
-                Set\Strings::any(),
-            )
-            ->then(function($uuid, $username) {
-                $repository = new InMemory(User::class, static fn() => true);
-                $user = new User(Id::of($uuid), $username);
+            ->forAll(User::any())
+            ->then(function($user) {
+                $repository = new InMemory(Model::class, static fn() => true);
 
                 $this->assertCount(0, $repository->all());
                 $this->assertNull($repository->add($user));
                 $this->assertSame(
                     $user,
-                    $repository->get(Id::of($uuid))->match(
+                    $repository->get(Id::of($user->uuid()))->match(
                         static fn($entity) => $entity,
                         static fn() => null,
                     ),
@@ -79,7 +73,7 @@ class InMemoryTest extends TestCase
         $this
             ->forAll(Set\Uuid::any())
             ->then(function($uuid) {
-                $repository = new InMemory(User::class, static fn() => false);
+                $repository = new InMemory(Model::class, static fn() => false);
 
                 try {
                     $repository->remove(Id::of($uuid));
@@ -97,20 +91,16 @@ class InMemoryTest extends TestCase
     public function testRemove()
     {
         $this
-            ->forAll(
-                Set\Uuid::any(),
-                Set\Strings::any(),
-            )
-            ->then(function($uuid, $username) {
-                $repository = new InMemory(User::class, static fn() => true);
-                $id = Id::of($uuid);
-                $user = new User($id, $username);
+            ->forAll(User::any())
+            ->then(function($user) {
+                $repository = new InMemory(Model::class, static fn() => true);
+                $id = Id::of($user->uuid());
 
                 $this->assertCount(0, $repository->all());
                 $this->assertNull($repository->add($user));
                 $this->assertNull($repository->remove($id));
                 $this->assertFalse(
-                    $repository->get(Id::of($uuid))->match(
+                    $repository->get(Id::of($user->uuid()))->match(
                         static fn() => true,
                         static fn() => false,
                     ),
@@ -124,7 +114,7 @@ class InMemoryTest extends TestCase
         $this
             ->forAll(Set\Uuid::any())
             ->then(function($uuid) {
-                $repository = new InMemory(User::class, static fn() => true);
+                $repository = new InMemory(Model::class, static fn() => true);
 
                 $this->assertNull($repository->remove(Id::of($uuid)));
                 $this->assertFalse(
@@ -140,19 +130,15 @@ class InMemoryTest extends TestCase
     public function testRollbackAdd()
     {
         $this
-            ->forAll(
-                Set\Uuid::any(),
-                Set\Strings::any(),
-            )
-            ->then(function($uuid, $username) {
-                $repository = new InMemory(User::class, static fn() => true);
-                $user = new User(Id::of($uuid), $username);
+            ->forAll(User::any())
+            ->then(function($user) {
+                $repository = new InMemory(Model::class, static fn() => true);
 
                 $this->assertCount(0, $repository->all());
                 $repository->add($user);
                 $this->assertNull($repository->rollback());
                 $this->assertFalse(
-                    $repository->get(Id::of($uuid))->match(
+                    $repository->get(Id::of($user->uuid()))->match(
                         static fn() => true,
                         static fn() => false,
                     ),
@@ -164,13 +150,9 @@ class InMemoryTest extends TestCase
     public function testCommittedAddCantBeRollbacked()
     {
         $this
-            ->forAll(
-                Set\Uuid::any(),
-                Set\Strings::any(),
-            )
-            ->then(function($uuid, $username) {
-                $repository = new InMemory(User::class, static fn() => true);
-                $user = new User(Id::of($uuid), $username);
+            ->forAll(User::any())
+            ->then(function($user) {
+                $repository = new InMemory(Model::class, static fn() => true);
 
                 $this->assertCount(0, $repository->all());
                 $repository->add($user);
@@ -178,7 +160,7 @@ class InMemoryTest extends TestCase
                 $this->assertNull($repository->rollback());
                 $this->assertSame(
                     $user,
-                    $repository->get(Id::of($uuid))->match(
+                    $repository->get(Id::of($user->uuid()))->match(
                         static fn($entity) => $entity,
                         static fn() => null,
                     ),
@@ -190,14 +172,10 @@ class InMemoryTest extends TestCase
     public function testRollbackRemove()
     {
         $this
-            ->forAll(
-                Set\Uuid::any(),
-                Set\Strings::any(),
-            )
-            ->then(function($uuid, $username) {
-                $repository = new InMemory(User::class, static fn() => true);
-                $id = Id::of($uuid);
-                $user = new User($id, $username);
+            ->forAll(User::any())
+            ->then(function($user) {
+                $repository = new InMemory(Model::class, static fn() => true);
+                $id = Id::of($user->uuid());
 
                 $this->assertCount(0, $repository->all());
                 $repository->add($user);
@@ -206,7 +184,7 @@ class InMemoryTest extends TestCase
                 $this->assertCount(0, $repository->all());
                 $this->assertNull($repository->rollback());
                 $this->assertTrue(
-                    $repository->get(Id::of($uuid))->match(
+                    $repository->get(Id::of($user->uuid()))->match(
                         static fn() => true,
                         static fn() => false,
                     ),
@@ -218,14 +196,10 @@ class InMemoryTest extends TestCase
     public function testCommittedRemoveCantBeRollbacked()
     {
         $this
-            ->forAll(
-                Set\Uuid::any(),
-                Set\Strings::any(),
-            )
-            ->then(function($uuid, $username) {
-                $repository = new InMemory(User::class, static fn() => true);
-                $id = Id::of($uuid);
-                $user = new User($id, $username);
+            ->forAll(User::any())
+            ->then(function($user) {
+                $repository = new InMemory(Model::class, static fn() => true);
+                $id = Id::of($user->uuid());
 
                 $this->assertCount(0, $repository->all());
                 $repository->add($user);
@@ -235,7 +209,7 @@ class InMemoryTest extends TestCase
                 $this->assertCount(0, $repository->all());
                 $this->assertNull($repository->rollback());
                 $this->assertFalse(
-                    $repository->get(Id::of($uuid))->match(
+                    $repository->get(Id::of($user->uuid()))->match(
                         static fn() => true,
                         static fn() => false,
                     ),

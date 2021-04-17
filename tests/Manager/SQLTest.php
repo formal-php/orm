@@ -17,7 +17,8 @@ use Formal\AccessLayer\{
     Table,
 };
 use Innmind\Url\Url;
-use Example\Formal\ORM\User;
+use Example\Formal\ORM\User as Model;
+use Fixtures\Formal\ORM\User;
 use Innmind\Immutable\Either;
 use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
@@ -38,7 +39,7 @@ class SQLTest extends TestCase
     {
         $this->connection = new PDO(Url::of('mysql://root:root@127.0.0.1:3306/example'));
         $this->types = new Types(...Types::default());
-        $this->aggregate = Aggregate::of(User::class)->exclude('doNotPersist');
+        $this->aggregate = Aggregate::of(Model::class)->exclude('doNotPersist');
         $this->manager = SQL::of(
             $this->connection,
             $this->types,
@@ -54,15 +55,12 @@ class SQLTest extends TestCase
     public function testAddingOutsideATransactionThrows()
     {
         $this
-            ->forAll(
-                Set\Uuid::any(),
-                Set\Strings::any(),
-            )
-            ->then(function($uuid, $username) {
-                $repository = $this->manager->repository(User::class);
+            ->forAll(User::any())
+            ->then(function($user) {
+                $repository = $this->manager->repository(Model::class);
 
                 try {
-                    $repository->add(new User(Id::of($uuid), $username));
+                    $repository->add($user);
                     $this->fail('it should throw');
                 } catch (\Throwable $e) {
                     $this->assertInstanceOf(\LogicException::class, $e);
@@ -74,15 +72,13 @@ class SQLTest extends TestCase
     {
         $this
             ->forAll(
-                Set\Uuid::any(),
-                Set\Strings::madeOf(Set\Chars::alphanumerical()),
+                User::any(),
                 Set\AnyType::any(),
             )
-            ->then(function($uuid, $username, $return) {
+            ->then(function($user, $return) {
                 $this->reset();
 
-                $repository = $this->manager->repository(User::class);
-                $user = new User(Id::of($uuid), $username);
+                $repository = $this->manager->repository(Model::class);
                 $expected = Either::right($return);
 
                 $this->assertEquals(
@@ -101,8 +97,7 @@ class SQLTest extends TestCase
     {
         $this
             ->forAll(
-                Set\Uuid::any(),
-                Set\Strings::any(),
+                User::any(),
                 new Set\Either(
                     Set\Decorate::immutable(
                         static fn($value) => Either::right($value),
@@ -111,15 +106,15 @@ class SQLTest extends TestCase
                     Set\Elements::of(Either::left($this->createMock(\Throwable::class))),
                 ),
             )
-            ->then(function($uuid, $username, $either) {
-                $repository = $this->manager->repository(User::class);
+            ->then(function($user, $either) {
+                $repository = $this->manager->repository(Model::class);
                 $this->assertEquals(
                     $either,
                     $this->manager->transactional(static fn() => $either)
                 );
 
                 try {
-                    $repository->add(new User(Id::of($uuid), $username));
+                    $repository->add($user);
                     $this->fail('it should throw');
                 } catch (\Throwable $e) {
                     $this->assertInstanceOf(\LogicException::class, $e);
@@ -130,16 +125,12 @@ class SQLTest extends TestCase
     public function testRollbackWhenAnExceptionIsThrown()
     {
         $this
-            ->forAll(
-                Set\Uuid::any(),
-                Set\Strings::madeOf(Set\Chars::alphanumerical()),
-            )
-            ->then(function($uuid, $username) {
+            ->forAll(User::any())
+            ->then(function($user) {
                 $this->reset();
 
-                $repository = $this->manager->repository(User::class);
+                $repository = $this->manager->repository(Model::class);
                 $expected = $this->createMock(\Throwable::class);
-                $user = new User(Id::of($uuid), $username);
 
                 try {
                     $this->manager->transactional(static function() use ($repository, $user, $expected) {
@@ -159,16 +150,12 @@ class SQLTest extends TestCase
     public function testRollbackWhenALeftValueIsReturned()
     {
         $this
-            ->forAll(
-                Set\Uuid::any(),
-                Set\Strings::madeOf(Set\Chars::alphanumerical()),
-            )
-            ->then(function($uuid, $username) {
+            ->forAll(User::any())
+            ->then(function($user) {
                 $this->reset();
 
-                $repository = $this->manager->repository(User::class);
+                $repository = $this->manager->repository(Model::class);
                 $expected = Either::left($this->createMock(\Throwable::class));
-                $user = new User(Id::of($uuid), $username);
 
                 $this->assertEquals(
                     $expected,

@@ -24,13 +24,14 @@
     },
     "autoload": {
         "psr-4": {
-            "Formal\\ORM\\": "src/"
+            "Formal\\ORM\\": "src/",
+            "Example\\Formal\\ORM\\": "example/",
+            "Fixtures\\Formal\\ORM\\": "fixtures/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\Formal\\ORM\\": "tests/",
-            "Example\\Formal\\ORM\\": "example/"
+            "Tests\\Formal\\ORM\\": "tests/"
         }
     },
     "require-dev": {

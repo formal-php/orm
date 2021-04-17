@@ -17,12 +17,13 @@ use Formal\AccessLayer\{
     Table,
 };
 use Innmind\Url\Url;
+use Example\Formal\ORM\User as Model;
+use Fixtures\Formal\ORM\User;
 use PHPUnit\Framework\TestCase;
 use Innmind\BlackBox\{
     PHPUnit\BlackBox,
     Set,
 };
-use Example\Formal\ORM\User;
 
 class SQLTest extends TestCase
 {
@@ -39,10 +40,10 @@ class SQLTest extends TestCase
         $this->allowMutation = false;
         $this->connection = new PDO(Url::of('mysql://root:root@127.0.0.1:3306/example'));
         $this->types = new Types(...Types::default());
-        $this->aggregate = Aggregate::of(User::class)
+        $this->aggregate = Aggregate::of(Model::class)
             ->exclude('doNotPersist');
         $this->repository = new SQL(
-            User::class,
+            Model::class,
             $this->aggregate,
             $this->connection,
             $this->types,
@@ -74,15 +75,10 @@ class SQLTest extends TestCase
     public function testThrowWhenTryingToAddWhenNotInTransaction()
     {
         $this
-            ->forAll(
-                Set\Uuid::any(),
-                Set\Strings::madeOf(Set\Chars::alphanumerical()),
-            )
-            ->then(function($uuid, $username) {
+            ->forAll(User::any())
+            ->then(function($user) {
                 $this->reset();
                 $this->allowMutation = false;
-
-                $user = new User(Id::of($uuid), $username);
 
                 try {
                     $this->repository->add($user);
@@ -100,23 +96,18 @@ class SQLTest extends TestCase
     public function testAdd()
     {
         $this
-            ->forAll(
-                Set\Uuid::any(),
-                Set\Strings::madeOf(Set\Chars::alphanumerical()),
-            )
-            ->then(function($uuid, $username) {
+            ->forAll(User::any())
+            ->then(function($user) {
                 $this->reset();
                 $this->allowMutation = true;
 
-                $user = new User(Id::of($uuid), $username);
-
                 $this->assertCount(0, $this->repository->all());
                 $this->assertNull($this->repository->add($user));
-                $this->assertTrue($this->repository->get(Id::of($uuid))->match(
+                $this->assertTrue($this->repository->get(Id::of($user->uuid()))->match(
                     static fn() => true,
                     static fn() => false,
                 ));
-                $aggregate = $this->repository->get(Id::of($uuid))->match(
+                $aggregate = $this->repository->get(Id::of($user->uuid()))->match(
                     static fn($aggregate) => $aggregate,
                     static fn() => null,
                 );
@@ -149,20 +140,15 @@ class SQLTest extends TestCase
     public function testRemove()
     {
         $this
-            ->forAll(
-                Set\Uuid::any(),
-                Set\Strings::madeOf(Set\Chars::alphanumerical()),
-            )
-            ->then(function($uuid, $username) {
+            ->forAll(User::any())
+            ->then(function($user) {
                 $this->reset();
                 $this->allowMutation = true;
 
-                $user = new User(Id::of($uuid), $username);
-
                 $this->assertCount(0, $this->repository->all());
                 $this->assertNull($this->repository->add($user));
-                $this->assertNull($this->repository->remove(Id::of($uuid)));
-                $this->assertFalse($this->repository->get(Id::of($uuid))->match(
+                $this->assertNull($this->repository->remove(Id::of($user->uuid())));
+                $this->assertFalse($this->repository->get(Id::of($user->uuid()))->match(
                     static fn() => true,
                     static fn() => false,
                 ));
@@ -174,11 +160,7 @@ class SQLTest extends TestCase
     {
         $this
             ->forAll(Set\Sequence::of(
-                new Set\Randomize(Set\Composite::mutable(
-                    static fn($uuid, $username) => new User(Id::of($uuid), $username),
-                    Set\Uuid::any(),
-                    Set\Strings::madeOf(Set\Chars::alphanumerical()),
-                )),
+                new Set\Randomize(User::any()),
                 Set\Integers::between(0, 5),
             ))
             ->then(function($users) {
@@ -191,7 +173,7 @@ class SQLTest extends TestCase
 
                 $all = $this->repository->all();
 
-                $this->assertSame(User::class, $all->type());
+                $this->assertSame(Model::class, $all->type());
                 $this->assertCount(\count($users), $all);
             });
     }

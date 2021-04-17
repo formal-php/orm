@@ -13,6 +13,11 @@ final class User
         private ?\Closure $doNotPersist = null,
     ) {}
 
+    public function uuid(): string
+    {
+        return $this->id->toString();
+    }
+
     public function equals(self $user): bool
     {
         return $this->id->equals($user->id) &&
