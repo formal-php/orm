@@ -10,17 +10,13 @@ use Formal\ORM\{
     SQL\Types,
     SQL\MatchId,
     SQL\Table\Normalize,
+    SQL\Table\Denormalize,
 };
 use Formal\AccessLayer\{
     Connection,
     Row,
     Query,
     Table,
-};
-use Innmind\Reflection\{
-    ReflectionClass,
-    InjectionStrategy,
-    Instanciator,
 };
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{
@@ -39,7 +35,10 @@ final class SQL implements Repository
     private Aggregate $aggregate;
     private Connection $connection;
     private Types $types;
+    /** @var Normalize<V> */
     private Normalize $normalize;
+    /** @var Denormalize<V> */
+    private Denormalize $denormalize;
     /** @var callable(): bool */
     private $allowMutation;
 
@@ -58,7 +57,10 @@ final class SQL implements Repository
         $this->aggregate = $aggregate;
         $this->connection = $connection;
         $this->types = $types;
+        /** @var Normalize<V> */
         $this->normalize = new Normalize($aggregate, $types);
+        /** @var Denormalize<V> */
+        $this->denormalize = new Denormalize($aggregate, $types);
         $this->allowMutation = $allowMutation;
     }
 
@@ -66,7 +68,7 @@ final class SQL implements Repository
     {
         $select = $this->select()->where($this->match($id));
         $aggregates = ($this->connection)($select)
-            ->mapTo($this->class, fn($row) => $this->denormalize($row));
+            ->mapTo($this->class, fn($row) => ($this->denormalize)($row));
 
         if (!$aggregates->empty()) {
             return Maybe::just($aggregates->first());
@@ -102,7 +104,7 @@ final class SQL implements Repository
         return ($this->connection)($this->select())
             ->mapTo(
                 $this->class,
-                fn($row) => $this->denormalize($row),
+                fn($row) => ($this->denormalize)($row),
             )
             ->toSetOf($this->class);
     }
@@ -120,34 +122,6 @@ final class SQL implements Repository
         if (!($this->allowMutation)()) {
             throw new \LogicException('Trying to mutate the repository outside of a transaction');
         }
-    }
-
-    /**
-     * @return V
-     */
-    private function denormalize(Row $row): object
-    {
-        $reflection = ReflectionClass::of(
-            $this->class,
-            null,
-            new InjectionStrategy\ReflectionStrategy,
-            new Instanciator\ConstructorLessInstanciator,
-        );
-
-        /** @var V */
-        return $this
-            ->aggregate
-            ->properties()
-            ->reduce(
-                $reflection,
-                fn(ReflectionClass $reflection, $property): ReflectionClass => $reflection->withProperty(
-                    $property->name(),
-                    ($this->types)($property)->denormalize(
-                        $row->column($property->name()),
-                    ),
-                ),
-            )
-            ->build();
     }
 
     private function select(): Query\Select
