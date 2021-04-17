@@ -12,4 +12,10 @@ final class User
         private string $username,
         private ?\Closure $doNotPersist = null,
     ) {}
+
+    public function equals(self $user): bool
+    {
+        return $this->id->equals($user->id) &&
+            $this->username === $user->username;
+    }
 }
