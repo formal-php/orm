@@ -24,8 +24,8 @@ final class SQL implements Manager
     private Connection $connection;
     private Types $types;
     private bool $allowMutation = false;
-    /** @var Map<class-string, Repository\SQL<object>> */
-    private Map $repositories;
+    /** @var \WeakMap<Repository\SQL<object>, class-string> */
+    private \WeakMap $repositories;
     /** @var Map<class-string, Aggregate> */
     private Map $aggregates;
 
@@ -36,8 +36,8 @@ final class SQL implements Manager
     ) {
         $this->connection = $connection;
         $this->types = $types;
-        /** @var Map<class-string, Repository\SQL<object>> */
-        $this->repositories = Map::of('string', Repository\SQL::class);
+        /** @var \WeakMap<Repository\SQL<object>, class-string> */
+        $this->repositories = new \WeakMap;
         $this->aggregates = Map::of('string', Aggregate::class);
 
         foreach ($aggregates as $aggregate) {
@@ -62,9 +62,11 @@ final class SQL implements Manager
      */
     public function repository(string $class): Repository
     {
-        if ($this->repositories->contains($class)) {
-            /** @var Repository<V> */
-            return $this->repositories->get($class);
+        foreach ($this->repositories as $repository => $aggregate) {
+            if ($class === $aggregate) {
+                /** @var Repository<V> */
+                return $repository;
+            }
         }
 
         $repository = new Repository\SQL(
@@ -74,7 +76,7 @@ final class SQL implements Manager
             $this->types,
             fn(): bool => $this->allowMutation,
         );
-        $this->repositories = ($this->repositories)($class, $repository);
+        $this->repositories[$repository] = $class;
 
         return $repository;
     }
