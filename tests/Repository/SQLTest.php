@@ -37,8 +37,9 @@ class SQLTest extends TestCase
 
     public function setUp(): void
     {
+        $port = \getenv('DB_PORT') ?: '3306';
         $this->allowMutation = false;
-        $this->connection = new PDO(Url::of('mysql://root:root@127.0.0.1:3306/example'));
+        $this->connection = new PDO(Url::of("mysql://root:root@127.0.0.1:$port/example"));
         $this->types = new Types(...Types::default());
         $this->aggregate = Aggregate::of(Model::class)
             ->exclude('doNotPersist');
