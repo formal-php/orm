@@ -48,7 +48,7 @@ final class InMemory implements Manager
     }
 
     /**
-     * @template L of \Throwable
+     * @template L
      * @template R
      *
      * @param callable(): Either<L, R> $transaction
@@ -67,7 +67,7 @@ final class InMemory implements Manager
 
                     return $value;
                 })
-                ->leftMap(function(\Throwable $error): \Throwable {
+                ->leftMap(function(mixed $error): mixed {
                     $this->rollback();
 
                     return $error;

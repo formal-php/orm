@@ -17,7 +17,7 @@ interface Manager
     public function repository(string $class): Repository;
 
     /**
-     * @template L of \Throwable
+     * @template L Left side is considered the error side
      * @template R
      *
      * @param callable(): Either<L, R> $transaction
