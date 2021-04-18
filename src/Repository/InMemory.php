@@ -104,6 +104,7 @@ final class InMemory implements Repository
 
     public function matching(Specification $specification): Set
     {
+        // todo
         return Set::of($this->class);
     }
 
