@@ -78,10 +78,13 @@ final class Aggregate
 
     /**
      * @throws \LogicException When no id defined in the aggregate
+     *
+     * @return Id<T>
      */
     public function id(): Id
     {
         try {
+            /** @var Id<T> */
             return new Id(
                 $this
                     ->properties()

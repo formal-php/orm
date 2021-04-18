@@ -18,10 +18,6 @@ use Formal\AccessLayer\{
     Query,
     Table,
 };
-use Innmind\Reflection\{
-    ReflectionObject,
-    ExtractionStrategy,
-};
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{
     Maybe,
@@ -36,6 +32,7 @@ final class SQL implements Repository
 {
     /** @var class-string<V> */
     private string $class;
+    /** @var Aggregate<V> */
     private Aggregate $aggregate;
     private Connection $connection;
     private Types $types;
@@ -54,6 +51,7 @@ final class SQL implements Repository
 
     /**
      * @param class-string<V> $class
+     * @param Aggregate<V> $aggregate
      * @param callable(Id<V>): Maybe<V> $lookup
      * @param callable(Id<V>, V): void $cache
      * @param callable(Id<V>): void $invalidate
@@ -73,9 +71,7 @@ final class SQL implements Repository
         $this->aggregate = $aggregate;
         $this->connection = $connection;
         $this->types = $types;
-        /** @var Normalize<V> */
         $this->normalize = new Normalize($aggregate, $types);
-        /** @var Denormalize<V> */
         $this->denormalize = new Denormalize($aggregate, $types);
         $this->lookup = $lookup;
         $this->cache = $cache;
@@ -185,17 +181,7 @@ final class SQL implements Repository
      */
     private function extractId(object $aggregate): Id
     {
-        $property = $this->aggregate->id()->property();
-
-        /** @var Id<V> */
-        return ReflectionObject::of(
-            $aggregate,
-            null,
-            null,
-            new ExtractionStrategy\ReflectionStrategy,
-        )
-            ->extract($property)
-            ->get($property);
+        return $this->aggregate->id()->extract($aggregate);
     }
 
     /**
