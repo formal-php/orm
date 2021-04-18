@@ -4,13 +4,21 @@ declare(strict_types = 1);
 namespace Formal\ORM\Definition;
 
 use Formal\ORM;
-use Innmind\Reflection\ReflectionClass;
+use Innmind\Reflection\{
+    ReflectionClass,
+    ReflectionObject,
+    ExtractionStrategy,
+    InjectionStrategy,
+    Instanciator,
+};
 use Innmind\Immutable\{
     Set,
     Maybe,
+    Map,
     Str,
     Exception\NoElementMatchingPredicateFound,
 };
+use function Innmind\Immutable\unwrap;
 
 /**
  * @template T of object
@@ -120,5 +128,47 @@ final class Aggregate
                 ->toLower()
                 ->toString(),
         );
+    }
+
+    /**
+     * Extract all the values of the object that need to be persisted
+     *
+     * @param T $aggregate
+     *
+     * @return Map<string, mixed>
+     */
+    public function normalize(object $aggregate): Map
+    {
+        $properties = $this->properties()->mapTo(
+            'string',
+            static fn($property) => $property->name(),
+        );
+
+        return ReflectionObject::of(
+            $aggregate,
+            null,
+            null,
+            new ExtractionStrategy\ReflectionStrategy,
+        )
+            ->extract(...unwrap($properties));
+    }
+
+    /**
+     * Create a new object out of the given values
+     *
+     * @param Map<string, mixed> $values
+     *
+     * @return T
+     */
+    public function denormalize(Map $values): object
+    {
+        $reflection = ReflectionClass::of(
+            $this->class,
+            $values,
+            new InjectionStrategy\ReflectionStrategy,
+            new Instanciator\ConstructorLessInstanciator,
+        );
+
+        return $reflection->build();
     }
 }

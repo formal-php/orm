@@ -8,11 +8,6 @@ use Formal\ORM\{
     SQL\Types,
     SQL\Type,
 };
-use Innmind\Reflection\{
-    ReflectionObject,
-    ExtractionStrategy,
-};
-use function Innmind\Immutable\unwrap;
 
 /**
  * @template T of object
@@ -22,8 +17,6 @@ final class Normalize
     /** @var Aggregate<T> */
     private Aggregate $aggregate;
     private Types $types;
-    /** @var ?list<string> */
-    private ?array $properties = null;
     /** @var ?array<string, Type> */
     private ?array $propertiesType = null;
 
@@ -43,17 +36,12 @@ final class Normalize
      */
     public function __invoke(object $entity): array
     {
-        $properties = $this->properties();
         $types = $this->propertiesType();
 
         /** @var array<string, mixed> */
-        return ReflectionObject::of(
-            $entity,
-            null,
-            null,
-            new ExtractionStrategy\ReflectionStrategy,
-        )
-            ->extract(...$properties)
+        return $this
+            ->aggregate
+            ->normalize($entity)
             ->map(static fn($property, $value): mixed => $types[$property]->normalize($value))
             ->reduce(
                 [],
@@ -64,19 +52,6 @@ final class Normalize
                     return $values;
                 },
             );
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function properties(): array
-    {
-        return $this->properties ??= unwrap(
-            $this->aggregate->properties()->mapTo(
-                'string',
-                static fn($property) => $property->name(),
-            ),
-        );
     }
 
     /**
