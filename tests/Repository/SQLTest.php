@@ -17,6 +17,7 @@ use Formal\AccessLayer\{
     Table,
 };
 use Innmind\Url\Url;
+use Innmind\Immutable\Maybe;
 use Example\Formal\ORM\User as Model;
 use Fixtures\Formal\ORM\User;
 use PHPUnit\Framework\TestCase;
@@ -48,6 +49,9 @@ class SQLTest extends TestCase
             $this->aggregate,
             $this->connection,
             $this->types,
+            static fn() => Maybe::nothing(),
+            static fn() => null,
+            static fn() => null,
             fn() => $this->allowMutation,
         );
     }

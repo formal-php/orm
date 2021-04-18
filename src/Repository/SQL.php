@@ -18,6 +18,10 @@ use Formal\AccessLayer\{
     Query,
     Table,
 };
+use Innmind\Reflection\{
+    ReflectionObject,
+    ExtractionStrategy,
+};
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{
     Maybe,
@@ -39,11 +43,20 @@ final class SQL implements Repository
     private Normalize $normalize;
     /** @var Denormalize<V> */
     private Denormalize $denormalize;
+    /** @var callable(Id<V>): Maybe<V> */
+    private $lookup;
+    /** @var callable(Id<V>, V): void */
+    private $cache;
+    /** @var callable(Id<V>): void */
+    private $invalidate;
     /** @var callable(): bool */
     private $allowMutation;
 
     /**
      * @param class-string<V> $class
+     * @param callable(Id<V>): Maybe<V> $lookup
+     * @param callable(Id<V>, V): void $cache
+     * @param callable(Id<V>): void $invalidate
      * @param callable(): bool $allowMutation
      */
     public function __construct(
@@ -51,6 +64,9 @@ final class SQL implements Repository
         Aggregate $aggregate,
         Connection $connection,
         Types $types,
+        callable $lookup,
+        callable $cache,
+        callable $invalidate,
         callable $allowMutation
     ) {
         $this->class = $class;
@@ -61,27 +77,27 @@ final class SQL implements Repository
         $this->normalize = new Normalize($aggregate, $types);
         /** @var Denormalize<V> */
         $this->denormalize = new Denormalize($aggregate, $types);
+        $this->lookup = $lookup;
+        $this->cache = $cache;
+        $this->invalidate = $invalidate;
         $this->allowMutation = $allowMutation;
     }
 
     public function get(Id $id): Maybe
     {
-        $select = $this->select()->where($this->match($id));
-        $aggregates = ($this->connection)($select)
-            ->mapTo($this->class, fn($row) => ($this->denormalize)($row));
-
-        if (!$aggregates->empty()) {
-            return Maybe::just($aggregates->first());
-        }
-
-        /** @var Maybe<V> */
-        return Maybe::nothing();
+        return ($this->lookup)($id)
+            ->otherwise(fn() => $this->lookup($id));
     }
 
     public function add(object $aggregate): void
     {
         // todo handle updates
         $this->assertMutable();
+
+        ($this->cache)(
+            $this->extractId($aggregate),
+            $aggregate,
+        );
 
         ($this->connection)(new Query\Insert(
             new Table\Name($this->aggregate->name()),
@@ -97,6 +113,7 @@ final class SQL implements Repository
             (new Query\Delete(new Table\Name($this->aggregate->name())))
                 ->where($this->match($id)),
         );
+        ($this->invalidate)($id);
     }
 
     public function all(): Set
@@ -135,5 +152,51 @@ final class SQL implements Repository
             $this->aggregate->id()->property(),
             $id,
         );
+    }
+
+    /**
+     * @param Id<V> $id
+     *
+     * @return Maybe<V>
+     */
+    private function lookup(Id $id): Maybe
+    {
+        $select = $this->select()->where($this->match($id));
+        $aggregates = ($this->connection)($select)
+            ->mapTo($this->class, fn($row) => ($this->denormalize)($row));
+
+        if (!$aggregates->empty()) {
+            $aggregate = $aggregates->first();
+
+            ($this->cache)(
+                $this->extractId($aggregate),
+                $aggregate,
+            );
+
+            return Maybe::just($aggregate);
+        }
+
+        /** @var Maybe<V> */
+        return Maybe::nothing();
+    }
+
+    /**
+     * @param V $aggregate
+     *
+     * @return Id<V>
+     */
+    private function extractId(object $aggregate): Id
+    {
+        $property = $this->aggregate->id()->property();
+
+        /** @var Id<V> */
+        return ReflectionObject::of(
+            $aggregate,
+            null,
+            null,
+            new ExtractionStrategy\ReflectionStrategy,
+        )
+            ->extract($property)
+            ->get($property);
     }
 }

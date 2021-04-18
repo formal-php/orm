@@ -171,6 +171,78 @@ class SQLTest extends TestCase
             });
     }
 
+    public function testDoesntCacheLoadedEntitiesOutsideATransaction()
+    {
+        $this
+            ->forAll(User::any())
+            ->then(function($user) {
+                $this->reset();
+                $repository = $this->manager->repository(Model::class);
+                $this->manager->transactional(static function() use ($repository, $user) {
+                    $repository->add($user);
+
+                    return Either::right(null);
+                });
+
+                $this->assertNotSame(
+                    $repository->get(Id::of($user->uuid()))->match(
+                        static fn($aggregate) => $aggregate,
+                        static fn() => null,
+                    ),
+                    $repository->get(Id::of($user->uuid()))->match(
+                        static fn($aggregate) => $aggregate,
+                        static fn() => null,
+                    ),
+                );
+            });
+    }
+
+    public function testRetrieveEntityViaCacheInATRansaction()
+    {
+        $this
+            ->forAll(User::any())
+            ->then(function($user) {
+                $this->reset();
+                $repository = $this->manager->repository(Model::class);
+
+                $this->manager->transactional(function() use ($repository, $user) {
+                    $repository->add($user);
+
+                    $this->assertSame(
+                        $user,
+                        $repository->get(Id::of($user->uuid()))->match(
+                            static fn($aggregate) => $aggregate,
+                            static fn() => null,
+                        ),
+                    );
+
+                    return Either::right(null);
+                });
+            });
+    }
+
+    public function testEntityIsRemovedFromCacheWhenDeleted()
+    {
+        $this
+            ->forAll(User::any())
+            ->then(function($user) {
+                $this->reset();
+                $repository = $this->manager->repository(Model::class);
+
+                $this->manager->transactional(function() use ($repository, $user) {
+                    $repository->add($user);
+                    $repository->remove(Id::of($user->uuid()));
+
+                    $this->assertFalse($repository->get(Id::of($user->uuid()))->match(
+                        static fn() => true,
+                        static fn() => false,
+                    ));
+
+                    return Either::right(null);
+                });
+            });
+    }
+
     private function reset(): void
     {
         ($this->connection)(Query\DropTable::ifExists(new Table\Name($this->aggregate->name())));
