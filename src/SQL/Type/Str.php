@@ -11,7 +11,7 @@ use Formal\ORM\{
 use Formal\AccessLayer\Table\Column;
 
 /**
- * @implements Type<string, string>
+ * @implements Type<?string, ?string>
  */
 final class Str implements Type
 {
