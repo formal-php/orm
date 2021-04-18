@@ -37,6 +37,7 @@ final class Types
     {
         return [
             Type\Id::required(),
+            Type\Id::nullable(),
             Type\Str::required(),
             Type\Str::nullable(),
         ];
