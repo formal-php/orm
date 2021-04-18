@@ -7,6 +7,7 @@ use Formal\ORM\{
     Manager,
     Repository,
     Definition\Aggregate,
+    Definition\Aggregates,
     SQL\Types,
     Id,
 };
@@ -17,8 +18,6 @@ use Formal\AccessLayer\{
 use Innmind\Immutable\{
     Either,
     Maybe,
-    Map,
-    Exception\ElementNotFound,
 };
 
 final class SQL implements Manager
@@ -28,35 +27,22 @@ final class SQL implements Manager
     private bool $allowMutation = false;
     /** @var \WeakMap<Repository\SQL<object>, class-string> */
     private \WeakMap $repositories;
-    /** @var Map<class-string, Aggregate<object>> */
-    private Map $aggregates;
+    private Aggregates $aggregates;
     /** @var Maybe<\WeakMap<Id<object>, object>> */
     private Maybe $cache;
 
-    private function __construct(
+    public function __construct(
         Connection $connection,
         Types $types,
-        Aggregate ...$aggregates
+        Aggregates $aggregates
     ) {
         $this->connection = $connection;
         $this->types = $types;
         /** @var \WeakMap<Repository\SQL<object>, class-string> */
         $this->repositories = new \WeakMap;
-        $this->aggregates = Map::of('string', Aggregate::class);
+        $this->aggregates = $aggregates;
         /** @var Maybe<\WeakMap<Id<object>, object>> */
         $this->cache = Maybe::nothing();
-
-        foreach ($aggregates as $aggregate) {
-            $this->aggregates = ($this->aggregates)($aggregate->class(), $aggregate);
-        }
-    }
-
-    public static function of(
-        Connection $connection,
-        Types $types,
-        Aggregate ...$aggregates
-    ): self {
-        return new self($connection, $types, ...$aggregates);
     }
 
     /**
@@ -77,7 +63,7 @@ final class SQL implements Manager
 
         $repository = new Repository\SQL(
             $class,
-            $this->aggregate($class),
+            $this->aggregates->get($class),
             $this->connection,
             $this->types,
             fn(Id $id) => $this->lookup($id),
@@ -127,18 +113,6 @@ final class SQL implements Manager
             $this->allowMutation = false;
             /** @var Maybe<\WeakMap<Id<object>, object>> */
             $this->cache = Maybe::nothing();
-        }
-    }
-
-    /**
-     * @param class-string $class
-     */
-    private function aggregate(string $class): Aggregate
-    {
-        try {
-            return $this->aggregates->get($class);
-        } catch (ElementNotFound $e) {
-            return Aggregate::of($class);
         }
     }
 

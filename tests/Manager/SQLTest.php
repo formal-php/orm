@@ -7,6 +7,7 @@ use Formal\ORM\{
     Manager\SQL,
     Manager,
     Definition\Aggregate,
+    Definition\Aggregates,
     Id,
     SQL\Types,
     SQL\CreateTable,
@@ -41,10 +42,10 @@ class SQLTest extends TestCase
         $this->connection = new PDO(Url::of("mysql://root:root@127.0.0.1:$port/example"));
         $this->types = new Types(...Types::default());
         $this->aggregate = Aggregate::of(Model::class)->exclude('doNotPersist');
-        $this->manager = SQL::of(
+        $this->manager = new SQL(
             $this->connection,
             $this->types,
-            $this->aggregate,
+            Aggregates::of($this->aggregate),
         );
     }
 
