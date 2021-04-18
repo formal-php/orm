@@ -18,6 +18,16 @@ final class User
         return $this->id->toString();
     }
 
+    public function username(): string
+    {
+        return $this->username;
+    }
+
+    public function rename(string $username): self
+    {
+        return new self($this->id, $username);
+    }
+
     public function equals(self $user): bool
     {
         return $this->id->equals($user->id) &&

@@ -243,6 +243,38 @@ class SQLTest extends TestCase
             });
     }
 
+    public function testUpdateAnExistingEntity()
+    {
+        $this
+            ->forAll(
+                User::any(),
+                Set\Strings::madeOf(Set\Chars::alphanumerical()),
+            )
+            ->then(function($user, $username) {
+                $this->reset();
+                $repository = $this->manager->repository(Model::class);
+
+                $this->manager->transactional(function() use ($repository, $user, $username) {
+                    $repository->add($user);
+                    $user2 = $user->rename($username);
+                    $repository->add($user2);
+                    $id = Id::of($user->uuid());
+                    unset($user);
+                    unset($user2);
+
+                    $this->assertSame(
+                        $username,
+                        $repository->get($id)->match(
+                            static fn($user) => $user->username(),
+                            static fn() => null,
+                        ),
+                    );
+
+                    return Either::right(null);
+                });
+            });
+    }
+
     private function reset(): void
     {
         ($this->connection)(Query\DropTable::ifExists(new Table\Name($this->aggregate->name())));

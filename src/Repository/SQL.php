@@ -91,18 +91,16 @@ final class SQL implements Repository
 
     public function add(object $aggregate): void
     {
-        // todo handle updates
         $this->assertMutable();
 
-        ($this->cache)(
-            $this->extractId($aggregate),
-            $aggregate,
+        $id = $this->extractId($aggregate);
+        /** @psalm-suppress UnusedMethodCall */
+        ($this->lookup)($id)->match(
+            fn() => $this->update($id, $aggregate),
+            fn() => $this->insert($aggregate),
         );
 
-        ($this->connection)(new Query\Insert(
-            new Table\Name($this->aggregate->name()),
-            Row::of(($this->normalize)($aggregate)),
-        ));
+        ($this->cache)($id, $aggregate);
     }
 
     public function remove(Id $id): void
@@ -198,5 +196,30 @@ final class SQL implements Repository
         )
             ->extract($property)
             ->get($property);
+    }
+
+    /**
+     * @param V $aggregate
+     */
+    private function insert(object $aggregate): void
+    {
+        ($this->connection)(new Query\Insert(
+            new Table\Name($this->aggregate->name()),
+            Row::of(($this->normalize)($aggregate)),
+        ));
+    }
+
+    /**
+     * @param Id<V> $id
+     * @param V $aggregate
+     */
+    private function update(Id $id, object $aggregate): void
+    {
+        // todo only update what changed
+        $update = new Query\Update(
+            new Table\Name($this->aggregate->name()),
+            Row::of(($this->normalize)($aggregate)),
+        );
+        ($this->connection)($update->where($this->match($id)));
     }
 }
