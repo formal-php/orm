@@ -3,15 +3,23 @@ declare(strict_types = 1);
 
 namespace Example\Formal\ORM;
 
-use Formal\ORM\Id;
+use Formal\ORM\{
+    Id,
+    Definition\Template,
+};
 
 final class User
 {
-    public function __construct(
-        private Id $id,
-        private string $username,
-        private ?\Closure $doNotPersist = null,
-    ) {}
+    #[Template(self::class)]
+    private Id $id;
+    private string $username;
+    private ?\Closure $doNotPersist = null;
+
+    public function __construct(Id $id, string $username)
+    {
+        $this->id = $id;
+        $this->username = $username;
+    }
 
     public function uuid(): string
     {
