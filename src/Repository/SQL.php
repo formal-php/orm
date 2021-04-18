@@ -26,8 +26,6 @@ use Innmind\Immutable\{
  */
 final class SQL implements Repository
 {
-    /** @var class-string<V> */
-    private string $class;
     /** @var Aggregate<V> */
     private Aggregate $aggregate;
     /** @var Table<V> */
@@ -42,7 +40,6 @@ final class SQL implements Repository
     private $allowMutation;
 
     /**
-     * @param class-string<V> $class
      * @param Aggregate<V> $aggregate
      * @param callable(Id<V>): Maybe<V> $lookup
      * @param callable(Id<V>, V): void $cache
@@ -50,7 +47,6 @@ final class SQL implements Repository
      * @param callable(): bool $allowMutation
      */
     public function __construct(
-        string $class,
         Aggregate $aggregate,
         Connection $connection,
         Types $types,
@@ -59,7 +55,6 @@ final class SQL implements Repository
         callable $invalidate,
         callable $allowMutation
     ) {
-        $this->class = $class;
         $this->aggregate = $aggregate;
         $this->table = new Table($aggregate, $types, $connection);
         $this->lookup = $lookup;
@@ -115,7 +110,7 @@ final class SQL implements Repository
 
     public function matching(Specification $specification): Set
     {
-        return Set::of($this->class);
+        return Set::of($this->aggregate->class());
     }
 
     /**

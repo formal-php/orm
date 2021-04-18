@@ -45,7 +45,6 @@ class SQLTest extends TestCase
         $this->aggregate = Aggregate::of(Model::class)
             ->exclude('doNotPersist');
         $this->repository = new SQL(
-            Model::class,
             $this->aggregate,
             $this->connection,
             $this->types,

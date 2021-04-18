@@ -62,7 +62,6 @@ final class SQL implements Manager
         }
 
         $repository = new Repository\SQL(
-            $class,
             $this->aggregates->get($class),
             $this->connection,
             $this->types,
