@@ -3,7 +3,6 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition;
 
-use Formal\ORM;
 use Innmind\Reflection\{
     ReflectionClass,
     ReflectionObject,
@@ -96,7 +95,7 @@ final class Aggregate
             return new Id(
                 $this
                     ->properties()
-                    ->find(static fn($property) => $property->type()->ofClass(ORM\Id::class))
+                    ->find(static fn($property) => $property->isId())
                     ->name(),
             );
         } catch (NoElementMatchingPredicateFound $e) {

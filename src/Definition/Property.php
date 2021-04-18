@@ -3,7 +3,10 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition;
 
-use Formal\ORM\Definition\Property\Type;
+use Formal\ORM\{
+    Definition\Property\Type,
+    Id,
+};
 
 /**
  * @internal
@@ -38,5 +41,15 @@ final class Property
     public function type(): Type
     {
         return $this->type;
+    }
+
+    /**
+     * If it's the id to reference the aggregate.
+     *
+     * Ids that references relations will return false
+     */
+    public function isId(): bool
+    {
+        return $this->type->ofClass(Id::class);
     }
 }
