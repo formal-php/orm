@@ -53,7 +53,7 @@ final class SQL implements Repository
         callable $lookup,
         callable $cache,
         callable $invalidate,
-        callable $allowMutation
+        callable $allowMutation,
     ) {
         $this->aggregate = $aggregate;
         $this->table = new Table($aggregate, $types, $connection);

@@ -34,7 +34,7 @@ final class SQL implements Manager
     public function __construct(
         Connection $connection,
         Types $types,
-        Aggregates $aggregates
+        Aggregates $aggregates,
     ) {
         $this->connection = $connection;
         $this->types = $types;
