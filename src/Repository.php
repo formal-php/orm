@@ -93,6 +93,7 @@ final class Repository
     {
         /** @var Id<T> */
         $id = $this->definition->id()->extract($aggregate);
+        $this->loaded[$id] = $aggregate;
 
         match ($loaded = ($this->loaded[$id] ?? null)) {
             null => $this->adapter->add(
