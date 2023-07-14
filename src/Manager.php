@@ -3,12 +3,25 @@ declare(strict_types = 1);
 
 namespace Formal\ORM;
 
-use Innmind\Immutable\Either;
+use Innmind\Immutable\{
+    Either,
+    Map,
+    Predicate\Instance,
+};
 
 final class Manager
 {
+    /** @var Map<class-string, \WeakReference<Repository>> */
+    private Map $repositories;
+
     private function __construct()
     {
+        $this->repositories = Map::of();
+    }
+
+    public static function of(): self
+    {
+        return new self;
     }
 
     /**
@@ -20,7 +33,24 @@ final class Manager
      */
     public function repository(string $class): Repository
     {
-        return Repository::of($class);
+        /** @var Repository<T> */
+        $repository = $this
+            ->repositories
+            ->get($class)
+            ->map(static fn($ref) => $ref->get())
+            ->keep(Instance::of(Repository::class))
+            ->match(
+                static fn($repository) => $repository,
+                static fn() => Repository::of($class),
+            );
+        $this->repositories = $this->repositories
+            ->filter(static fn($_, $ref) => \is_object($ref->get())) // remove dead references
+            ->put(
+                $class,
+                \WeakReference::create($repository),
+            );
+
+        return $repository;
     }
 
     /**
