@@ -7,6 +7,11 @@ use Formal\ORM\{
     Id as PublicId,
     Raw,
 };
+use Innmind\Reflection\Extract;
+use Innmind\Immutable\{
+    Set,
+    Predicate\Instance,
+};
 
 /**
  * @template T of object
@@ -48,8 +53,14 @@ final class Id
      */
     public function extract(object $aggregate): PublicId
     {
-        // TODO
-        return PublicId::new($this->class);
+        /** @var PublicId<T> */
+        return (new Extract)($aggregate, Set::of($this->property))
+            ->flatMap(fn($properties) => $properties->get($this->property))
+            ->keep(Instance::of(PublicId::class))
+            ->match(
+                static fn($id) => $id,
+                fn() => throw new \LogicException("Unable to extract id on {$this->class}"),
+            );
     }
 
     /**
