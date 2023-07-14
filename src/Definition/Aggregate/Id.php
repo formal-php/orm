@@ -47,6 +47,14 @@ final class Id
     }
 
     /**
+     * @return non-empty-string
+     */
+    public function property(): string
+    {
+        return $this->property;
+    }
+
+    /**
      * @param T $aggregate
      *
      * @return PublicId<T>
@@ -69,5 +77,13 @@ final class Id
     public function normalize(PublicId $id): Raw\Aggregate\Id
     {
         return Raw\Aggregate\Id::of($this->property, $id->toString());
+    }
+
+    /**
+     * @return PublicId<T>
+     */
+    public function denormalize(Raw\Aggregate\Id $id): PublicId
+    {
+        return PublicId::of($this->class, $id->value());
     }
 }

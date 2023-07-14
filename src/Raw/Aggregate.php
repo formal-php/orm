@@ -7,18 +7,30 @@ use Innmind\Immutable\Set;
 
 final class Aggregate
 {
-    private function __construct()
+    private Aggregate\Id $id;
+    /** @var Set<Aggregate\Property> */
+    private Set $properties;
+
+    /**
+     * @param Set<Aggregate\Property> $properties
+     */
+    private function __construct(Aggregate\Id $id, Set $properties)
     {
+        $this->id = $id;
+        $this->properties = $properties;
     }
 
-    public static function of(): self
+    /**
+     * @param Set<Aggregate\Property> $properties
+     */
+    public static function of(Aggregate\Id $id, Set $properties): self
     {
-        return new self;
+        return new self($id, $properties);
     }
 
     public function id(): Aggregate\Id
     {
-        return Aggregate\Id::of('todo', 'todo');
+        return $this->id;
     }
 
     /**
@@ -26,6 +38,6 @@ final class Aggregate
      */
     public function properties(): Set
     {
-        return Set::of();
+        return $this->properties;
     }
 }

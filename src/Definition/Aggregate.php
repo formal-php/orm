@@ -98,7 +98,10 @@ final class Aggregate
      */
     public function normalize(object $aggregate): Raw\Aggregate
     {
-        return Raw\Aggregate::of();
+        /** @var Id<T> */
+        $id = $this->id()->extract($aggregate);
+
+        return Raw\Aggregate::of($this->id()->normalize($id), Set::of());
     }
 
     /**
@@ -108,8 +111,22 @@ final class Aggregate
      */
     public function denormalize(Raw\Aggregate $data, Id $id = null): object
     {
+        $id = match ($id) {
+            null => $this->id()->denormalize($data->id()),
+            default => $id,
+        };
+
+        /** @var Map<non-empty-string, mixed> */
+        $properties = $data->properties()->reduce(
+            Map::of([$this->id()->property(), $id]),
+            static fn(Map $properties, $property) => ($properties)(
+                $property->name(),
+                $property->value(), // TODO denormalize
+            ),
+        );
+
         /** @var T */
-        return (new Instanciate)($this->class, Map::of())->match(
+        return (new Instanciate)($this->class, $properties)->match(
             static fn($aggregate) => $aggregate,
             fn() => throw new \RuntimeException("Unable to denormalize aggregate of type {$this->class}"),
         );

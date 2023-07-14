@@ -16,9 +16,12 @@ final class Property
         return new self;
     }
 
+    /**
+     * @return non-empty-string
+     */
     public function name(): string
     {
-        return '';
+        return 'todo';
     }
 
     public function value(): mixed
