@@ -17,7 +17,8 @@
     "require": {
         "php": "~8.2",
         "innmind/immutable": "~4.15",
-        "innmind/specification": "~3.0"
+        "innmind/specification": "~3.0",
+        "ramsey/uuid": "~4.7"
     },
     "autoload": {
         "psr-4": {
