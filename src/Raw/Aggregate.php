@@ -11,6 +11,11 @@ final class Aggregate
     {
     }
 
+    public static function of(): self
+    {
+        return new self;
+    }
+
     public function id(): Aggregate\Id
     {
         return Aggregate\Id::of();

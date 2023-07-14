@@ -3,11 +3,18 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition;
 
-use Formal\ORM\Id;
-use Innmind\Reflection\ReflectionClass;
+use Formal\ORM\{
+    Id,
+    Raw,
+};
+use Innmind\Reflection\{
+    ReflectionClass,
+    Instanciate,
+};
 use Innmind\Immutable\{
     Str,
     Set,
+    Map,
     Monoid\Concat,
     Predicate\Instance,
 };
@@ -38,6 +45,14 @@ final class Aggregate
     public static function of(string $class): self
     {
         return new self($class);
+    }
+
+    /**
+     * @return class-string<T>
+     */
+    public function class(): string
+    {
+        return $this->class;
     }
 
     public function name(): string
@@ -76,5 +91,27 @@ final class Aggregate
     public function properties(): Set
     {
         return Set::of();
+    }
+
+    /**
+     * @param T $aggregate
+     */
+    public function normalize(object $aggregate): Raw\Aggregate
+    {
+        return Raw\Aggregate::of();
+    }
+
+    /**
+     * @param Id<T> $id
+     *
+     * @return T
+     */
+    public function denormalize(Raw\Aggregate $data, Id $id = null): object
+    {
+        /** @var T */
+        return (new Instanciate)($this->class, Map::of())->match(
+            static fn($aggregate) => $aggregate,
+            fn() => throw new \RuntimeException("Unable to denormalize aggregate of type {$this->class}"),
+        );
     }
 }

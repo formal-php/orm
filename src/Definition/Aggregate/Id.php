@@ -3,6 +3,11 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition\Aggregate;
 
+use Formal\ORM\{
+    Id as PublicId,
+    Raw,
+};
+
 /**
  * @template T of object
  */
@@ -34,5 +39,24 @@ final class Id
     public static function of(string $property, string $class): self
     {
         return new self($property, $class);
+    }
+
+    /**
+     * @param T $aggregate
+     *
+     * @return PublicId<T>
+     */
+    public function extract(object $aggregate): PublicId
+    {
+        // TODO
+        return PublicId::new($this->class);
+    }
+
+    /**
+     * @param PublicId<T> $id
+     */
+    public function normalize(PublicId $id): Raw\Aggregate\Id
+    {
+        return Raw\Aggregate\Id::of();
     }
 }
