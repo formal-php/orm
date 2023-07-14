@@ -55,8 +55,12 @@ final class Aggregate
         return $this->class;
     }
 
+    /**
+     * @return non-empty-string
+     */
     public function name(): string
     {
+        /** @var non-empty-string */
         return Str::of($this->class)
             ->split('\\')
             ->takeEnd(1)

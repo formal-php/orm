@@ -24,11 +24,11 @@ final class Manager
         $this->repositories = Map::of();
     }
 
-    public static function of(): self
-    {
-        // TODO inject the dependencies
-        /** @psalm-suppress InvalidArgument */
-        return new self(null, Aggregates::of());
+    public static function of(
+        Adapter $adapter,
+        Aggregates $aggregates = null,
+    ): self {
+        return new self($adapter, $aggregates ?? Aggregates::of());
     }
 
     /**

@@ -18,4 +18,14 @@ final class User
     {
         $this->id = Id::new(self::class);
     }
+
+    public static function new(): self
+    {
+        return new self;
+    }
+
+    public function id(): Id
+    {
+        return $this->id;
+    }
 }
