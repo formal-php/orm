@@ -5,22 +5,43 @@ namespace Formal\ORM\Raw\Aggregate;
 
 final class Id
 {
-    private function __construct()
+    /** @var non-empty-string */
+    private string $name;
+    /** @var non-empty-string */
+    private string $value;
+
+    /**
+     * @param non-empty-string $name
+     * @param non-empty-string $value
+     */
+    private function __construct(string $name, string $value)
     {
+        $this->name = $name;
+        $this->value = $value;
     }
 
-    public static function of(): self
+    /**
+     * @param non-empty-string $name
+     * @param non-empty-string $value
+     */
+    public static function of(string $name, string $value): self
     {
-        return new self;
+        return new self($name, $value);
     }
 
+    /**
+     * @return non-empty-string
+     */
     public function name(): string
     {
-        return '';
+        return $this->name;
     }
 
+    /**
+     * @return non-empty-string
+     */
     public function value(): string
     {
-        return '';
+        return $this->value;
     }
 }

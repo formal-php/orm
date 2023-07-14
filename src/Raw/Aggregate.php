@@ -18,7 +18,7 @@ final class Aggregate
 
     public function id(): Aggregate\Id
     {
-        return Aggregate\Id::of();
+        return Aggregate\Id::of('todo', 'todo');
     }
 
     /**

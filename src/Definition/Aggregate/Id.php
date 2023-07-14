@@ -68,6 +68,6 @@ final class Id
      */
     public function normalize(PublicId $id): Raw\Aggregate\Id
     {
-        return Raw\Aggregate\Id::of();
+        return Raw\Aggregate\Id::of($this->property, $id->toString());
     }
 }
