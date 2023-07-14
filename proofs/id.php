@@ -31,4 +31,12 @@ return static function() {
             $assert->false($idA->equals($idB));
         },
     );
+
+    yield proof(
+        'Id::of() throws on invalid values',
+        given(Set\Strings::madeOf(Set\Unicode::any())),
+        static function($assert, $value) {
+            $assert->throws(static fn() => Id::of(\stdClass::class, $value));
+        },
+    );
 };
