@@ -1,34 +1,16 @@
 name: CI
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
-  roave_bc_check:
-    name: Roave BC Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: fetch tags
-        run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-      - name: Roave BC Check
-        uses: docker://nyholm/roave-bc-check-ga
-        continue-on-error: true
-  phpunit:
+  blackbox:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        php-version: ['8.0']
-        dependencies: ['lowest', 'highest']
-    name: 'PHPUnit'
-    services:
-      mariadb:
-        image: mariadb:10
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: example
-        ports:
-            - 3306
+        os: [ubuntu-latest, macOS-latest]
+        php-version: ['8.2']
+        dependency-versions: ['lowest', 'highest']
+    name: 'BlackBox'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -38,42 +20,20 @@ jobs:
           php-version: ${{ matrix.php-version }}
           extensions: mbstring, intl
           coverage: none
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - name: Cache dependencies
-        uses: actions/cache@v2
+      - name: Composer
+        uses: "ramsey/composer-install@v2"
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ matrix.php-version }}-${{ matrix.dependencies }}-composer-${{ hashFiles('**/composer.json') }}
-          restore-keys: ${{ runner.os }}-${{ matrix.php-version }}-${{ matrix.dependencies }}-composer-
-      - name: Install Dependencies
-        if: ${{ matrix.dependencies == 'lowest' }}
-        run: composer update --prefer-lowest --no-progress
-      - name: Install Dependencies
-        if: ${{ matrix.dependencies == 'highest' }}
-        run: composer install --no-progress
-      - name: PHPUnit
-        run: vendor/bin/phpunit
-        env:
-          BLACKBOX_DETAILED_PROPERTIES: 1
-          DB_PORT: ${{ job.services.mariadb.ports[3306] }}
+          dependency-versions: ${{ matrix.dependencies }}
+      - name: BlackBox
+        run: php blackbox.php
   coverage:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        php-version: ['8.0']
-        dependencies: ['lowest', 'highest']
+        os: [ubuntu-latest, macOS-latest]
+        php-version: ['8.2']
+        dependency-versions: ['lowest', 'highest']
     name: 'Coverage'
-    services:
-      mariadb:
-        image: mariadb:10
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: example
-        ports:
-            - 3306
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -83,26 +43,14 @@ jobs:
           php-version: ${{ matrix.php-version }}
           extensions: mbstring, intl
           coverage: xdebug
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - name: Cache dependencies
-        uses: actions/cache@v2
+      - name: Composer
+        uses: "ramsey/composer-install@v2"
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ matrix.php-version }}-${{ matrix.dependencies }}-composer-${{ hashFiles('**/composer.json') }}
-          restore-keys: ${{ runner.os }}-${{ matrix.php-version }}-${{ matrix.dependencies }}-composer-
-      - name: Install Dependencies
-        if: ${{ matrix.dependencies == 'lowest' }}
-        run: composer update --prefer-lowest --no-progress
-      - name: Install Dependencies
-        if: ${{ matrix.dependencies == 'highest' }}
-        run: composer install --no-progress
-      - name: PHPUnit
-        run: vendor/bin/phpunit --coverage-clover=coverage.clover
+          dependency-versions: ${{ matrix.dependencies }}
+      - name: BlackBox
+        run: php blackbox.php
         env:
-          BLACKBOX_SET_SIZE: 1
-          DB_PORT: ${{ job.services.mariadb.ports[3306] }}
+          ENABLE_COVERAGE: 'true'
       - uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -110,8 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ['8.0']
-        dependencies: ['lowest', 'highest']
+        php-version: ['8.2']
     name: 'Psalm'
     steps:
       - name: Checkout
@@ -121,28 +68,15 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           extensions: mbstring, intl
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - name: Cache dependencies
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ matrix.php-version }}-${{ matrix.dependencies }}-composer-${{ hashFiles('**/composer.json') }}
-          restore-keys: ${{ runner.os }}-${{ matrix.php-version }}-${{ matrix.dependencies }}-composer-
-      - name: Install Dependencies
-        if: ${{ matrix.dependencies == 'lowest' }}
-        run: composer update --prefer-lowest --no-progress
-      - name: Install Dependencies
-        if: ${{ matrix.dependencies == 'highest' }}
-        run: composer install --no-progress
+      - name: Composer
+        uses: "ramsey/composer-install@v2"
       - name: Psalm
         run: vendor/bin/psalm --shepherd
   cs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ['8.0']
+        php-version: ['8.2']
     name: 'CS'
     steps:
       - name: Checkout
@@ -152,16 +86,7 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
           extensions: mbstring, intl
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - name: Cache dependencies
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.json') }}
-          restore-keys: ${{ runner.os }}-${{ matrix.php-version }}-composer-
-      - name: Install Dependencies
-        run: composer install --no-progress
+      - name: Composer
+        uses: "ramsey/composer-install@v2"
       - name: CS
-        run: vendor/bin/php-cs-fixer fix --diff --dry-run --diff-format udiff
+        run: vendor/bin/php-cs-fixer fix --diff --dry-run
