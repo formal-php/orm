@@ -26,13 +26,22 @@ final class Aggregate
 {
     /** @var class-string<T> */
     private string $class;
+    private Aggregate\Id $id;
+    /** @var Set<Aggregate\Property> */
+    private Set $properties;
 
     /**
      * @param class-string<T> $class
+     * @param Set<Aggregate\Property> $properties
      */
-    private function __construct(string $class)
-    {
+    private function __construct(
+        string $class,
+        Aggregate\Id $id,
+        Set $properties,
+    ) {
         $this->class = $class;
+        $this->id = $id;
+        $this->properties = $properties;
     }
 
     /**
@@ -44,7 +53,37 @@ final class Aggregate
      */
     public static function of(string $class): self
     {
-        return new self($class);
+        $types = Types::default(); // TODO inject
+        $properties = ReflectionClass::of($class)->properties();
+        $id = $properties
+            ->filter(static fn($property) => $property->type()->toString() === Id::class)
+            ->filter(
+                static fn($property) => $property
+                    ->attributes()
+                    ->filter(static fn($attribute) => $attribute->class() === Template::class)
+                    ->map(static fn($attribute) => $attribute->instance())
+                    ->keep(Instance::of(Template::class))
+                    ->any(static fn($template) => $template->is($class)),
+            )
+            ->find(static fn() => true) // TODO mention in the doc that only one property can reference an id of the current aggregate
+            ->match(
+                static fn($property) => Aggregate\Id::of($property->name(), $class),
+                static fn() => throw new \LogicException('One property must be typed Id<self>'),
+            );
+        /** @psalm-suppress ArgumentTypeCoercion TODO fix in innmind/reflection */
+        $props = $properties
+            ->exclude(static fn($property) => $property->name() === $id->property())
+            ->flatMap(static fn($property) => $types($property->type()->toString())
+                ->map(static fn($type) => Aggregate\Property::of(
+                    $class,
+                    $property->name(),
+                    $type,
+                ))
+                ->toSequence()
+                ->toSet(),
+            );
+
+        return new self($class, $id, $props);
     }
 
     /**
@@ -71,22 +110,7 @@ final class Aggregate
 
     public function id(): Aggregate\Id
     {
-        return ReflectionClass::of($this->class)
-            ->properties()
-            ->filter(static fn($property) => $property->type()->toString() === Id::class)
-            ->filter(
-                fn($property) => $property
-                    ->attributes()
-                    ->filter(static fn($attribute) => $attribute->class() === Template::class)
-                    ->map(static fn($attribute) => $attribute->instance())
-                    ->keep(Instance::of(Template::class))
-                    ->any(fn($template) => $template->is($this->class)),
-            )
-            ->find(static fn() => true) // TODO mention in the doc that only one property can reference an id of the current aggregate
-            ->match(
-                fn($property) => Aggregate\Id::of($property->name(), $this->class),
-                static fn() => throw new \LogicException('One proper must be typed Id<self>'),
-            );
+        return $this->id;
     }
 
     /**
@@ -94,7 +118,7 @@ final class Aggregate
      */
     public function properties(): Set
     {
-        return Set::of();
+        return $this->properties;
     }
 
     /**
@@ -105,7 +129,12 @@ final class Aggregate
         /** @var Id<T> */
         $id = $this->id()->extract($aggregate);
 
-        return Raw\Aggregate::of($this->id()->normalize($id), Set::of());
+        return Raw\Aggregate::of(
+            $this->id()->normalize($id),
+            $this
+                ->properties
+                ->map(static fn($property) => $property->normalize($aggregate)),
+        );
     }
 
     /**
@@ -120,13 +149,20 @@ final class Aggregate
             default => $id,
         };
 
-        /** @var Map<non-empty-string, mixed> */
-        $properties = $data->properties()->reduce(
-            Map::of([$this->id()->property(), $id]),
-            static fn(Map $properties, $property) => ($properties)(
-                $property->name(),
-                $property->value(), // TODO denormalize
-            ),
+        $properties = Map::of(
+            [$this->id()->property(), $id],
+            ...$data
+                ->properties()
+                ->flatMap(
+                    fn($property) => $this
+                        ->properties
+                        ->find(static fn($definition) => $definition->name() === $property->name())
+                        ->map(static fn($definition): mixed => $definition->denormalize($property->value()))
+                        ->map(static fn($value) => [$property->name(), $value])
+                        ->toSequence()
+                        ->toSet(),
+                )
+                ->toList(),
         );
 
         /** @var T */

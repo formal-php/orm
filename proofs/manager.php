@@ -5,6 +5,10 @@ use Formal\ORM\{
     Manager,
     Adapter,
 };
+use Fixtures\Formal\ORM\{
+    User,
+    Random,
+};
 use Properties\Formal\ORM\Properties;
 use Innmind\Filesystem\Adapter\InMemory;
 use Innmind\BlackBox\Set;
@@ -15,8 +19,8 @@ return static function() {
         static function($assert) {
             $manager = Manager::of(Adapter\Filesystem::of(InMemory::emulateFilesystem()));
 
-            $repository1 = $manager->repository('a');
-            $repository2 = $manager->repository('a');
+            $repository1 = $manager->repository(User::class);
+            $repository2 = $manager->repository(User::class);
 
             $assert->same($repository1, $repository2);
         },
@@ -25,9 +29,8 @@ return static function() {
         'Manager::repository() returns an instance per class',
         static function($assert) {
             $manager = Manager::of(Adapter\Filesystem::of(InMemory::emulateFilesystem()));
-
-            $repositoryA = $manager->repository('a');
-            $repositoryB = $manager->repository('b');
+            $repositoryA = $manager->repository(User::class);
+            $repositoryB = $manager->repository(Random::class);
 
             $assert
                 ->expected($repositoryA)

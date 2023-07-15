@@ -8,31 +8,24 @@ use Formal\ORM\{
     Definition\Template,
 };
 
-final class User
+final class Random
 {
     /** @var Id<self> */
     #[Template(self::class)]
     private Id $id;
-    private ?string $name;
 
-    private function __construct(?string $name)
+    private function __construct()
     {
         $this->id = Id::new(self::class);
-        $this->name = $name;
     }
 
-    public static function new(string $name = null): self
+    public static function new(): self
     {
-        return new self($name);
+        return new self;
     }
 
     public function id(): Id
     {
         return $this->id;
-    }
-
-    public function name(): ?string
-    {
-        return $this->name;
     }
 }

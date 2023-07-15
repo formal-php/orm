@@ -19,13 +19,18 @@ use Innmind\BlackBox\{
  */
 final class AddAggregate implements Property
 {
-    private function __construct()
+    private ?string $name;
+
+    private function __construct(?string $name)
     {
+        $this->name = $name;
     }
 
     public static function any(): Set
     {
-        return Set\Elements::of(new self);
+        return Set\Nullable::of(Set\Strings::madeOf(Set\Unicode::any()))->map(
+            static fn($name) => new self($name),
+        );
     }
 
     public function applicableTo(object $manager): bool
@@ -41,7 +46,7 @@ final class AddAggregate implements Property
             ->size();
         $manager
             ->repository(User::class)
-            ->put($user = User::new());
+            ->put($user = User::new($this->name));
         $id = $user->id()->toString();
         unset($user); // to make sure there is no in memory cache somewhere
 
@@ -62,17 +67,23 @@ final class AddAggregate implements Property
                     ->filter(static fn($user) => $user->id()->toString() === $id)
                     ->size(),
             );
+
+        $fetched = $manager
+            ->repository(User::class)
+            ->get(Id::of(User::class, $id))
+            ->match(
+                static fn($user) => $user,
+                static fn() => null,
+            );
+        $assert
+            ->not()
+            ->null($fetched);
         $assert
             ->expected($id)
-            ->same(
-                $manager
-                    ->repository(User::class)
-                    ->get(Id::of(User::class, $id))
-                    ->match(
-                        static fn($user) => $user->id()->toString(),
-                        static fn() => null,
-                    ),
-            );
+            ->same($fetched->id()->toString());
+        $assert
+            ->expected($this->name)
+            ->same($fetched->name());
 
         return $manager;
     }

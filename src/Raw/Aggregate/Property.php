@@ -3,17 +3,27 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Raw\Aggregate;
 
-use Formal\ORM\Raw\Type;
-
 final class Property
 {
-    private function __construct()
+    /** @var non-empty-string */
+    private string $name;
+    private null|string|int|bool $value;
+
+    /**
+     * @param non-empty-string $name
+     */
+    private function __construct(string $name, null|string|int|bool $value)
     {
+        $this->name = $name;
+        $this->value = $value;
     }
 
-    public static function of(): self
+    /**
+     * @param non-empty-string $name
+     */
+    public static function of(string $name, null|string|int|bool $value): self
     {
-        return new self;
+        return new self($name, $value);
     }
 
     /**
@@ -21,16 +31,11 @@ final class Property
      */
     public function name(): string
     {
-        return 'todo';
+        return $this->name;
     }
 
-    public function value(): mixed
+    public function value(): null|string|int|bool
     {
-        return null;
-    }
-
-    public function type(): Type
-    {
-        return Type::string;
+        return $this->value;
     }
 }

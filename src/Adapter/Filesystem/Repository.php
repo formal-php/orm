@@ -56,15 +56,23 @@ final class Repository implements RepositoryInterface
 
     public function get(Aggregate\Id $id): Maybe
     {
+        /**
+         * @psalm-suppress NamedArgumentNotAllowed
+         * @psalm-suppress MixedArgument
+         * @psalm-suppress MixedArrayAccess
+         */
         return $this
             ->directory()
             ->get(Name::of($id->value()))
             ->map(static fn($file) => $file->content()->toString())
             ->map(Json::decode(...))
             ->filter(\is_array(...))
-            ->map(static fn($raw) => Aggregate::of(
+            ->map(static fn(array $raw) => Aggregate::of(
                 $id,
-                Set::of(),
+                Set::of(...$raw)->map(static fn($property) => Aggregate\Property::of(
+                    $property[0],
+                    $property[1],
+                )),
             ));
     }
 
@@ -81,7 +89,12 @@ final class Repository implements RepositoryInterface
             Directory\Directory::named($this->definition->name())->add(
                 File::named(
                     $data->id()->value(),
-                    Content\Lines::ofContent(Json::encode([])), // TODO store properties
+                    Content\Lines::ofContent(Json::encode([
+                        ...$data
+                            ->properties()
+                            ->map(static fn($property) => [$property->name(), $property->value()])
+                            ->toList(),
+                    ])),
                 ),
             ),
         );
@@ -101,18 +114,31 @@ final class Repository implements RepositoryInterface
 
     public function all(): Sequence
     {
-        /** @psalm-suppress ArgumentTypeCoercion */
+        /**
+         * @psalm-suppress ArgumentTypeCoercion
+         * @psalm-suppress NamedArgumentNotAllowed
+         * @psalm-suppress MixedArgument
+         * @psalm-suppress MixedArrayAccess
+         */
         return $this
             ->directory()
             ->files()
-            ->map(
-                fn($file) => Aggregate::of(
-                    Aggregate\Id::of(
-                        $this->definition->id()->property(),
-                        $file->name()->toString(),
-                    ),
-                    Set::of(),
-                ),
+            ->flatMap(
+                fn($file) => Maybe::just($file->content()->toString())
+                    ->map(Json::decode(...))
+                    ->filter(\is_array(...))
+                    ->map(static fn(array $raw) => Set::of(...$raw)->map(static fn($property) => Aggregate\Property::of(
+                        $property[0],
+                        $property[1],
+                    )))
+                    ->map(fn($properties) => Aggregate::of(
+                        Aggregate\Id::of(
+                            $this->definition->id()->property(),
+                            $file->name()->toString(),
+                        ),
+                        $properties,
+                    ))
+                    ->toSequence(),
             );
     }
 
