@@ -37,6 +37,22 @@ final class Types
         return $found;
     }
 
+    /**
+     * @no-named-arguments
+     *
+     * @param callable(self, non-empty-string): Maybe<Type> $builders
+     */
+    public static function of(callable ...$builders): self
+    {
+        return new self(
+            Type\StringType::of(...),
+            Type\StrType::of(...),
+            Type\IntType::of(...),
+            Type\BoolType::of(...),
+            ...$builders,
+        );
+    }
+
     public static function default(): self
     {
         return new self(

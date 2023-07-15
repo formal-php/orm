@@ -3,7 +3,10 @@ declare(strict_types = 1);
 
 namespace Formal\ORM;
 
-use Formal\ORM\Definition\Aggregates;
+use Formal\ORM\Definition\{
+    Aggregates,
+    Types,
+};
 use Innmind\Immutable\{
     Either,
     Map,
@@ -28,7 +31,7 @@ final class Manager
         Adapter $adapter,
         Aggregates $aggregates = null,
     ): self {
-        return new self($adapter, $aggregates ?? Aggregates::of());
+        return new self($adapter, $aggregates ?? Aggregates::of(Types::default()));
     }
 
     /**

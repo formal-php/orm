@@ -51,9 +51,8 @@ final class Aggregate
      *
      * @return self<A>
      */
-    public static function of(string $class): self
+    public static function of(Types $types, string $class): self
     {
-        $types = Types::default(); // TODO inject
         $properties = ReflectionClass::of($class)->properties();
         $id = $properties
             ->filter(static fn($property) => $property->type()->toString() === Id::class)

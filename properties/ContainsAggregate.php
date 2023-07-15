@@ -10,19 +10,23 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
+use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
 
 /**
  * @implements Property<Manager>
  */
 final class ContainsAggregate implements Property
 {
-    private function __construct()
+    private $createdAt;
+
+    private function __construct($createdAt)
     {
+        $this->createdAt = $createdAt;
     }
 
     public static function any(): Set
     {
-        return Set\Elements::of(new self);
+        return PointInTime::any()->map(static fn($createdAt) => new self($createdAt));
     }
 
     public function applicableTo(object $manager): bool
@@ -32,7 +36,7 @@ final class ContainsAggregate implements Property
 
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
-        $user = User::new();
+        $user = User::new($this->createdAt);
 
         $assert->false(
             $manager

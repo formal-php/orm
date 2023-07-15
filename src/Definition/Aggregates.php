@@ -5,13 +5,16 @@ namespace Formal\ORM\Definition;
 
 final class Aggregates
 {
-    private function __construct()
+    private Types $types;
+
+    private function __construct(Types $types)
     {
+        $this->types = $types;
     }
 
-    public static function of(): self
+    public static function of(Types $types): self
     {
-        return new self;
+        return new self($types);
     }
 
     /**
@@ -23,6 +26,6 @@ final class Aggregates
      */
     public function get(string $class): Aggregate
     {
-        return Aggregate::of($class);
+        return Aggregate::of($this->types, $class);
     }
 }

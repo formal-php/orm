@@ -4,6 +4,9 @@ declare(strict_types = 1);
 use Formal\ORM\{
     Manager,
     Adapter,
+    Definition\Aggregates,
+    Definition\Types,
+    Definition\Type,
 };
 use Fixtures\Formal\ORM\{
     User,
@@ -11,6 +14,7 @@ use Fixtures\Formal\ORM\{
 };
 use Properties\Formal\ORM\Properties;
 use Innmind\Filesystem\Adapter\InMemory;
+use Innmind\TimeContinuum\Earth\Clock;
 use Innmind\BlackBox\Set;
 
 return static function() {
@@ -42,13 +46,23 @@ return static function() {
     yield properties(
         'Filesystem properties',
         Properties::any(),
-        Set\Call::of(static fn() => Manager::of(Adapter\Filesystem::of(InMemory::emulateFilesystem()))),
+        Set\Call::of(static fn() => Manager::of(
+            Adapter\Filesystem::of(InMemory::emulateFilesystem()),
+            Aggregates::of(Types::of(
+                Type\PointInTimeType::of(new Clock),
+            )),
+        )),
     );
 
     foreach (Properties::alwaysApplicable() as $property) {
         yield property(
             $property,
-            Set\Call::of(static fn() => Manager::of(Adapter\Filesystem::of(InMemory::emulateFilesystem()))),
+            Set\Call::of(static fn() => Manager::of(
+                Adapter\Filesystem::of(InMemory::emulateFilesystem()),
+                Aggregates::of(Types::of(
+                    Type\PointInTimeType::of(new Clock),
+                )),
+            )),
         )->named('Filesystem');
     }
 };

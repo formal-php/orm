@@ -6,6 +6,7 @@ namespace Properties\Formal\ORM;
 use Formal\ORM\{
     Manager,
     Id,
+    Definition\Type\PointInTimeType\Format,
 };
 use Fixtures\Formal\ORM\User;
 use Innmind\BlackBox\{
@@ -13,7 +14,9 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
+use Innmind\TimeContinuum\Earth\Timezone\UTC;
 use Innmind\Immutable\Str;
+use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
 
 /**
  * @implements Property<Manager>
@@ -21,16 +24,20 @@ use Innmind\Immutable\Str;
 final class AddAggregate implements Property
 {
     private ?string $name;
+    private $createdAt;
 
-    private function __construct(?string $name)
+    private function __construct(?string $name, $createdAt)
     {
         $this->name = $name;
+        $this->createdAt = $createdAt;
     }
 
     public static function any(): Set
     {
-        return Set\Nullable::of(Set\Strings::madeOf(Set\Chars::alphanumerical()))->map(
-            static fn($name) => new self($name),
+        return Set\Composite::immutable(
+            static fn(...$args) => new self(...$args),
+            Set\Nullable::of(Set\Strings::madeOf(Set\Chars::alphanumerical())),
+            PointInTime::any(),
         );
     }
 
@@ -47,7 +54,7 @@ final class AddAggregate implements Property
             ->size();
         $manager
             ->repository(User::class)
-            ->put($user = User::new($this->name));
+            ->put($user = User::new($this->createdAt, $this->name));
         $id = $user->id()->toString();
         unset($user); // to make sure there is no in memory cache somewhere
 
@@ -85,6 +92,19 @@ final class AddAggregate implements Property
         $assert
             ->expected($this->name)
             ->same($fetched->name());
+        $assert
+            ->expected(
+                $this
+                    ->createdAt
+                    ->changeTimezone(new UTC)
+                    ->format(new Format),
+            )
+            ->same(
+                $fetched
+                    ->createdAt()
+                    ->changeTimezone(new UTC)
+                    ->format(new Format),
+            );
 
         if (!\is_null($fetched->name())) {
             $str = $fetched->nameStr();
