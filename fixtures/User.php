@@ -7,6 +7,7 @@ use Formal\ORM\{
     Id,
     Definition\Template,
 };
+use Innmind\Immutable\Str;
 
 final class User
 {
@@ -14,11 +15,16 @@ final class User
     #[Template(self::class)]
     private Id $id;
     private ?string $name;
+    private ?Str $nameStr;
 
     private function __construct(?string $name)
     {
         $this->id = Id::new(self::class);
         $this->name = $name;
+        $this->nameStr = match ($name) {
+            null => null,
+            default => Str::of($name),
+        };
     }
 
     public static function new(string $name = null): self
@@ -34,5 +40,10 @@ final class User
     public function name(): ?string
     {
         return $this->name;
+    }
+
+    public function nameStr(): ?Str
+    {
+        return $this->nameStr;
     }
 }

@@ -41,6 +41,7 @@ final class Types
     {
         return new self(
             Type\StringType::of(...),
+            Type\StrType::of(...),
             Type\IntType::of(...),
             Type\BoolType::of(...),
         );

@@ -13,6 +13,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
+use Innmind\Immutable\Str;
 
 /**
  * @implements Property<Manager>
@@ -84,6 +85,16 @@ final class AddAggregate implements Property
         $assert
             ->expected($this->name)
             ->same($fetched->name());
+
+        if (!\is_null($fetched->name())) {
+            $str = $fetched->nameStr();
+            $assert
+                ->object($str)
+                ->instance(Str::class);
+            $assert
+                ->expected($this->name)
+                ->same($str->toString());
+        }
 
         return $manager;
     }
