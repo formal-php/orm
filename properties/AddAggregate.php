@@ -28,7 +28,7 @@ final class AddAggregate implements Property
 
     public static function any(): Set
     {
-        return Set\Nullable::of(Set\Strings::madeOf(Set\Unicode::any()))->map(
+        return Set\Nullable::of(Set\Strings::madeOf(Set\Chars::alphanumerical()))->map(
             static fn($name) => new self($name),
         );
     }
