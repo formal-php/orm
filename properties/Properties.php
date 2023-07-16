@@ -34,6 +34,12 @@ final class Properties
             Size::class,
             SizeWithSpecification::class,
             Matching::class,
+            MatchingSort::class,
+            MatchingTake::class,
+            MatchingDrop::class,
+            MatchingDropAndTake::class,
+            MatchingExclusion::class,
+            MatchingComposite::class,
         ];
     }
 
@@ -51,6 +57,12 @@ final class Properties
             Size::class,
             SizeWithSpecification::class,
             Matching::class,
+            MatchingSort::class,
+            MatchingTake::class,
+            MatchingDrop::class,
+            MatchingDropAndTake::class,
+            MatchingExclusion::class,
+            MatchingComposite::class,
         ];
     }
 }
