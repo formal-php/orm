@@ -47,9 +47,9 @@ final class MatchingComposite implements Property
         return Set\Composite::immutable(
             static fn(...$args) => new self(...$args),
             PointInTime::any(),
-            Set\Strings::madeOf(Set\Chars::alphanumerical())->atLeast(1),
-            Set\Strings::madeOf(Set\Chars::alphanumerical())->atLeast(1),
-            Set\Strings::madeOf(Set\Chars::alphanumerical())->atLeast(1),
+            Set\Strings::madeOf(Set\Chars::alphanumerical())->atLeast(10),
+            Set\Strings::madeOf(Set\Chars::alphanumerical())->atLeast(10),
+            Set\Strings::madeOf(Set\Chars::alphanumerical())->atLeast(10),
         );
     }
 
