@@ -34,12 +34,14 @@ final class Aggregate
 {
     /** @var class-string<T> */
     private string $class;
+    /** @var Aggregate\Id<T> */
     private Aggregate\Id $id;
     /** @var Set<Aggregate\Property> */
     private Set $properties;
 
     /**
      * @param class-string<T> $class
+     * @param Aggregate\Id<T> $id
      * @param Set<Aggregate\Property> $properties
      */
     private function __construct(
@@ -115,6 +117,9 @@ final class Aggregate
             ->toString();
     }
 
+    /**
+     * @return Aggregate\Id<T>
+     */
     public function id(): Aggregate\Id
     {
         return $this->id;

@@ -6,6 +6,7 @@ namespace Formal\ORM;
 use Formal\ORM\{
     Adapter,
     Definition\Aggregate,
+    Repository\Loaded,
 };
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{
@@ -23,8 +24,8 @@ final class Repository
     private Adapter\Repository $adapter;
     /** @var Aggregate<T> */
     private Aggregate $definition;
-    /** @var \WeakMap<Id<T>, T> */
-    private \WeakMap $loaded;
+    /** @var Loaded<T> */
+    private Loaded $loaded;
 
     /**
      * @param Adapter\Repository<T> $adapter
@@ -36,8 +37,7 @@ final class Repository
     ) {
         $this->adapter = $adapter;
         $this->definition = $definition;
-        /** @var \WeakMap<Id<T>, T> */
-        $this->loaded = new \WeakMap;
+        $this->loaded = Loaded::of($definition);
     }
 
     /**
@@ -62,18 +62,16 @@ final class Repository
      */
     public function get(Id $id): Maybe
     {
-        return Maybe::of($this->loaded[$id] ?? null)->otherwise(
-            fn() => $this
-                ->adapter
-                ->get($this->definition->id()->normalize($id))
-                ->map(fn($raw) => $this->definition->denormalize($raw, $id))
-                ->map(function($aggregate) use ($id) {
-                    /** @var T $aggregate */
-                    $this->loaded[$id] = $aggregate;
-
-                    return $aggregate;
-                }),
-        );
+        return $this
+            ->loaded
+            ->get($id)
+            ->otherwise(
+                fn() => $this
+                    ->adapter
+                    ->get($this->definition->id()->normalize($id))
+                    ->map(fn($raw) => $this->definition->denormalize($raw, $id))
+                    ->map($this->loaded->put($id)),
+            );
     }
 
     /**
@@ -91,18 +89,19 @@ final class Repository
      */
     public function put(object $aggregate): void
     {
-        /** @var Id<T> */
         $id = $this->definition->id()->extract($aggregate);
-        $this->loaded[$id] = $aggregate;
+        $loaded = $this->loaded->get($id);
 
-        match ($loaded = ($this->loaded[$id] ?? null)) {
-            null => $this->adapter->add(
-                $this->definition->normalize($aggregate),
-            ),
-            default => $this->adapter->update(
+        $this->loaded->put($id)($aggregate);
+
+        $_ = $loaded->match(
+            fn($loaded) =>$this->adapter->update(
                 $this->definition->normalize($aggregate), // TODO compute diff
             ),
-        };
+            fn() => $this->adapter->add(
+                $this->definition->normalize($aggregate),
+            ),
+        );
     }
 
     /**
@@ -113,7 +112,7 @@ final class Repository
         $this->adapter->delete(
             $this->definition->id()->normalize($id),
         );
-        $this->loaded->offsetUnset($id);
+        $this->loaded->remove($id);
     }
 
     /**
@@ -144,19 +143,14 @@ final class Repository
      */
     public function all(): Sequence
     {
+        /**
+         * @psalm-suppress InvalidArgument For some reason Psalm lose track of the template after denormalization
+         * @var Sequence<T>
+         */
         return $this
             ->adapter
             ->all()
             ->map(fn($raw) => $this->definition->denormalize($raw))
-            ->map(function($aggregate) {
-                /**
-                 * @var T $aggregate
-                 * @var Id<T> $id
-                 */
-                $id = $this->definition->id()->extract($aggregate);
-                $this->loaded[$id] = $aggregate;
-
-                return $aggregate;
-            });
+            ->map($this->loaded->add(...));
     }
 }
