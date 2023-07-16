@@ -75,31 +75,21 @@ final class MatchingComposite implements Property
                     Username::of(Sign::startsWith, Str::of($this->prefix)),
                 ),
             )
-            ->fetch();
+            ->fetch()
+            ->map(static fn($user) => $user->id()->toString())
+            ->toList();
 
         $assert
             ->expected($user1->id()->toString())
             ->not()
-            ->in(
-                $found
-                    ->map(static fn($user) => $user->id()->toString())
-                    ->toList(),
-            );
+            ->in($found);
         $assert
             ->expected($user2->id()->toString())
             ->not()
-            ->in(
-                $found
-                    ->map(static fn($user) => $user->id()->toString())
-                    ->toList(),
-            );
+            ->in($found);
         $assert
             ->expected($user3->id()->toString())
-            ->in(
-                $found
-                    ->map(static fn($user) => $user->id()->toString())
-                    ->toList(),
-            );
+            ->in($found);
 
         $found = $repository
             ->matching(
@@ -107,30 +97,20 @@ final class MatchingComposite implements Property
                     Username::of(Sign::equality, Str::of($this->name2)),
                 ),
             )
-            ->fetch();
+            ->fetch()
+            ->map(static fn($user) => $user->id()->toString())
+            ->toList();
 
         $assert
             ->expected($user1->id()->toString())
-            ->in(
-                $found
-                    ->map(static fn($user) => $user->id()->toString())
-                    ->toList(),
-            );
+            ->in($found);
         $assert
             ->expected($user2->id()->toString())
-            ->in(
-                $found
-                    ->map(static fn($user) => $user->id()->toString())
-                    ->toList(),
-            );
+            ->in($found);
         $assert
             ->expected($user3->id()->toString())
             ->not()
-            ->in(
-                $found
-                    ->map(static fn($user) => $user->id()->toString())
-                    ->toList(),
-            );
+            ->in($found);
 
         return $manager;
     }

@@ -61,16 +61,14 @@ final class MatchingExclusion implements Property
             ->matching(
                 Username::of(Sign::equality, Str::of($this->name))->not(),
             )
-            ->fetch();
+            ->fetch()
+            ->map(static fn($user) => $user->id()->toString())
+            ->toList();
 
         $assert
             ->expected($user->id()->toString())
             ->not()
-            ->in(
-                $found
-                    ->map(static fn($user) => $user->id()->toString())
-                    ->toList(),
-            );
+            ->in($found);
 
         return $manager;
     }

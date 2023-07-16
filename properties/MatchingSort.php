@@ -73,18 +73,16 @@ final class MatchingSort implements Property
                 Str::of($this->prefix),
             ))
             ->sort('nameStr', Sort::asc)
-            ->fetch();
+            ->fetch()
+            ->map(static fn($user) => $user->id()->toString())
+            ->toList();
 
         $assert
             ->expected([
                 $user1->id()->toString(),
                 $user2->id()->toString(),
             ])
-            ->same(
-                $found
-                    ->map(static fn($user) => $user->id()->toString())
-                    ->toList(),
-            );
+            ->same($found);
 
         $found = $repository
             ->matching(Username::of(
@@ -92,18 +90,16 @@ final class MatchingSort implements Property
                 Str::of($this->prefix),
             ))
             ->sort('nameStr', Sort::desc)
-            ->fetch();
+            ->fetch()
+            ->map(static fn($user) => $user->id()->toString())
+            ->toList();
 
         $assert
             ->expected([
                 $user2->id()->toString(),
                 $user1->id()->toString(),
             ])
-            ->same(
-                $found
-                    ->map(static fn($user) => $user->id()->toString())
-                    ->toList(),
-            );
+            ->same($found);
 
         return $manager;
     }
