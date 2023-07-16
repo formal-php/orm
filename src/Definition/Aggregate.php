@@ -163,13 +163,13 @@ final class Aggregate
 
         $properties = Map::of(
             [$this->id()->property(), $id],
-            ...$data
-                ->properties()
+            ...$this
+                ->properties
                 ->flatMap(
-                    fn($property) => $this
-                        ->properties
-                        ->find(static fn($definition) => $definition->name() === $property->name())
-                        ->map(static fn($definition): mixed => $definition->denormalize($property->value()))
+                    static fn($property) => $data
+                        ->properties()
+                        ->find(static fn($raw) => $raw->name() === $property->name())
+                        ->map(static fn($raw): mixed => $property->denormalize($raw->value()))
                         ->map(static fn($value) => [$property->name(), $value])
                         ->toSequence()
                         ->toSet(),
