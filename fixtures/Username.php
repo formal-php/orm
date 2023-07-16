@@ -8,7 +8,10 @@ use Innmind\Specification\{
     Sign,
     Composable,
 };
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Sequence,
+};
 
 /**
  * @psalm-immutable
@@ -18,9 +21,13 @@ final class Username implements Comparator
     use Composable;
 
     private Sign $sign;
-    private Str $value;
+    /** @var Str|Sequence<Str> */
+    private Str|Sequence $value;
 
-    private function __construct(Sign $sign, Str $value)
+    /**
+     * @param Str|Sequence<Str> $value
+     */
+    private function __construct(Sign $sign, Str|Sequence $value)
     {
         $this->sign = $sign;
         $this->value = $value;
@@ -28,8 +35,10 @@ final class Username implements Comparator
 
     /**
      * @psalm-pure
+     *
+     * @param Str|Sequence<Str> $value
      */
-    public static function of(Sign $sign, Str $value): self
+    public static function of(Sign $sign, Str|Sequence $value): self
     {
         return new self($sign, $value);
     }
@@ -44,7 +53,10 @@ final class Username implements Comparator
         return $this->sign;
     }
 
-    public function value(): Str
+    /**
+     * @return Str|Sequence<Str>
+     */
+    public function value(): Str|Sequence
     {
         return $this->value;
     }

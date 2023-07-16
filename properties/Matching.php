@@ -12,7 +12,10 @@ use Fixtures\Formal\ORM\{
     Username,
 };
 use Innmind\Specification\Sign;
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Sequence,
+};
 use Innmind\BlackBox\{
     Set,
     Property,
@@ -150,6 +153,26 @@ final class Matching implements Property
             ->in($found);
         $assert
             ->expected($user3->id()->toString())
+            ->in($found);
+
+        $found = $repository
+            ->matching(Username::of(
+                Sign::in,
+                Sequence::of(Str::of($this->name1), Str::of($this->name2)),
+            ))
+            ->fetch()
+            ->map(static fn($user) => $user->id()->toString())
+            ->toList();
+
+        $assert
+            ->expected($user1->id()->toString())
+            ->in($found);
+        $assert
+            ->expected($user2->id()->toString())
+            ->in($found);
+        $assert
+            ->expected($user3->id()->toString())
+            ->not()
             ->in($found);
 
         return $manager;

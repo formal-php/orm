@@ -22,15 +22,17 @@ final class Property implements Comparator
     /** @var non-empty-string */
     private string $property;
     private Sign $sign;
-    private null|string|int|bool $value;
+    /** @var null|string|int|bool|list<string>|list<int>|list<bool> */
+    private null|string|int|bool|array $value;
 
     /**
      * @param non-empty-string $property
+     * @param null|string|int|bool|list<string>|list<int>|list<bool> $value
      */
     private function __construct(
         string $property,
         Sign $sign,
-        null|string|int|bool $value,
+        null|string|int|bool|array $value,
     ) {
         $this->property = $property;
         $this->sign = $sign;
@@ -42,11 +44,12 @@ final class Property implements Comparator
      * @psalm-pure
      *
      * @param non-empty-string $property
+     * @param null|string|int|bool|list<string>|list<int>|list<bool> $value
      */
     public static function of(
         string $property,
         Sign $sign,
-        null|string|int|bool $value,
+        null|string|int|bool|array $value,
     ): self {
         return new self($property, $sign, $value);
     }
@@ -61,7 +64,10 @@ final class Property implements Comparator
         return $this->sign;
     }
 
-    public function value(): null|string|int|bool
+    /**
+     * @return null|string|int|bool|list<string>|list<int>|list<bool>
+     */
+    public function value(): null|string|int|bool|array
     {
         return $this->value;
     }

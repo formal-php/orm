@@ -11,6 +11,10 @@ use Innmind\Specification\{
     Not,
     Operator,
 };
+use Innmind\Immutable\{
+    Set,
+    Sequence,
+};
 
 /**
  * @template T of object
@@ -50,28 +54,7 @@ final class Normalize
             throw new \LogicException("Unsupported specification '$class'");
         }
 
-        $property = $specification->property();
-
-        /**
-         * @psalm-suppress MixedArgument
-         * @psalm-suppress MixedMethodCall
-         */
-        return Property::of(
-            $property,
-            $specification->sign(),
-            match ($property) {
-                $this->definition->id()->property() => $specification->value()->toString(),
-                default => $this
-                    ->definition
-                    ->properties()
-                    ->find(static fn($definition) => $definition->name() === $property)
-                    ->map(static fn($property) => $property->type()->normalize($specification->value()))
-                    ->match(
-                        static fn($value) => $value,
-                        static fn() => throw new \LogicException("Unknown property '$property'"),
-                    ),
-            },
-        );
+        return $this->normalize($specification);
     }
 
     /**
@@ -84,5 +67,42 @@ final class Normalize
     public static function of(Aggregate $definition): self
     {
         return new self($definition);
+    }
+
+    private function normalize(Comparator $specification): Property
+    {
+        $property = $specification->property();
+        /** @var mixed */
+        $value = $specification->value();
+
+        /**
+         * @psalm-suppress MixedArgument
+         * @psalm-suppress MixedMethodCall
+         */
+        return Property::of(
+            $property,
+            $specification->sign(),
+            match ($property) {
+                $this->definition->id()->property() => $value->toString(),
+                default => $this
+                    ->definition
+                    ->properties()
+                    ->find(static fn($definition) => $definition->name() === $property)
+                    ->map(static fn($property) => match (true) {
+                        \is_array($value) => \array_map(
+                            $property->type()->normalize(...),
+                            $value,
+                        ),
+                        $value instanceof Set, $value instanceof Sequence => $value
+                            ->map($property->type()->normalize(...))
+                            ->toList(),
+                        default => $property->type()->normalize($value),
+                    })
+                    ->match(
+                        static fn($value) => $value,
+                        static fn() => throw new \LogicException("Unknown property '$property'"),
+                    ),
+            },
+        );
     }
 }

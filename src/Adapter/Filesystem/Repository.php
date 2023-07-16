@@ -275,7 +275,7 @@ final class Repository implements RepositoryInterface
             Sign::startsWith => \is_string($value) && \str_starts_with($value, $specification->value()),
             Sign::endsWith => \is_string($value) && \str_ends_with($value, $specification->value()),
             Sign::contains => \is_string($value) && \str_contains($value, $specification->value()),
-            Sign::in => false, // not supported
+            Sign::in => \in_array($value, $specification->value(), true),
         };
     }
 }
