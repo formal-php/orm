@@ -3,6 +3,10 @@ declare(strict_types = 1);
 
 namespace Formal\ORM;
 
+use Formal\ORM\{
+    Definition\Aggregate,
+    Adapter\Repository,
+};
 use Innmind\Specification\Specification;
 use Innmind\Immutable\Sequence;
 
@@ -11,27 +15,62 @@ use Innmind\Immutable\Sequence;
  */
 final class Matching
 {
-    /** @var class-string<T> */
-    private string $class;
+    /** @var Repository<T> */
+    private Repository $repository;
+    /** @var Aggregate<T> */
+    private Aggregate $definition;
+    private Specification $specification;
+    /** @var ?array{non-empty-string, Sort} */
+    private ?array $sort;
+    /** @var ?positive-int */
+    private ?int $drop;
+    /** @var ?positive-int */
+    private ?int $take;
 
     /**
-     * @param class-string<T> $class
+     * @param Repository<T> $repository
+     * @param Aggregate<T> $definition
+     * @param array{non-empty-string, Sort} $sort
+     * @param ?positive-int $drop
+     * @param ?positive-int $take
      */
-    private function __construct(string $class)
-    {
-        $this->class = $class;
+    private function __construct(
+        Repository $repository,
+        Aggregate $definition,
+        Specification $specification,
+        ?array $sort,
+        ?int $drop,
+        ?int $take,
+    ) {
+        $this->repository = $repository;
+        $this->definition = $definition;
+        $this->specification = $specification;
+        $this->sort = $sort;
+        $this->drop = $drop;
+        $this->take = $take;
     }
 
     /**
      * @template A of object
      *
-     * @param class-string<A> $class
+     * @param Repository<A> $repository
+     * @param Aggregate<A> $definition
      *
      * @return self<A>
      */
-    public static function of(string $class, Specification $specification): self
-    {
-        return new self($class);
+    public static function of(
+        Repository $repository,
+        Aggregate $definition,
+        Specification $specification,
+    ): self {
+        return new self(
+            $repository,
+            $definition,
+            $specification,
+            null,
+            null,
+            null,
+        );
     }
 
     /**
@@ -43,7 +82,17 @@ final class Matching
      */
     public function take(int $size): self
     {
-        return $this;
+        return new self(
+            $this->repository,
+            $this->definition,
+            $this->specification,
+            $this->sort,
+            $this->drop,
+            match ($this->take) {
+                null => $size,
+                default => \min($this->take, $size),
+            },
+        );
     }
 
     /**
@@ -55,7 +104,17 @@ final class Matching
      */
     public function drop(int $size): self
     {
-        return $this;
+        return new self(
+            $this->repository,
+            $this->definition,
+            $this->specification,
+            $this->sort,
+            match ($this->drop) {
+                null => $size,
+                default => $this->drop + $size,
+            },
+            $this->take,
+        );
     }
 
     /**
@@ -67,7 +126,14 @@ final class Matching
      */
     public function sort(string $property, Sort $direction): self
     {
-        return $this;
+        return new self(
+            $this->repository,
+            $this->definition,
+            $this->specification,
+            [$property, $direction],
+            $this->drop,
+            $this->take,
+        );
     }
 
     /**
@@ -88,6 +154,15 @@ final class Matching
      */
     public function fetch(): Sequence
     {
-        return Sequence::of();
+        /** @var Sequence<T> */
+        return $this
+            ->repository
+            ->matching(
+                $this->definition->normalizeSpecification($this->specification),
+                $this->sort,
+                $this->drop,
+                $this->take,
+            )
+            ->map($this->definition->denormalize(...));
     }
 }

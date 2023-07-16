@@ -121,7 +121,11 @@ final class Repository
      */
     public function matching(Specification $specification): Matching
     {
-        return Matching::of($this->definition->class(), $specification);
+        return Matching::of(
+            $this->adapter,
+            $this->definition,
+            $specification,
+        );
     }
 
     /**

@@ -33,6 +33,7 @@ final class Properties
             DeleteAggregate::class,
             Size::class,
             SizeWithSpecification::class,
+            Matching::class,
         ];
     }
 
@@ -49,6 +50,7 @@ final class Properties
             DeleteAggregate::class,
             Size::class,
             SizeWithSpecification::class,
+            Matching::class,
         ];
     }
 }

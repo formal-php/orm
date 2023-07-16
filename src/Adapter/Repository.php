@@ -3,7 +3,10 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Adapter;
 
-use Formal\ORM\Raw\Aggregate;
+use Formal\ORM\{
+    Raw\Aggregate,
+    Sort,
+};
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{
     Sequence,
@@ -23,7 +26,20 @@ interface Repository
     public function add(Aggregate $data): void;
     public function update(Aggregate $data): void;
     public function delete(Aggregate\Id $id): void;
-    // TODO public function matching()
+
+    /**
+     * @param ?array{non-empty-string, Sort} $sort
+     * @param ?positive-int $drop
+     * @param ?positive-int $take
+     *
+     * @return Sequence<Aggregate>
+     */
+    public function matching(
+        Specification $specification,
+        ?array $sort,
+        ?int $drop,
+        ?int $take,
+    ): Sequence;
 
     /**
      * @return 0|positive-int

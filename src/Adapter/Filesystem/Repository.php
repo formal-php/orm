@@ -8,6 +8,7 @@ use Formal\ORM\{
     Definition\Aggregate as Definition,
     Raw\Aggregate,
     Specification\Property as PropertySpecification,
+    Sort,
 };
 use Innmind\Filesystem\{
     Adapter as Storage,
@@ -119,6 +120,52 @@ final class Repository implements RepositoryInterface
         $this->adapter->add(
             $this->directory()->remove(Name::of($id->value())),
         );
+    }
+
+    public function matching(
+        Specification $specification,
+        ?array $sort,
+        ?int $drop,
+        ?int $take,
+    ): Sequence {
+        $aggregates = $this
+            ->all()
+            ->filter(static fn($aggregate) => self::filter($aggregate, $specification));
+
+        if (\is_array($sort)) {
+            [$property, $direction] = $sort;
+            $compare = match ($direction) {
+                Sort::asc => static fn(null|string|int|bool $a, null|string|int|bool $b) => $a <=> $b,
+                Sort::desc => static fn(null|string|int|bool $a, null|string|int|bool $b) => $b <=> $a,
+            };
+
+            $aggregates = $aggregates->sort(static fn($a, $b) => $compare(
+                $a
+                    ->properties()
+                    ->find(static fn($prop) => $prop->name() === $property)
+                    ->match(
+                        static fn($property) => $property->value(),
+                        static fn() => throw new \LogicException("'$property' not found"),
+                    ),
+                $b
+                    ->properties()
+                    ->find(static fn($prop) => $prop->name() === $property)
+                    ->match(
+                        static fn($property) => $property->value(),
+                        static fn() => throw new \LogicException("'$property' not found"),
+                    ),
+            ));
+        }
+
+        if (\is_int($drop)) {
+            $aggregates = $aggregates->drop($drop);
+        }
+
+        if (\is_int($take)) {
+            $aggregates = $aggregates->take($take);
+        }
+
+        return $aggregates;
     }
 
     public function size(Specification $specification = null): int
