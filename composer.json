@@ -19,10 +19,11 @@
         "innmind/immutable": "~4.15",
         "innmind/specification": "~3.0",
         "ramsey/uuid": "~4.7",
-        "innmind/reflection": "~5.0",
+        "innmind/reflection": "~5.1",
         "innmind/filesystem": "^6.5.1",
         "innmind/json": "~1.3",
-        "innmind/time-continuum": "~3.3"
+        "innmind/time-continuum": "~3.3",
+        "innmind/type": "~1.0"
     },
     "autoload": {
         "psr-4": {

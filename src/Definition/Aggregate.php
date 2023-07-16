@@ -72,7 +72,7 @@ final class Aggregate
         /** @psalm-suppress ArgumentTypeCoercion TODO fix in innmind/reflection */
         $props = $properties
             ->exclude(static fn($property) => $property->name() === $id->property())
-            ->flatMap(static fn($property) => $types($property->type()->toString())
+            ->flatMap(static fn($property) => $types($property->type()->type())
                 ->map(static fn($type) => Aggregate\Property::of(
                     $class,
                     $property->name(),

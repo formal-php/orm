@@ -12,6 +12,11 @@ use Innmind\TimeContinuum\{
     Clock,
     PointInTime,
 };
+use Innmind\Type\{
+    Type as Concrete,
+    Nullable,
+    ClassName,
+};
 use Innmind\Immutable\Maybe;
 
 /**
@@ -27,15 +32,15 @@ final class PointInTimeType implements Type
     }
 
     /**
-     * @return callable(Types, non-empty-string): Maybe<self>
+     * @return callable(Types, Concrete): Maybe<self>
      */
     public static function of(Clock $clock): callable
     {
-        return static fn(Types $types, string $type) => Maybe::just($type)
-            ->filter(static fn($type) => match ($type) {
-                PointInTime::class, '?'.PointInTime::class => true,
-                default => false,
-            })
+        return static fn(Types $types, Concrete $type) => Maybe::just($type)
+            ->filter(
+                static fn($type) => $type->accepts(Nullable::of(ClassName::of(PointInTime::class))) ||
+                    $type->accepts(ClassName::of(PointInTime::class)),
+            )
             ->map(static fn() => new self($clock));
     }
 

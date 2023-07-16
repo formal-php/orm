@@ -7,6 +7,11 @@ use Formal\ORM\Definition\{
     Type,
     Types,
 };
+use Innmind\Type\{
+    Type as Concrete,
+    Nullable,
+    Primitive,
+};
 use Innmind\Immutable\Maybe;
 
 /**
@@ -19,17 +24,15 @@ final class StringType implements Type
     }
 
     /**
-     * @param non-empty-string $type
-     *
      * @return Maybe<self>
      */
-    public static function of(Types $types, string $type): Maybe
+    public static function of(Types $types, Concrete $type): Maybe
     {
         return Maybe::just($type)
-            ->filter(static fn($type) => match ($type) {
-                'string', '?string' => true,
-                default => false,
-            })
+            ->filter(
+                static fn($type) => $type->accepts(Nullable::of(Primitive::string())) ||
+                    $type->accepts(Primitive::string()),
+            )
             ->map(static fn() => new self);
     }
 

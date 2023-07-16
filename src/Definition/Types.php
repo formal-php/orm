@@ -3,17 +3,18 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition;
 
+use Innmind\Type\Type as Concrete;
 use Innmind\Immutable\Maybe;
 
 final class Types
 {
-    /** @var list<callable(self, non-empty-string): Maybe<Type>> */
+    /** @var list<callable(self, Concrete): Maybe<Type>> */
     private array $builders;
 
     /**
      * @no-named-arguments
      *
-     * @param callable(self, non-empty-string): Maybe<Type> $builders
+     * @param callable(self, Concrete): Maybe<Type> $builders
      */
     private function __construct(callable ...$builders)
     {
@@ -21,11 +22,9 @@ final class Types
     }
 
     /**
-     * @param non-empty-string $type
-     *
      * @return Maybe<Type>
      */
-    public function __invoke(string $type): Maybe
+    public function __invoke(Concrete $type): Maybe
     {
         /** @var Maybe<Type> */
         $found = Maybe::nothing();
@@ -40,7 +39,7 @@ final class Types
     /**
      * @no-named-arguments
      *
-     * @param callable(self, non-empty-string): Maybe<Type> $builders
+     * @param callable(self, Concrete): Maybe<Type> $builders
      */
     public static function of(callable ...$builders): self
     {
