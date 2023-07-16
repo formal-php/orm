@@ -7,6 +7,7 @@ use Formal\ORM\{
     Adapter\Repository as RepositoryInterface,
     Definition\Aggregate as Definition,
     Raw\Aggregate,
+    Specification\Property as PropertySpecification,
 };
 use Innmind\Filesystem\{
     Adapter as Storage,
@@ -15,7 +16,14 @@ use Innmind\Filesystem\{
     File\File,
     File\Content,
 };
-use Innmind\Specification\Specification;
+use Innmind\Specification\{
+    Specification,
+    Comparator,
+    Composite,
+    Operator,
+    Not,
+    Sign,
+};
 use Innmind\Json\Json;
 use Innmind\Immutable\{
     Maybe,
@@ -116,8 +124,8 @@ final class Repository implements RepositoryInterface
     public function size(Specification $specification = null): int
     {
         return $this
-            ->directory()
-            ->files()
+            ->all()
+            ->filter(static fn($aggregate) => self::filter($aggregate, $specification))
             ->size();
     }
 
@@ -163,5 +171,67 @@ final class Repository implements RepositoryInterface
                 static fn($directory) => $directory,
                 static fn() => Directory\Directory::of($name),
             );
+    }
+
+    private static function filter(
+        Aggregate $aggregate,
+        Specification $specification = null,
+    ): bool {
+        if (\is_null($specification)) {
+            return true;
+        }
+
+        if ($specification instanceof Not) {
+            return !self::filter($aggregate, $specification->specification());
+        }
+
+        if ($specification instanceof Composite) {
+            $left = self::filter($aggregate, $specification->left());
+            $right = self::filter($aggregate, $specification->right());
+
+            return match ($specification->operator()) {
+                Operator::and => $left && $right,
+                Operator::or => $left || $right,
+            };
+        }
+
+        if (!($specification instanceof PropertySpecification)) {
+            $class = $specification::class;
+
+            throw new \LogicException("Unsupported specification '$class'");
+        }
+
+        if ($specification->property() === $aggregate->id()->name()) {
+            return self::filterValue($aggregate->id()->value(), $specification);
+        }
+
+        return $aggregate
+            ->properties()
+            ->find(static fn($property) => $specification->property() === $property->name())
+            ->match(
+                static fn($property) => self::filterValue($property->value(), $specification),
+                static fn() => false,
+            );
+    }
+
+    private static function filterValue(
+        null|string|int|bool $value,
+        Comparator $specification,
+    ): bool {
+        /** @psalm-suppress MixedArgument */
+        return match ($specification->sign()) {
+            Sign::equality => $value === $specification->value(),
+            Sign::inequality => $value !== $specification->value(),
+            Sign::lessThan => $value < $specification->value(),
+            Sign::moreThan => $value > $specification->value(),
+            Sign::lessThanOrEqual => $value <= $specification->value(),
+            Sign::moreThanOrEqual => $value >= $specification->value(),
+            Sign::isNull => \is_null($value),
+            Sign::isNotNull => !\is_null($value),
+            Sign::startsWith => \is_string($value) && \str_starts_with($value, $specification->value()),
+            Sign::endsWith => \is_string($value) && \str_ends_with($value, $specification->value()),
+            Sign::contains => \is_string($value) && \str_contains($value, $specification->value()),
+            Sign::in => false, // not supported
+        };
     }
 }

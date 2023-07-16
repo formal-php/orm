@@ -129,7 +129,10 @@ final class Repository
      */
     public function size(Specification $specification = null): int
     {
-        return $this->adapter->size($specification);
+        return $this->adapter->size(match ($specification) {
+            null => null,
+            default => $this->definition->normalizeSpecification($specification),
+        });
     }
 
     /**

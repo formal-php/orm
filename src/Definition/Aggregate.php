@@ -6,10 +6,18 @@ namespace Formal\ORM\Definition;
 use Formal\ORM\{
     Id,
     Raw,
+    Specification\Property as PropertySpecification,
 };
 use Innmind\Reflection\{
     ReflectionClass,
     Instanciate,
+};
+use Innmind\Specification\{
+    Specification,
+    Comparator,
+    Composite,
+    Not,
+    Operator,
 };
 use Innmind\Immutable\{
     Str,
@@ -168,6 +176,53 @@ final class Aggregate
         return (new Instanciate)($this->class, $properties)->match(
             static fn($aggregate) => $aggregate,
             fn() => throw new \RuntimeException("Unable to denormalize aggregate of type {$this->class}"),
+        );
+    }
+
+    public function normalizeSpecification(Specification $specification): Specification
+    {
+        if ($specification instanceof Not) {
+            return $this
+                ->normalizeSpecification($specification->specification())
+                ->not();
+        }
+
+        if ($specification instanceof Composite) {
+            $left = $this->normalizeSpecification($specification->left());
+            $right = $this->normalizeSpecification($specification->right());
+
+            return match ($specification->operator()) {
+                Operator::and => $left->and($right),
+                Operator::or => $left->or($right),
+            };
+        }
+
+        if (!($specification instanceof Comparator)) {
+            $class = $specification::class;
+
+            throw new \LogicException("Unsupported specification '$class'");
+        }
+
+        $property = $specification->property();
+
+        /**
+         * @psalm-suppress MixedArgument
+         * @psalm-suppress MixedMethodCall
+         */
+        return PropertySpecification::of(
+            $property,
+            $specification->sign(),
+            match ($property) {
+                $this->id()->property() => $specification->value()->toString(),
+                default => $this
+                    ->properties
+                    ->find(static fn($definition) => $definition->name() === $property)
+                    ->map(static fn($property) => $property->type()->normalize($specification->value()))
+                    ->match(
+                        static fn($value) => $value,
+                        static fn() => throw new \LogicException("Unknown property '$property'"),
+                    ),
+            },
         );
     }
 }
