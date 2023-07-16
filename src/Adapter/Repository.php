@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace Formal\ORM\Adapter;
 
 use Formal\ORM\Raw\Aggregate;
+use Innmind\Specification\Specification;
 use Innmind\Immutable\{
     Sequence,
     Maybe,
@@ -23,7 +24,11 @@ interface Repository
     public function update(Aggregate $data): void;
     public function delete(Aggregate\Id $id): void;
     // TODO public function matching()
-    // TODO public function size()
+
+    /**
+     * @return 0|positive-int
+     */
+    public function size(Specification $specification = null): int;
 
     /**
      * @return Sequence<Aggregate>

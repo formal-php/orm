@@ -31,6 +31,7 @@ final class Properties
             ContainsAggregate::class,
             DeleteUnknownAggregateDoesNothing::class,
             DeleteAggregate::class,
+            Size::class,
         ];
     }
 
@@ -45,6 +46,7 @@ final class Properties
             ContainsAggregate::class,
             DeleteUnknownAggregateDoesNothing::class,
             DeleteAggregate::class,
+            Size::class,
         ];
     }
 }

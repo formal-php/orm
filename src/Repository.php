@@ -127,9 +127,9 @@ final class Repository
     /**
      * @return 0|positive-int
      */
-    public function size(?Specification $specification): int
+    public function size(Specification $specification = null): int
     {
-        return 0;
+        return $this->adapter->size($specification);
     }
 
     /**

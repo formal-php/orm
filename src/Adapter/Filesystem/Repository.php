@@ -15,6 +15,7 @@ use Innmind\Filesystem\{
     File\File,
     File\Content,
 };
+use Innmind\Specification\Specification;
 use Innmind\Json\Json;
 use Innmind\Immutable\{
     Maybe,
@@ -110,6 +111,14 @@ final class Repository implements RepositoryInterface
         $this->adapter->add(
             $this->directory()->remove(Name::of($id->value())),
         );
+    }
+
+    public function size(Specification $specification = null): int
+    {
+        return $this
+            ->directory()
+            ->files()
+            ->size();
     }
 
     public function all(): Sequence
