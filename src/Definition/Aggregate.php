@@ -167,8 +167,7 @@ final class Aggregate
                 ->properties
                 ->flatMap(
                     static fn($property) => $data
-                        ->properties()
-                        ->find(static fn($raw) => $raw->name() === $property->name())
+                        ->property($property->name())
                         ->map(static fn($raw): mixed => $property->denormalize($raw->value()))
                         ->map(static fn($value) => [$property->name(), $value])
                         ->toSequence()

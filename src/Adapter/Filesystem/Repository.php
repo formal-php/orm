@@ -141,15 +141,13 @@ final class Repository implements RepositoryInterface
 
             $aggregates = $aggregates->sort(static fn($a, $b) => $compare(
                 $a
-                    ->properties()
-                    ->find(static fn($prop) => $prop->name() === $property)
+                    ->property($property)
                     ->match(
                         static fn($property) => $property->value(),
                         static fn() => throw new \LogicException("'$property' not found"),
                     ),
                 $b
-                    ->properties()
-                    ->find(static fn($prop) => $prop->name() === $property)
+                    ->property($property)
                     ->match(
                         static fn($property) => $property->value(),
                         static fn() => throw new \LogicException("'$property' not found"),
@@ -253,8 +251,7 @@ final class Repository implements RepositoryInterface
         }
 
         return $aggregate
-            ->properties()
-            ->find(static fn($property) => $specification->property() === $property->name())
+            ->property($specification->property())
             ->match(
                 static fn($property) => self::filterValue($property->value(), $specification),
                 static fn() => false,

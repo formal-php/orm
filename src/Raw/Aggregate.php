@@ -3,13 +3,19 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Raw;
 
-use Innmind\Immutable\Set;
+use Innmind\Immutable\{
+    Set,
+    Map,
+    Maybe,
+};
 
 final class Aggregate
 {
     private Aggregate\Id $id;
     /** @var Set<Aggregate\Property> */
     private Set $properties;
+    /** @var Map<non-empty-string, Aggregate\Property> */
+    private Map $denormalizedProperties;
 
     /**
      * @param Set<Aggregate\Property> $properties
@@ -18,6 +24,11 @@ final class Aggregate
     {
         $this->id = $id;
         $this->properties = $properties;
+        $this->denormalizedProperties = Map::of(
+            ...$properties
+                ->map(static fn($property) => [$property->name(), $property])
+                ->toList(),
+        );
     }
 
     /**
@@ -39,5 +50,15 @@ final class Aggregate
     public function properties(): Set
     {
         return $this->properties;
+    }
+
+    /**
+     * @param non-empty-string $name
+     *
+     * @return Maybe<Aggregate\Property>
+     */
+    public function property(string $name): Maybe
+    {
+        return $this->denormalizedProperties->get($name);
     }
 }
