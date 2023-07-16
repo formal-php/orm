@@ -38,6 +38,7 @@ final class Property implements Comparator
     }
 
     /**
+     * @internal
      * @psalm-pure
      *
      * @param non-empty-string $property
