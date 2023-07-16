@@ -122,6 +122,7 @@ final class Repository
     {
         return Matching::of(
             $this->adapter,
+            $this->loaded,
             $this->definition,
             $specification,
         );

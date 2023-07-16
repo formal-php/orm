@@ -6,6 +6,7 @@ namespace Formal\ORM;
 use Formal\ORM\{
     Definition\Aggregate,
     Adapter\Repository,
+    Repository\Loaded,
 };
 use Innmind\Specification\Specification;
 use Innmind\Immutable\Sequence;
@@ -17,6 +18,8 @@ final class Matching
 {
     /** @var Repository<T> */
     private Repository $repository;
+    /** @var Loaded<T> */
+    private Loaded $loaded;
     /** @var Aggregate<T> */
     private Aggregate $definition;
     private Specification $specification;
@@ -29,6 +32,7 @@ final class Matching
 
     /**
      * @param Repository<T> $repository
+     * @param Loaded<T> $loaded
      * @param Aggregate<T> $definition
      * @param array{non-empty-string, Sort} $sort
      * @param ?positive-int $drop
@@ -36,6 +40,7 @@ final class Matching
      */
     private function __construct(
         Repository $repository,
+        Loaded $loaded,
         Aggregate $definition,
         Specification $specification,
         ?array $sort,
@@ -43,6 +48,7 @@ final class Matching
         ?int $take,
     ) {
         $this->repository = $repository;
+        $this->loaded = $loaded;
         $this->definition = $definition;
         $this->specification = $specification;
         $this->sort = $sort;
@@ -54,17 +60,20 @@ final class Matching
      * @template A of object
      *
      * @param Repository<A> $repository
+     * @param Loaded<A> $loaded
      * @param Aggregate<A> $definition
      *
      * @return self<A>
      */
     public static function of(
         Repository $repository,
+        Loaded $loaded,
         Aggregate $definition,
         Specification $specification,
     ): self {
         return new self(
             $repository,
+            $loaded,
             $definition,
             $specification,
             null,
@@ -84,6 +93,7 @@ final class Matching
     {
         return new self(
             $this->repository,
+            $this->loaded,
             $this->definition,
             $this->specification,
             $this->sort,
@@ -106,6 +116,7 @@ final class Matching
     {
         return new self(
             $this->repository,
+            $this->loaded,
             $this->definition,
             $this->specification,
             $this->sort,
@@ -128,6 +139,7 @@ final class Matching
     {
         return new self(
             $this->repository,
+            $this->loaded,
             $this->definition,
             $this->specification,
             [$property, $direction],
@@ -154,7 +166,10 @@ final class Matching
      */
     public function fetch(): Sequence
     {
-        /** @var Sequence<T> */
+        /**
+         * @psalm-suppress InvalidArgument For some reason Psalm lose track of the template after denormalization
+         * @var Sequence<T>
+         */
         return $this
             ->repository
             ->matching(
@@ -163,6 +178,7 @@ final class Matching
                 $this->drop,
                 $this->take,
             )
-            ->map($this->definition->denormalize(...));
+            ->map($this->definition->denormalize(...))
+            ->map($this->loaded->add(...));
     }
 }
