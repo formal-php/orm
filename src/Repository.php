@@ -7,6 +7,7 @@ use Formal\ORM\{
     Adapter,
     Definition\Aggregate,
     Repository\Loaded,
+    Specification\Normalize,
 };
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{
@@ -24,6 +25,8 @@ final class Repository
     private Adapter\Repository $adapter;
     /** @var Aggregate<T> */
     private Aggregate $definition;
+    /** @var Normalize<T> */
+    private Normalize $normalizeSpecification;
     /** @var Loaded<T> */
     private Loaded $loaded;
 
@@ -37,6 +40,7 @@ final class Repository
     ) {
         $this->adapter = $adapter;
         $this->definition = $definition;
+        $this->normalizeSpecification = Normalize::of($definition);
         $this->loaded = Loaded::of($definition);
     }
 
@@ -122,6 +126,7 @@ final class Repository
     {
         return Matching::of(
             $this->adapter,
+            $this->normalizeSpecification,
             $this->loaded,
             $this->definition,
             $specification,
@@ -135,7 +140,7 @@ final class Repository
     {
         return $this->adapter->size(match ($specification) {
             null => null,
-            default => $this->definition->normalizeSpecification($specification),
+            default => ($this->normalizeSpecification)($specification),
         });
     }
 

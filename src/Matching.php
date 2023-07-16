@@ -7,6 +7,7 @@ use Formal\ORM\{
     Definition\Aggregate,
     Adapter\Repository,
     Repository\Loaded,
+    Specification\Normalize,
 };
 use Innmind\Specification\Specification;
 use Innmind\Immutable\Sequence;
@@ -18,6 +19,8 @@ final class Matching
 {
     /** @var Repository<T> */
     private Repository $repository;
+    /** @var Normalize<T> */
+    private Normalize $normalizeSpecification;
     /** @var Loaded<T> */
     private Loaded $loaded;
     /** @var Aggregate<T> */
@@ -32,6 +35,7 @@ final class Matching
 
     /**
      * @param Repository<T> $repository
+     * @param Normalize<T> $normalizeSpecification
      * @param Loaded<T> $loaded
      * @param Aggregate<T> $definition
      * @param array{non-empty-string, Sort} $sort
@@ -40,6 +44,7 @@ final class Matching
      */
     private function __construct(
         Repository $repository,
+        Normalize $normalizeSpecification,
         Loaded $loaded,
         Aggregate $definition,
         Specification $specification,
@@ -48,6 +53,7 @@ final class Matching
         ?int $take,
     ) {
         $this->repository = $repository;
+        $this->normalizeSpecification = $normalizeSpecification;
         $this->loaded = $loaded;
         $this->definition = $definition;
         $this->specification = $specification;
@@ -60,6 +66,7 @@ final class Matching
      * @template A of object
      *
      * @param Repository<A> $repository
+     * @param Normalize<A> $normalizeSpecification
      * @param Loaded<A> $loaded
      * @param Aggregate<A> $definition
      *
@@ -67,12 +74,14 @@ final class Matching
      */
     public static function of(
         Repository $repository,
+        Normalize $normalizeSpecification,
         Loaded $loaded,
         Aggregate $definition,
         Specification $specification,
     ): self {
         return new self(
             $repository,
+            $normalizeSpecification,
             $loaded,
             $definition,
             $specification,
@@ -93,6 +102,7 @@ final class Matching
     {
         return new self(
             $this->repository,
+            $this->normalizeSpecification,
             $this->loaded,
             $this->definition,
             $this->specification,
@@ -116,6 +126,7 @@ final class Matching
     {
         return new self(
             $this->repository,
+            $this->normalizeSpecification,
             $this->loaded,
             $this->definition,
             $this->specification,
@@ -139,6 +150,7 @@ final class Matching
     {
         return new self(
             $this->repository,
+            $this->normalizeSpecification,
             $this->loaded,
             $this->definition,
             $this->specification,
@@ -173,7 +185,7 @@ final class Matching
         return $this
             ->repository
             ->matching(
-                $this->definition->normalizeSpecification($this->specification),
+                ($this->normalizeSpecification)($this->specification),
                 $this->sort,
                 $this->drop,
                 $this->take,
