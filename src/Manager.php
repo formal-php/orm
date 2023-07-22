@@ -7,24 +7,21 @@ use Formal\ORM\Definition\{
     Aggregates,
     Types,
 };
-use Innmind\Immutable\{
-    Either,
-    Map,
-    Predicate\Instance,
-};
+use Innmind\Immutable\Either;
 
 final class Manager
 {
     private Adapter $adapter;
     private Aggregates $aggregates;
-    /** @var Map<class-string, \WeakReference<Repository>> */
-    private Map $repositories;
+    /** @var \WeakMap<Repository, class-string> */
+    private \WeakMap $repositories;
 
     private function __construct(Adapter $adapter, Aggregates $aggregates)
     {
         $this->adapter = $adapter;
         $this->aggregates = $aggregates;
-        $this->repositories = Map::of();
+        /** @var \WeakMap<Repository, class-string> */
+        $this->repositories = new \WeakMap;
     }
 
     public static function of(
@@ -43,29 +40,24 @@ final class Manager
      */
     public function repository(string $class): Repository
     {
-        /** @var Repository<T> */
-        $repository = $this
-            ->repositories
-            ->get($class)
-            ->map(static fn($ref) => $ref->get())
-            ->keep(Instance::of(Repository::class))
-            ->match(
-                static fn($repository) => $repository,
-                function() use ($class) {
-                    $definition = $this->aggregates->get($class);
+        /**
+         * @var Repository $repository
+         * @var class-string $kind
+         */
+        foreach ($this->repositories as $repository => $kind) {
+            if ($kind === $class) {
+                /** @var Repository<T> */
+                return $repository;
+            }
+        }
 
-                    return Repository::of(
-                        $this->adapter->repository($definition),
-                        $definition,
-                    );
-                },
-            );
-        $this->repositories = $this->repositories
-            ->filter(static fn($_, $ref) => \is_object($ref->get())) // remove dead references
-            ->put(
-                $class,
-                \WeakReference::create($repository),
-            );
+        $definition = $this->aggregates->get($class);
+
+        $repository = Repository::of(
+            $this->adapter->repository($definition),
+            $definition,
+        );
+        $this->repositories[$repository] = $class;
 
         return $repository;
     }
