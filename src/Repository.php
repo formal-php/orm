@@ -98,9 +98,10 @@ final class Repository
 
         $this->loaded->put($id)($aggregate);
 
+        /** @psalm-suppress InvalidArgument For some reason Psalm lose track of $loaded type */
         $_ = $loaded->match(
             fn($loaded) =>$this->adapter->update(
-                $this->definition->normalize($aggregate), // TODO compute diff
+                $this->definition->diff($loaded, $aggregate),
             ),
             fn() => $this->adapter->add(
                 $this->definition->normalize($aggregate),

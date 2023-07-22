@@ -5,6 +5,7 @@ namespace Formal\ORM\Adapter;
 
 use Formal\ORM\{
     Raw\Aggregate,
+    Raw\Diff,
     Sort,
 };
 use Innmind\Specification\Specification;
@@ -24,7 +25,7 @@ interface Repository
     public function get(Aggregate\Id $id): Maybe;
     public function contains(Aggregate\Id $id): bool;
     public function add(Aggregate $data): void;
-    public function update(Aggregate $data): void;
+    public function update(Diff $data): void;
     public function delete(Aggregate\Id $id): void;
 
     /**

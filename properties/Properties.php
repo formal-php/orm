@@ -27,6 +27,7 @@ final class Properties
     {
         return [
             AddAggregate::class,
+            UpdateAggregate::class,
             SavingAggregateTwiceAddsItOnce::class,
             ContainsAggregate::class,
             DeleteUnknownAggregateDoesNothing::class,
@@ -50,6 +51,7 @@ final class Properties
     {
         return [
             AddAggregate::class,
+            UpdateAggregate::class,
             SavingAggregateTwiceAddsItOnce::class,
             ContainsAggregate::class,
             DeleteUnknownAggregateDoesNothing::class,

@@ -24,9 +24,12 @@ final class User
     #[Template(Str::class)]
     private Maybe $nameStr;
 
-    private function __construct(PointInTime $createdAt, ?string $name)
+    /**
+     * @param Id<self> $id
+     */
+    private function __construct(Id $id, PointInTime $createdAt, ?string $name)
     {
-        $this->id = Id::new(self::class);
+        $this->id = $id;
         $this->createdAt = $createdAt;
         $this->name = $name;
         $this->nameStr = Maybe::of($name)->map(Str::of(...));
@@ -36,7 +39,7 @@ final class User
         PointInTime $createdAt,
         string $name = null,
     ): self {
-        return new self($createdAt, $name);
+        return new self(Id::new(self::class), $createdAt, $name);
     }
 
     public function id(): Id
@@ -59,6 +62,15 @@ final class User
         return $this->nameStr->match(
             static fn($str) => $str,
             static fn() => null,
+        );
+    }
+
+    public function rename(string $name): self
+    {
+        return new self(
+            $this->id,
+            $this->createdAt,
+            $name,
         );
     }
 }

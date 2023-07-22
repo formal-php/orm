@@ -113,6 +113,28 @@ final class Aggregate
     }
 
     /**
+     * @param T $then
+     * @param T $now
+     */
+    public function diff(object $then, object $now): Raw\Diff
+    {
+        /** @var Id<T> */
+        $id = $this->id()->extract($then);
+
+        return Raw\Diff::of(
+            $this->id()->normalize($id),
+            $this
+                ->properties
+                ->flatMap(
+                    static fn($property) => $property
+                        ->diff($then, $now)
+                        ->toSequence()
+                        ->toSet(),
+                ),
+        );
+    }
+
+    /**
      * @param T $aggregate
      */
     public function normalize(object $aggregate): Raw\Aggregate

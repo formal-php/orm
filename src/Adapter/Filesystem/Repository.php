@@ -7,6 +7,7 @@ use Formal\ORM\{
     Adapter\Repository as RepositoryInterface,
     Definition\Aggregate as Definition,
     Raw\Aggregate,
+    Raw\Diff,
     Sort,
 };
 use Innmind\Filesystem\{
@@ -106,9 +107,37 @@ final class Repository implements RepositoryInterface
         );
     }
 
-    public function update(Aggregate $data): void
+    public function update(Diff $data): void
     {
-        $this->add($data);
+        /**
+         * @psalm-suppress NamedArgumentNotAllowed
+         * @psalm-suppress MixedArgument
+         * @psalm-suppress MixedArrayAccess
+         */
+        $_ = $this
+            ->directory()
+            ->get(Name::of($data->id()->value()))
+            ->map(static fn($file) => $file->content()->toString())
+            ->map(Json::decode(...))
+            ->filter(\is_array(...))
+            ->map(static fn(array $raw) => Aggregate::of(
+                $data->id(),
+                Set::of(...$raw['properties'])->map(
+                    static fn($property) => $data
+                        ->property($property[0])
+                        ->match(
+                            static fn($property) => $property,
+                            static fn() => Aggregate\Property::of(
+                                $property[0],
+                                $property[1],
+                            ),
+                        ),
+                ),
+            ))
+            ->match(
+                $this->add(...),
+                static fn() => null,
+            );
     }
 
     public function delete(Aggregate\Id $id): void
