@@ -41,8 +41,8 @@ final class Username implements Comparator
      */
     public static function of(Sign $sign, Str|Sequence $value): self
     {
-        $value = match ($value::class) {
-            Str::class => Maybe::just($value),
+        $value = match (true) {
+            $value instanceof Str => Maybe::just($value),
             default => $value->map(Maybe::just(...)),
         };
 
