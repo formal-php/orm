@@ -6,6 +6,7 @@ namespace Formal\ORM\Definition;
 use Formal\ORM\{
     Id,
     Raw,
+    Definition\Aggregate\Parsing,
 };
 use Innmind\Reflection\{
     ReflectionClass,
@@ -55,35 +56,22 @@ final class Aggregate
      */
     public static function of(Types $types, string $class): self
     {
-        $properties = ReflectionClass::of($class)->properties();
-        $id = $properties
-            ->filter(static fn($property) => $property->type()->toString() === Id::class)
-            ->filter(
-                static fn($property) => $property
-                    ->attributes()
-                    ->filter(static fn($attribute) => $attribute->class() === Template::class)
-                    ->map(static fn($attribute) => $attribute->instance())
-                    ->keep(Instance::of(Template::class))
-                    ->any(static fn($template) => $template->is($class)),
-            )
-            ->find(static fn() => true) // TODO mention in the doc that only one property can reference an id of the current aggregate
-            ->match(
-                static fn($property) => Aggregate\Identity::of($property->name(), $class),
-                static fn() => throw new \LogicException('One property must be typed Id<self>'),
-            );
-        $props = $properties
-            ->exclude(static fn($property) => $property->name() === $id->property())
-            ->flatMap(static fn($property) => $types($property->type()->type())
-                ->map(static fn($type) => Aggregate\Property::of(
-                    $class,
-                    $property->name(),
-                    $type,
-                ))
-                ->toSequence()
-                ->toSet(),
+        /** @var Parsing<A> Type lost due to the reduce */
+        $parsed = ReflectionClass::of($class)
+            ->properties()
+            ->reduce(
+                Parsing::of($class),
+                static fn(Parsing $parsing, $property) => $parsing->with($property, $types),
             );
 
-        return new self($class, $id, $props);
+        return $parsed->id()->match(
+            static fn($id) => new self(
+                $class,
+                $id,
+                $parsed->properties(),
+            ),
+            static fn() => throw new \LogicException('A property named "id" must be typed Id<self>'),
+        );
     }
 
     /**
