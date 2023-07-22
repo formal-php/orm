@@ -8,7 +8,11 @@ use Formal\ORM\{
     Definition\Template,
     Definition\Types,
 };
-use Innmind\Reflection\ReflectionProperty;
+use Innmind\Reflection\{
+    ReflectionClass,
+    ReflectionProperty,
+};
+use Innmind\Type\ClassName;
 use Innmind\Immutable\{
     Maybe,
     Set,
@@ -27,20 +31,25 @@ final class Parsing
     private Maybe $id;
     /** @var Set<Property<T, mixed>> */
     private Set $properties;
+    /** @var Set<Entity> */
+    private Set $entities;
 
     /**
      * @param class-string<T> $class
      * @param Maybe<Identity<T>> $id
      * @param Set<Property<T, mixed>> $properties
+     * @param Set<Entity> $entities
      */
     private function __construct(
         string $class,
         Maybe $id,
         Set $properties,
+        Set $entities,
     ) {
         $this->class = $class;
         $this->id = $id;
         $this->properties = $properties;
+        $this->entities = $entities;
     }
 
     /**
@@ -55,7 +64,7 @@ final class Parsing
         /** @var Maybe<Identity<A>> */
         $id = Maybe::nothing();
 
-        return new self($class, $id, Set::of());
+        return new self($class, $id, Set::of(), Set::of());
     }
 
     /**
@@ -73,11 +82,19 @@ final class Parsing
                         $this->class,
                         Maybe::just($parsed), // we can override here because we force the id property to be named "id" so there can only be one
                         $this->properties,
+                        $this->entities,
                     ),
                     Property::class => new self(
                         $this->class,
                         $this->id,
                         ($this->properties)($parsed),
+                        $this->entities,
+                    ),
+                    Entity::class => new self(
+                        $this->class,
+                        $this->id,
+                        $this->properties,
+                        ($this->entities)($parsed),
                     ),
                 },
                 fn() => $this, // silently discard unparseable properties
@@ -101,15 +118,24 @@ final class Parsing
     }
 
     /**
+     * @return Set<Entity>
+     */
+    public function entities(): Set
+    {
+        return $this->entities;
+    }
+
+    /**
      * @param ReflectionProperty<T> $property
      *
-     * @return Maybe<Identity<T>|Property<T, mixed>>
+     * @return Maybe<Identity<T>|Property<T, mixed>|Entity>
      */
     private function parse(ReflectionProperty $property, Types $types): Maybe
     {
         return $this
             ->parseId($property)
-            ->otherwise(fn() => $this->parseProperty($property, $types));
+            ->otherwise(fn() => $this->parseProperty($this->class, $property, $types))
+            ->otherwise(fn() => $this->parseEntity($property, $types));
     }
 
     /**
@@ -134,12 +160,18 @@ final class Parsing
     }
 
     /**
-     * @param ReflectionProperty<T> $property
+     * @template A of object
      *
-     * @return Maybe<Property<T, mixed>>
+     * @param class-string<A> $class
+     * @param ReflectionProperty<A> $property
+     *
+     * @return Maybe<Property<A, mixed>>
      */
-    private function parseProperty(ReflectionProperty $property, Types $types): Maybe
-    {
+    private function parseProperty(
+        string $class,
+        ReflectionProperty $property,
+        Types $types,
+    ): Maybe {
         return Maybe::just($property)
             ->exclude(static fn($property) => $property->name() === 'id')
             ->flatMap(static fn($property) => $types(
@@ -154,10 +186,41 @@ final class Parsing
                         static fn() => null,
                     ),
             ))
-            ->map(fn($type) => Property::of(
-                $this->class,
+            ->map(static fn($type) => Property::of(
+                $class,
                 $property->name(),
                 $type,
+            ));
+    }
+
+    /**
+     * @param ReflectionProperty<T> $property
+     *
+     * @return Maybe<Entity>
+     */
+    private function parseEntity(ReflectionProperty $property, Types $types): Maybe
+    {
+        /**
+         * @psalm-suppress ArgumentTypeCoercion
+         * @psalm-suppress InvalidArgument
+         */
+        return Maybe::just($property)
+            ->exclude(static fn($property) => $property->name() === 'id')
+            ->filter(static fn($property) => $property->type()->type() instanceof ClassName)
+            ->map(fn($property) => Entity::required(
+                $property->type()->toString(),
+                $property->name(),
+                ReflectionClass::of($property->type()->toString())
+                    ->properties()
+                    ->flatMap(
+                        fn($innerProperty) => $this->parseProperty(
+                            $property->type()->toString(),
+                            $innerProperty,
+                            $types,
+                        )
+                            ->toSequence()
+                            ->toSet(),
+                    ),
             ));
     }
 }

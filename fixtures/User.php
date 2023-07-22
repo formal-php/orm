@@ -23,23 +23,34 @@ final class User
     /** @var Maybe<Str> */
     #[Template(Str::class)]
     private Maybe $nameStr;
+    private User\Address $mainAddress;
 
     /**
      * @param Id<self> $id
      */
-    private function __construct(Id $id, PointInTime $createdAt, ?string $name)
-    {
+    private function __construct(
+        Id $id,
+        PointInTime $createdAt,
+        ?string $name,
+        User\Address $mainAddress,
+    ) {
         $this->id = $id;
         $this->createdAt = $createdAt;
         $this->name = $name;
         $this->nameStr = Maybe::of($name)->map(Str::of(...));
+        $this->mainAddress = $mainAddress;
     }
 
     public static function new(
         PointInTime $createdAt,
         string $name = null,
     ): self {
-        return new self(Id::new(self::class), $createdAt, $name);
+        return new self(
+            Id::new(self::class),
+            $createdAt,
+            $name,
+            User\Address::new('nowhere'),
+        );
     }
 
     public function id(): Id
@@ -71,6 +82,7 @@ final class User
             $this->id,
             $this->createdAt,
             $name,
+            $this->mainAddress,
         );
     }
 }

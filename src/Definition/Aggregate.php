@@ -31,20 +31,25 @@ final class Aggregate
     private Aggregate\Identity $id;
     /** @var Set<Aggregate\Property> */
     private Set $properties;
+    /** @var Set<Aggregate\Entity> */
+    private Set $entities;
 
     /**
      * @param class-string<T> $class
      * @param Aggregate\Identity<T> $id
      * @param Set<Aggregate\Property> $properties
+     * @param Set<Aggregate\Entity> $entities
      */
     private function __construct(
         string $class,
         Aggregate\Identity $id,
         Set $properties,
+        Set $entities,
     ) {
         $this->class = $class;
         $this->id = $id;
         $this->properties = $properties;
+        $this->entities = $entities;
     }
 
     /**
@@ -69,6 +74,7 @@ final class Aggregate
                 $class,
                 $id,
                 $parsed->properties(),
+                $parsed->entities(),
             ),
             static fn() => throw new \LogicException('A property named "id" must be typed Id<self>'),
         );
@@ -113,6 +119,14 @@ final class Aggregate
     }
 
     /**
+     * @return Set<Aggregate\Entity>
+     */
+    public function entities(): Set
+    {
+        return $this->entities;
+    }
+
+    /**
      * @param T $then
      * @param T $now
      */
@@ -144,9 +158,12 @@ final class Aggregate
 
         return Raw\Aggregate::of(
             $this->id()->normalize($id),
-            $this
-                ->properties
-                ->map(static fn($property) => $property->normalize($aggregate)),
+            $this->properties->map(
+                static fn($property) => $property->normalize($aggregate),
+            ),
+            $this->entities->map(
+                static fn($entity) => $entity->normalize($aggregate),
+            ),
         );
     }
 
@@ -171,6 +188,17 @@ final class Aggregate
                         ->property($property->name())
                         ->map(static fn($raw): mixed => $property->denormalize($raw->value()))
                         ->map(static fn($value) => [$property->name(), $value])
+                        ->toSequence()
+                        ->toSet(),
+                )
+                ->toList(),
+            ...$this
+                ->entities
+                ->flatMap(
+                    static fn($entity) => $data
+                        ->entity($entity->property())
+                        ->map(static fn($raw): mixed => $entity->denormalize($raw))
+                        ->map(static fn($value) => [$entity->property(), $value])
                         ->toSequence()
                         ->toSet(),
                 )

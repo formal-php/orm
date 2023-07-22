@@ -80,6 +80,13 @@ final class Repository implements RepositoryInterface
                     $property[0],
                     $property[1],
                 )),
+                Set::of(...$raw['entities'])->map(static fn($entity) => Aggregate\Entity::of(
+                    $entity[0],
+                    Set::of(...$entity[1])->map(static fn($property) => Aggregate\Property::of(
+                        $property[0],
+                        $property[1],
+                    )),
+                )),
             ));
     }
 
@@ -100,6 +107,18 @@ final class Repository implements RepositoryInterface
                         'properties' => $data
                             ->properties()
                             ->map(static fn($property) => [$property->name(), $property->value()])
+                            ->toList(),
+                        'entities' => $data
+                            ->entities()
+                            ->map(
+                                static fn($entity) => [
+                                    $entity->name(),
+                                    $entity
+                                        ->properties()
+                                        ->map(static fn($property) => [$property->name(), $property->value()])
+                                        ->toList(),
+                                ],
+                            )
                             ->toList(),
                     ])),
                 ),
@@ -133,6 +152,7 @@ final class Repository implements RepositoryInterface
                             ),
                         ),
                 ),
+                Set::of(), // TODO
             ))
             ->match(
                 $this->add(...),
@@ -220,16 +240,22 @@ final class Repository implements RepositoryInterface
                 fn($file) => Maybe::just($file->content()->toString())
                     ->map(Json::decode(...))
                     ->filter(\is_array(...))
-                    ->map(static fn(array $raw) => Set::of(...$raw['properties'])->map(static fn($property) => Aggregate\Property::of(
-                        $property[0],
-                        $property[1],
-                    )))
-                    ->map(fn($properties) => Aggregate::of(
+                    ->map(fn($raw) => Aggregate::of(
                         Aggregate\Id::of(
                             $this->definition->id()->property(),
                             $file->name()->toString(),
                         ),
-                        $properties,
+                        Set::of(...$raw['properties'])->map(static fn($property) => Aggregate\Property::of(
+                            $property[0],
+                            $property[1],
+                        )),
+                        Set::of(...$raw['entities'])->map(static fn($entity) => Aggregate\Entity::of(
+                            $entity[0],
+                            Set::of(...$entity[1])->map(static fn($property) => Aggregate\Property::of(
+                                $property[0],
+                                $property[1],
+                            )),
+                        )),
                     ))
                     ->toSequence(),
             );
