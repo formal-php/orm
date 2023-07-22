@@ -26,19 +26,19 @@ final class Aggregate
 {
     /** @var class-string<T> */
     private string $class;
-    /** @var Aggregate\Id<T> */
-    private Aggregate\Id $id;
+    /** @var Aggregate\Identity<T> */
+    private Aggregate\Identity $id;
     /** @var Set<Aggregate\Property> */
     private Set $properties;
 
     /**
      * @param class-string<T> $class
-     * @param Aggregate\Id<T> $id
+     * @param Aggregate\Identity<T> $id
      * @param Set<Aggregate\Property> $properties
      */
     private function __construct(
         string $class,
-        Aggregate\Id $id,
+        Aggregate\Identity $id,
         Set $properties,
     ) {
         $this->class = $class;
@@ -68,10 +68,9 @@ final class Aggregate
             )
             ->find(static fn() => true) // TODO mention in the doc that only one property can reference an id of the current aggregate
             ->match(
-                static fn($property) => Aggregate\Id::of($property->name(), $class),
+                static fn($property) => Aggregate\Identity::of($property->name(), $class),
                 static fn() => throw new \LogicException('One property must be typed Id<self>'),
             );
-        /** @psalm-suppress ArgumentTypeCoercion TODO fix in innmind/reflection */
         $props = $properties
             ->exclude(static fn($property) => $property->name() === $id->property())
             ->flatMap(static fn($property) => $types($property->type()->type())
@@ -110,9 +109,9 @@ final class Aggregate
     }
 
     /**
-     * @return Aggregate\Id<T>
+     * @return Aggregate\Identity<T>
      */
-    public function id(): Aggregate\Id
+    public function id(): Aggregate\Identity
     {
         return $this->id;
     }

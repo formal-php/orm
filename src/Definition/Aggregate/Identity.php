@@ -4,7 +4,7 @@ declare(strict_types = 1);
 namespace Formal\ORM\Definition\Aggregate;
 
 use Formal\ORM\{
-    Id as PublicId,
+    Id,
     Raw,
 };
 use Innmind\Reflection\Extract;
@@ -16,7 +16,7 @@ use Innmind\Immutable\{
 /**
  * @template T of object
  */
-final class Id
+final class Identity
 {
     /** @var non-empty-string */
     private string $property;
@@ -57,14 +57,14 @@ final class Id
     /**
      * @param T $aggregate
      *
-     * @return PublicId<T>
+     * @return Id<T>
      */
-    public function extract(object $aggregate): PublicId
+    public function extract(object $aggregate): Id
     {
-        /** @var PublicId<T> */
+        /** @var Id<T> */
         return (new Extract)($aggregate, Set::of($this->property))
             ->flatMap(fn($properties) => $properties->get($this->property))
-            ->keep(Instance::of(PublicId::class))
+            ->keep(Instance::of(Id::class))
             ->match(
                 static fn($id) => $id,
                 fn() => throw new \LogicException("Unable to extract id on {$this->class}"),
@@ -72,18 +72,18 @@ final class Id
     }
 
     /**
-     * @param PublicId<T> $id
+     * @param Id<T> $id
      */
-    public function normalize(PublicId $id): Raw\Aggregate\Id
+    public function normalize(Id $id): Raw\Aggregate\Id
     {
         return Raw\Aggregate\Id::of($this->property, $id->toString());
     }
 
     /**
-     * @return PublicId<T>
+     * @return Id<T>
      */
-    public function denormalize(Raw\Aggregate\Id $id): PublicId
+    public function denormalize(Raw\Aggregate\Id $id): Id
     {
-        return PublicId::of($this->class, $id->value());
+        return Id::of($this->class, $id->value());
     }
 }
