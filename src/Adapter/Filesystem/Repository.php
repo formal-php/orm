@@ -34,6 +34,7 @@ use Innmind\Immutable\{
 };
 
 /**
+ * @internal
  * @template T of object
  * @implements RepositoryInterface<T>
  */
