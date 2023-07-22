@@ -142,7 +142,18 @@ final class Parsing
     {
         return Maybe::just($property)
             ->exclude(static fn($property) => $property->name() === 'id')
-            ->flatMap(static fn($property) => $types($property->type()->type()))
+            ->flatMap(static fn($property) => $types(
+                $property->type()->type(),
+                $property
+                    ->attributes()
+                    ->find(static fn($attribute) => $attribute->class() === Template::class)
+                    ->map(static fn($attribute) => $attribute->instance())
+                    ->keep(Instance::of(Template::class))
+                    ->match(
+                        static fn($template) => $template,
+                        static fn() => null,
+                    ),
+            ))
             ->map(fn($type) => Property::of(
                 $this->class,
                 $property->name(),

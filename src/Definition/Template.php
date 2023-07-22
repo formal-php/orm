@@ -3,6 +3,11 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition;
 
+use Innmind\Type\{
+    Type,
+    ClassName,
+};
+
 #[\Attribute]
 final class Template
 {
@@ -23,5 +28,10 @@ final class Template
     public function is(string $type): bool
     {
         return $this->type === $type;
+    }
+
+    public function type(): Type
+    {
+        return ClassName::of($this->type);
     }
 }

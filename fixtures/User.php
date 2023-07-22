@@ -8,7 +8,10 @@ use Formal\ORM\{
     Definition\Template,
 };
 use Innmind\TimeContinuum\PointInTime;
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Maybe,
+};
 
 final class User
 {
@@ -17,17 +20,16 @@ final class User
     private Id $id;
     private PointInTime $createdAt;
     private ?string $name;
-    private ?Str $nameStr;
+    /** @var Maybe<Str> */
+    #[Template(Str::class)]
+    private Maybe $nameStr;
 
     private function __construct(PointInTime $createdAt, ?string $name)
     {
         $this->id = Id::new(self::class);
         $this->createdAt = $createdAt;
         $this->name = $name;
-        $this->nameStr = match ($name) {
-            null => null,
-            default => Str::of($name),
-        };
+        $this->nameStr = Maybe::of($name)->map(Str::of(...));
     }
 
     public static function new(
@@ -54,6 +56,9 @@ final class User
 
     public function nameStr(): ?Str
     {
-        return $this->nameStr;
+        return $this->nameStr->match(
+            static fn($str) => $str,
+            static fn() => null,
+        );
     }
 }

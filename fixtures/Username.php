@@ -11,6 +11,7 @@ use Innmind\Specification\{
 use Innmind\Immutable\{
     Str,
     Sequence,
+    Maybe,
 };
 
 /**
@@ -21,13 +22,13 @@ final class Username implements Comparator
     use Composable;
 
     private Sign $sign;
-    /** @var Str|Sequence<Str> */
-    private Str|Sequence $value;
+    /** @var Maybe<Str>|Sequence<Maybe<Str>> */
+    private Maybe|Sequence $value;
 
     /**
-     * @param Str|Sequence<Str> $value
+     * @param Maybe<Str>|Sequence<Maybe<Str>> $value
      */
-    private function __construct(Sign $sign, Str|Sequence $value)
+    private function __construct(Sign $sign, Maybe|Sequence $value)
     {
         $this->sign = $sign;
         $this->value = $value;
@@ -40,6 +41,11 @@ final class Username implements Comparator
      */
     public static function of(Sign $sign, Str|Sequence $value): self
     {
+        $value = match ($value::class) {
+            Str::class => Maybe::just($value),
+            default => $value->map(Maybe::just(...)),
+        };
+
         return new self($sign, $value);
     }
 
@@ -54,9 +60,9 @@ final class Username implements Comparator
     }
 
     /**
-     * @return Str|Sequence<Str>
+     * @return Maybe<Str>|Sequence<Maybe<Str>>
      */
-    public function value(): Str|Sequence
+    public function value(): Maybe|Sequence
     {
         return $this->value;
     }
