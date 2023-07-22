@@ -29,10 +29,7 @@ final class StringType implements Type
     public static function of(Types $types, Concrete $type): Maybe
     {
         return Maybe::just($type)
-            ->filter(
-                static fn($type) => $type->accepts(Nullable::of(Primitive::string())) ||
-                    $type->accepts(Primitive::string()),
-            )
+            ->filter(static fn($type) => $type->accepts(Primitive::string()))
             ->map(static fn() => new self);
     }
 
@@ -43,10 +40,6 @@ final class StringType implements Type
 
     public function denormalize(null|string|int|bool $value): mixed
     {
-        if (\is_null($value)) {
-            return null;
-        }
-
         if (!\is_string($value)) {
             throw new \LogicException("'$value' is not a string");
         }

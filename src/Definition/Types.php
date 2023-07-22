@@ -46,6 +46,7 @@ final class Types
     public static function of(callable ...$builders): self
     {
         return new self(
+            Type\NullableType::of(...),
             Type\MaybeType::of(...),
             Type\StringType::of(...),
             Type\StrType::of(...),
@@ -58,6 +59,7 @@ final class Types
     public static function default(): self
     {
         return new self(
+            Type\NullableType::of(...),
             Type\MaybeType::of(...),
             Type\StringType::of(...),
             Type\StrType::of(...),

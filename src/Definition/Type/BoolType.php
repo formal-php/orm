@@ -29,10 +29,7 @@ final class BoolType implements Type
     public static function of(Types $types, Concrete $type): Maybe
     {
         return Maybe::just($type)
-            ->filter(
-                static fn($type) => $type->accepts(Nullable::of(Primitive::bool())) ||
-                    $type->accepts(Primitive::bool()),
-            )
+            ->filter(static fn($type) => $type->accepts(Primitive::bool()))
             ->map(static fn() => new self);
     }
 
@@ -44,7 +41,6 @@ final class BoolType implements Type
     public function denormalize(null|string|int|bool $value): mixed
     {
         return match ($value) {
-            null => null,
             0 => false,
             1 => true,
             true => true,

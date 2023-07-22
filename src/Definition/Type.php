@@ -9,12 +9,12 @@ namespace Formal\ORM\Definition;
 interface Type
 {
     /**
-     * @param ?D $value
+     * @param D $value
      */
     public function normalize(mixed $value): null|string|int|bool;
 
     /**
-     * @return ?D
+     * @return D
      */
     public function denormalize(null|string|int|bool $value): mixed;
 }

@@ -29,10 +29,7 @@ final class IntType implements Type
     public static function of(Types $types, Concrete $type): Maybe
     {
         return Maybe::just($type)
-            ->filter(
-                static fn($type) => $type->accepts(Nullable::of(Primitive::int())) ||
-                    $type->accepts(Primitive::int()),
-            )
+            ->filter(static fn($type) => $type->accepts(Primitive::int()))
             ->map(static fn() => new self);
     }
 
@@ -43,10 +40,6 @@ final class IntType implements Type
 
     public function denormalize(null|string|int|bool $value): mixed
     {
-        if (\is_null($value)) {
-            return null;
-        }
-
         if (!\is_int($value)) {
             throw new \LogicException("'$value' is not an integer");
         }
