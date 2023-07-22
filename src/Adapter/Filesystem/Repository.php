@@ -75,7 +75,7 @@ final class Repository implements RepositoryInterface
             ->filter(\is_array(...))
             ->map(static fn(array $raw) => Aggregate::of(
                 $id,
-                Set::of(...$raw)->map(static fn($property) => Aggregate\Property::of(
+                Set::of(...$raw['properties'])->map(static fn($property) => Aggregate\Property::of(
                     $property[0],
                     $property[1],
                 )),
@@ -96,7 +96,7 @@ final class Repository implements RepositoryInterface
                 File::named(
                     $data->id()->value(),
                     Content\Lines::ofContent(Json::encode([
-                        ...$data
+                        'properties' => $data
                             ->properties()
                             ->map(static fn($property) => [$property->name(), $property->value()])
                             ->toList(),
@@ -191,7 +191,7 @@ final class Repository implements RepositoryInterface
                 fn($file) => Maybe::just($file->content()->toString())
                     ->map(Json::decode(...))
                     ->filter(\is_array(...))
-                    ->map(static fn(array $raw) => Set::of(...$raw)->map(static fn($property) => Aggregate\Property::of(
+                    ->map(static fn(array $raw) => Set::of(...$raw['properties'])->map(static fn($property) => Aggregate\Property::of(
                         $property[0],
                         $property[1],
                     )))
