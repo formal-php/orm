@@ -152,7 +152,33 @@ final class Repository implements RepositoryInterface
                             ),
                         ),
                 ),
-                Set::of(), // TODO
+                Set::of(...$raw['entities'])->map(
+                    static fn($entity) => $data
+                        ->entity($entity[0])
+                        ->match(
+                            static fn($diff) => Aggregate\Entity::of(
+                                $entity[0],
+                                Set::of(...$entity[1])->map(
+                                    static fn($property) => $diff
+                                        ->property($property[0])
+                                        ->match(
+                                            static fn($value) => $value,
+                                            static fn() => Aggregate\Property::of(
+                                                $property[0],
+                                                $property[1],
+                                            ),
+                                        ),
+                                ),
+                            ),
+                            static fn() => Aggregate\Entity::of(
+                                $entity[0],
+                                Set::of(...$entity[1])->map(static fn($property) => Aggregate\Property::of(
+                                    $property[0],
+                                    $property[1],
+                                )),
+                            ),
+                        ),
+                ),
             ))
             ->match(
                 $this->add(...),

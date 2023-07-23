@@ -76,6 +76,11 @@ final class User
         );
     }
 
+    public function mainAddress(): User\Address
+    {
+        return $this->mainAddress;
+    }
+
     public function rename(string $name): self
     {
         return new self(
@@ -83,6 +88,16 @@ final class User
             $this->createdAt,
             $name,
             $this->mainAddress,
+        );
+    }
+
+    public function changeAddress(string $address): self
+    {
+        return new self(
+            $this->id,
+            $this->createdAt,
+            $this->name,
+            User\Address::new($address),
         );
     }
 }

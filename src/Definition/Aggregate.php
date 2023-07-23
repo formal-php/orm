@@ -145,6 +145,14 @@ final class Aggregate
                         ->toSequence()
                         ->toSet(),
                 ),
+            $this
+                ->entities
+                ->flatMap(
+                    static fn($entity) => $entity
+                        ->diff($then, $now)
+                        ->toSequence()
+                        ->toSet(),
+                ),
         );
     }
 

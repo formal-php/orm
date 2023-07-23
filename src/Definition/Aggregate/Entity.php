@@ -14,6 +14,7 @@ use Innmind\Reflection\{
 use Innmind\Immutable\{
     Set,
     Map,
+    Maybe,
     Predicate\Instance,
 };
 
@@ -70,6 +71,46 @@ final class Entity
     public function property(): string
     {
         return $this->property;
+    }
+
+    /**
+     * The diff relies on the immutable nature of aggregates and the properties
+     * being strictly typed
+     *
+     * This allows to not unwrap monadic types and accidently loading
+     * unnecessary data
+     *
+     * @param T $then
+     * @param T $now
+     *
+     * @return Maybe<Raw\Aggregate\Entity>
+     */
+    public function diff(object $then, object $now): Maybe
+    {
+        $thenValue = (new Extract)($then, Set::of($this->property))
+            ->flatMap(fn($properties) => $properties->get($this->property));
+        $nowValue = (new Extract)($now, Set::of($this->property))
+            ->flatMap(fn($properties) => $properties->get($this->property));
+
+        /** @psalm-suppress MixedArgument No way to tell psalm the property type */
+        return Maybe::all($thenValue, $nowValue)
+            ->flatMap(
+                static fn(mixed $then, mixed $now) => Maybe::just($now)
+                    ->filter(static fn($now) => $now !== $then)
+                    ->map(
+                        fn($now) => $this->properties->flatMap(
+                            static fn($property) => $property
+                                ->diff($then, $now)
+                                ->toSequence()
+                                ->toSet(),
+                        ),
+                    ),
+            )
+            ->filter(static fn($diff) => !$diff->empty())
+            ->map(fn($properties) => Raw\Aggregate\Entity::of(
+                $this->property,
+                $properties,
+            ));
     }
 
     public function normalize(object $aggregate): Raw\Aggregate\Entity

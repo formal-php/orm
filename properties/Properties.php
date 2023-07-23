@@ -28,6 +28,7 @@ final class Properties
         return [
             AddAggregate::class,
             UpdateAggregate::class,
+            UpdateEntity::class,
             SavingAggregateTwiceAddsItOnce::class,
             ContainsAggregate::class,
             DeleteUnknownAggregateDoesNothing::class,
@@ -52,6 +53,7 @@ final class Properties
         return [
             AddAggregate::class,
             UpdateAggregate::class,
+            UpdateEntity::class,
             SavingAggregateTwiceAddsItOnce::class,
             ContainsAggregate::class,
             DeleteUnknownAggregateDoesNothing::class,
