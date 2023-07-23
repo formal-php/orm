@@ -157,25 +157,6 @@ final class Aggregate
     }
 
     /**
-     * @param T $aggregate
-     */
-    public function normalize(object $aggregate): Raw\Aggregate
-    {
-        /** @var Id<T> */
-        $id = $this->id()->extract($aggregate);
-
-        return Raw\Aggregate::of(
-            $this->id()->normalize($id),
-            $this->properties->map(
-                static fn($property) => $property->normalize($aggregate),
-            ),
-            $this->entities->map(
-                static fn($entity) => $entity->normalize($aggregate),
-            ),
-        );
-    }
-
-    /**
      * @param Id<T> $id
      *
      * @return T

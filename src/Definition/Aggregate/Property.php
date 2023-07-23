@@ -101,24 +101,6 @@ final class Property
     }
 
     /**
-     * @param T $aggregate
-     */
-    public function normalize(object $aggregate): Raw\Aggregate\Property
-    {
-        /** @psalm-suppress MixedArgument No way to tell psalm the property type */
-        return (new Extract)($aggregate, Set::of($this->name))
-            ->flatMap(fn($properties) => $properties->get($this->name))
-            ->map(fn($value) => Raw\Aggregate\Property::of(
-                $this->name,
-                $this->type->normalize($value),
-            ))
-            ->match(
-                static fn($raw) => $raw,
-                fn() => throw new \LogicException("Unable to extract {$this->class}::{$this->name}"),
-            );
-    }
-
-    /**
      * @return K
      */
     public function denormalize(null|string|int|bool $value): mixed

@@ -66,11 +66,27 @@ final class Entity
     }
 
     /**
+     * @return class-string<T>
+     */
+    public function class(): string
+    {
+        return $this->class;
+    }
+
+    /**
      * @return non-empty-string
      */
     public function property(): string
     {
         return $this->property;
+    }
+
+    /**
+     * @return Set<Property<T, mixed>>
+     */
+    public function properties(): Set
+    {
+        return $this->properties;
     }
 
     /**
@@ -111,25 +127,6 @@ final class Entity
                 $this->property,
                 $properties,
             ));
-    }
-
-    public function normalize(object $aggregate): Raw\Aggregate\Entity
-    {
-        /** @var T */
-        $entity = (new Extract)($aggregate, Set::of($this->property))
-            ->flatMap(fn($properties) => $properties->get($this->property))
-            ->keep(Instance::of($this->class))
-            ->match(
-                static fn($entity) => $entity,
-                fn() => throw new \LogicException("Unable to extract {$this->class}@{$this->property}"),
-            );
-
-        return Raw\Aggregate\Entity::of(
-            $this->property,
-            $this->properties->map(
-                static fn($property) => $property->normalize($entity),
-            ),
-        );
     }
 
     /**

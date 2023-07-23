@@ -7,7 +7,8 @@ use Formal\ORM\{
     Adapter,
     Definition\Aggregate,
     Repository\Loaded,
-    Specification\Normalize,
+    Repository\Normalize,
+    Specification\Normalize as NormalizeSpecification,
 };
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{
@@ -25,10 +26,12 @@ final class Repository
     private Adapter\Repository $adapter;
     /** @var Aggregate<T> */
     private Aggregate $definition;
-    /** @var Normalize<T> */
-    private Normalize $normalizeSpecification;
+    /** @var NormalizeSpecification<T> */
+    private NormalizeSpecification $normalizeSpecification;
     /** @var Loaded<T> */
     private Loaded $loaded;
+    /** @var Normalize<T> */
+    private Normalize $normalize;
 
     /**
      * @param Adapter\Repository<T> $adapter
@@ -40,8 +43,9 @@ final class Repository
     ) {
         $this->adapter = $adapter;
         $this->definition = $definition;
-        $this->normalizeSpecification = Normalize::of($definition);
+        $this->normalizeSpecification = NormalizeSpecification::of($definition);
         $this->loaded = Loaded::of($definition);
+        $this->normalize = Normalize::of($definition);
     }
 
     /**
@@ -104,7 +108,7 @@ final class Repository
                 $this->definition->diff($loaded, $aggregate),
             ),
             fn() => $this->adapter->add(
-                $this->definition->normalize($aggregate),
+                ($this->normalize)($aggregate),
             ),
         );
     }
