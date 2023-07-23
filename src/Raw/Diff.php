@@ -3,11 +3,7 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Raw;
 
-use Innmind\Immutable\{
-    Set,
-    Map,
-    Maybe,
-};
+use Innmind\Immutable\Set;
 
 final class Diff
 {
@@ -16,10 +12,6 @@ final class Diff
     private Set $properties;
     /** @var Set<Aggregate\Entity> */
     private Set $entities;
-    /** @var Map<non-empty-string, Aggregate\Property> */
-    private Map $denormalizedProperties;
-    /** @var Map<non-empty-string, Aggregate\Entity> */
-    private Map $denormalizedEntities;
 
     /**
      * @param Set<Aggregate\Property> $properties
@@ -33,16 +25,6 @@ final class Diff
         $this->id = $id;
         $this->properties = $properties;
         $this->entities = $entities;
-        $this->denormalizedProperties = Map::of(
-            ...$properties
-                ->map(static fn($property) => [$property->name(), $property])
-                ->toList(),
-        );
-        $this->denormalizedEntities = Map::of(
-            ...$entities
-                ->map(static fn($entity) => [$entity->name(), $entity])
-                ->toList(),
-        );
     }
 
     /**
@@ -76,25 +58,5 @@ final class Diff
     public function entities(): Set
     {
         return $this->entities;
-    }
-
-    /**
-     * @param non-empty-string $name
-     *
-     * @return Maybe<Aggregate\Property>
-     */
-    public function property(string $name): Maybe
-    {
-        return $this->denormalizedProperties->get($name);
-    }
-
-    /**
-     * @param non-empty-string $name
-     *
-     * @return Maybe<Aggregate\Entity>
-     */
-    public function entity(string $name): Maybe
-    {
-        return $this->denormalizedEntities->get($name);
     }
 }
