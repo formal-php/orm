@@ -22,11 +22,11 @@ use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
  */
 final class UpdateAggregate implements Property
 {
-    private ?string $name;
+    private string $name;
     private string $newName;
     private $createdAt;
 
-    private function __construct(?string $name, string $newName, $createdAt)
+    private function __construct(string $name, string $newName, $createdAt)
     {
         $this->name = $name;
         $this->newName = $newName;
@@ -37,7 +37,7 @@ final class UpdateAggregate implements Property
     {
         return Set\Composite::immutable(
             static fn(...$args) => new self(...$args),
-            Set\Nullable::of(Set\Strings::madeOf(Set\Chars::alphanumerical())),
+            Set\Strings::madeOf(Set\Chars::alphanumerical()),
             Set\Strings::madeOf(Set\Chars::alphanumerical()),
             PointInTime::any(),
         );
@@ -95,6 +95,25 @@ final class UpdateAggregate implements Property
                     ->changeTimezone(new UTC)
                     ->format(new Format),
             );
+
+        // make sure the diff is correctly updated
+        $user = $reloaded->rename($this->name);
+        $manager
+            ->repository(User::class)
+            ->put($user);
+
+        $back = $manager
+            ->repository(User::class)
+            ->get(Id::of(User::class, $id))
+            ->match(
+                static fn($user) => $user,
+                static fn() => null,
+            );
+        $assert->not()->null($back);
+        $assert
+            ->expected($this->name)
+            ->same($back->name())
+            ->same($back->nameStr()->toString());
 
         return $manager;
     }
