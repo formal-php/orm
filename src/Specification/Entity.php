@@ -15,10 +15,12 @@ use Innmind\Specification\{
  *
  * @psalm-immutable
  */
-final class Property implements Comparator
+final class Entity implements Comparator
 {
     use Composable;
 
+    /** @var non-empty-string */
+    private string $entity;
     /** @var non-empty-string */
     private string $property;
     private Sign $sign;
@@ -26,14 +28,17 @@ final class Property implements Comparator
     private null|string|int|bool|array $value;
 
     /**
+     * @param non-empty-string $entity
      * @param non-empty-string $property
      * @param null|string|int|bool|list<string|int|bool|null> $value
      */
     private function __construct(
+        string $entity,
         string $property,
         Sign $sign,
         null|string|int|bool|array $value,
     ) {
+        $this->entity = $entity;
         $this->property = $property;
         $this->sign = $sign;
         $this->value = $value;
@@ -43,15 +48,25 @@ final class Property implements Comparator
      * @internal
      * @psalm-pure
      *
+     * @param non-empty-string $entity
      * @param non-empty-string $property
      * @param null|string|int|bool|list<string|int|bool|null> $value
      */
     public static function of(
+        string $entity,
         string $property,
         Sign $sign,
         null|string|int|bool|array $value,
     ): self {
-        return new self($property, $sign, $value);
+        return new self($entity, $property, $sign, $value);
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    public function entity(): string
+    {
+        return $this->entity;
     }
 
     public function property(): string

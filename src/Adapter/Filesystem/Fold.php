@@ -7,6 +7,7 @@ use Formal\ORM\{
     Definition\Aggregate as Definition,
     Raw\Aggregate,
     Specification\Property as PropertySpecification,
+    Specification\Entity as EntitySpecification,
 };
 use Innmind\Specification\{
     Specification,
@@ -53,6 +54,23 @@ final class Fold
                 Operator::and => static fn(Aggregate $aggregate) => $left($aggregate) && $right($aggregate),
                 Operator::or => static fn(Aggregate $aggregate) => $left($aggregate) || $right($aggregate),
             };
+        }
+
+        if ($specification instanceof EntitySpecification) {
+            $filter = $this->filter($specification);
+
+            return static fn(Aggregate $aggregate) => $aggregate
+                ->entities()
+                ->find(static fn($entity) => $entity->name() === $specification->entity())
+                ->flatMap(
+                    static fn($entity) => $entity
+                        ->properties()
+                        ->find(static fn($property) => $property->name() === $specification->property()),
+                )
+                ->match(
+                    static fn($property) => $filter($property->value()),
+                    static fn() => false,
+                );
         }
 
         if (!($specification instanceof PropertySpecification)) {
