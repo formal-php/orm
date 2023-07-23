@@ -14,15 +14,11 @@ use Innmind\Filesystem\{
     Adapter as Storage,
     Name,
     Directory,
-    File\File,
-    File\Content,
 };
 use Innmind\Specification\Specification;
-use Innmind\Json\Json;
 use Innmind\Immutable\{
     Maybe,
     Sequence,
-    Set,
     Predicate\Instance,
 };
 
@@ -92,58 +88,9 @@ final class Repository implements RepositoryInterface
 
     public function update(Diff $data): void
     {
-        /**
-         * @psalm-suppress NamedArgumentNotAllowed
-         * @psalm-suppress MixedArgument
-         * @psalm-suppress MixedArrayAccess
-         */
         $_ = $this
-            ->directory()
-            ->get(Name::of($data->id()->value()))
-            ->map(static fn($file) => $file->content()->toString())
-            ->map(Json::decode(...))
-            ->filter(\is_array(...))
-            ->map(static fn(array $raw) => Aggregate::of(
-                $data->id(),
-                Set::of(...$raw['properties'])->map(
-                    static fn($property) => $data
-                        ->property($property[0])
-                        ->match(
-                            static fn($property) => $property,
-                            static fn() => Aggregate\Property::of(
-                                $property[0],
-                                $property[1],
-                            ),
-                        ),
-                ),
-                Set::of(...$raw['entities'])->map(
-                    static fn($entity) => $data
-                        ->entity($entity[0])
-                        ->match(
-                            static fn($diff) => Aggregate\Entity::of(
-                                $entity[0],
-                                Set::of(...$entity[1])->map(
-                                    static fn($property) => $diff
-                                        ->property($property[0])
-                                        ->match(
-                                            static fn($value) => $value,
-                                            static fn() => Aggregate\Property::of(
-                                                $property[0],
-                                                $property[1],
-                                            ),
-                                        ),
-                                ),
-                            ),
-                            static fn() => Aggregate\Entity::of(
-                                $entity[0],
-                                Set::of(...$entity[1])->map(static fn($property) => Aggregate\Property::of(
-                                    $property[0],
-                                    $property[1],
-                                )),
-                            ),
-                        ),
-                ),
-            ))
+            ->get($data->id())
+            ->map(Apply::of($data))
             ->match(
                 $this->add(...),
                 static fn() => null,

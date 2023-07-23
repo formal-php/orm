@@ -67,4 +67,9 @@ final class Entity
     {
         return $this->denormalizedProperties->get($name);
     }
+
+    public function referenceSame(self $entity): bool
+    {
+        return $this->name === $entity->name();
+    }
 }
