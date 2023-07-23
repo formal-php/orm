@@ -8,6 +8,7 @@ use Formal\ORM\{
     Definition\Aggregate,
     Repository\Loaded,
     Repository\Normalize,
+    Repository\Denormalize,
     Specification\Normalize as NormalizeSpecification,
 };
 use Innmind\Specification\Specification;
@@ -32,6 +33,8 @@ final class Repository
     private Loaded $loaded;
     /** @var Normalize<T> */
     private Normalize $normalize;
+    /** @var Denormalize<T> */
+    private Denormalize $denormalize;
 
     /**
      * @param Adapter\Repository<T> $adapter
@@ -46,6 +49,7 @@ final class Repository
         $this->normalizeSpecification = NormalizeSpecification::of($definition);
         $this->loaded = Loaded::of($definition);
         $this->normalize = Normalize::of($definition);
+        $this->denormalize = Denormalize::of($definition);
     }
 
     /**
@@ -77,7 +81,7 @@ final class Repository
                 fn() => $this
                     ->adapter
                     ->get($this->definition->id()->normalize($id))
-                    ->map(fn($raw) => $this->definition->denormalize($raw, $id))
+                    ->map(($this->denormalize)($id))
                     ->map($this->loaded->put($id)),
             );
     }
@@ -131,9 +135,9 @@ final class Repository
     {
         return Matching::of(
             $this->adapter,
+            $this->denormalize,
             $this->normalizeSpecification,
             $this->loaded,
-            $this->definition,
             $specification,
         );
     }
@@ -154,6 +158,8 @@ final class Repository
      */
     public function all(): Sequence
     {
+        $denormalize = ($this->denormalize)();
+
         /**
          * @psalm-suppress InvalidArgument For some reason Psalm lose track of the template after denormalization
          * @var Sequence<T>
@@ -161,7 +167,7 @@ final class Repository
         return $this
             ->adapter
             ->all()
-            ->map(fn($raw) => $this->definition->denormalize($raw))
+            ->map($denormalize)
             ->map($this->loaded->add(...));
     }
 }

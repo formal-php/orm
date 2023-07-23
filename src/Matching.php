@@ -4,9 +4,9 @@ declare(strict_types = 1);
 namespace Formal\ORM;
 
 use Formal\ORM\{
-    Definition\Aggregate,
     Adapter\Repository,
     Repository\Loaded,
+    Repository\Denormalize,
     Specification\Normalize,
 };
 use Innmind\Specification\Specification;
@@ -19,12 +19,12 @@ final class Matching
 {
     /** @var Repository<T> */
     private Repository $repository;
+    /** @var Denormalize<T> */
+    private Denormalize $denormalize;
     /** @var Normalize<T> */
     private Normalize $normalizeSpecification;
     /** @var Loaded<T> */
     private Loaded $loaded;
-    /** @var Aggregate<T> */
-    private Aggregate $definition;
     private Specification $specification;
     /** @var ?array{non-empty-string, Sort} */
     private ?array $sort;
@@ -35,27 +35,27 @@ final class Matching
 
     /**
      * @param Repository<T> $repository
+     * @param Denormalize<T> $denormalize
      * @param Normalize<T> $normalizeSpecification
      * @param Loaded<T> $loaded
-     * @param Aggregate<T> $definition
      * @param array{non-empty-string, Sort} $sort
      * @param ?positive-int $drop
      * @param ?positive-int $take
      */
     private function __construct(
         Repository $repository,
+        Denormalize $denormalize,
         Normalize $normalizeSpecification,
         Loaded $loaded,
-        Aggregate $definition,
         Specification $specification,
         ?array $sort,
         ?int $drop,
         ?int $take,
     ) {
         $this->repository = $repository;
+        $this->denormalize = $denormalize;
         $this->normalizeSpecification = $normalizeSpecification;
         $this->loaded = $loaded;
-        $this->definition = $definition;
         $this->specification = $specification;
         $this->sort = $sort;
         $this->drop = $drop;
@@ -66,24 +66,24 @@ final class Matching
      * @template A of object
      *
      * @param Repository<A> $repository
+     * @param Denormalize<A> $denormalize
      * @param Normalize<A> $normalizeSpecification
      * @param Loaded<A> $loaded
-     * @param Aggregate<A> $definition
      *
      * @return self<A>
      */
     public static function of(
         Repository $repository,
+        Denormalize $denormalize,
         Normalize $normalizeSpecification,
         Loaded $loaded,
-        Aggregate $definition,
         Specification $specification,
     ): self {
         return new self(
             $repository,
+            $denormalize,
             $normalizeSpecification,
             $loaded,
-            $definition,
             $specification,
             null,
             null,
@@ -102,9 +102,9 @@ final class Matching
     {
         return new self(
             $this->repository,
+            $this->denormalize,
             $this->normalizeSpecification,
             $this->loaded,
-            $this->definition,
             $this->specification,
             $this->sort,
             $this->drop,
@@ -126,9 +126,9 @@ final class Matching
     {
         return new self(
             $this->repository,
+            $this->denormalize,
             $this->normalizeSpecification,
             $this->loaded,
-            $this->definition,
             $this->specification,
             $this->sort,
             match ($this->drop) {
@@ -150,9 +150,9 @@ final class Matching
     {
         return new self(
             $this->repository,
+            $this->denormalize,
             $this->normalizeSpecification,
             $this->loaded,
-            $this->definition,
             $this->specification,
             [$property, $direction],
             $this->drop,
@@ -178,6 +178,7 @@ final class Matching
      */
     public function fetch(): Sequence
     {
+        $denormalize = ($this->denormalize)();
         /**
          * @psalm-suppress InvalidArgument For some reason Psalm lose track of the template after denormalization
          * @var Sequence<T>
@@ -190,7 +191,7 @@ final class Matching
                 $this->drop,
                 $this->take,
             )
-            ->map($this->definition->denormalize(...))
+            ->map($denormalize)
             ->map($this->loaded->add(...));
     }
 }

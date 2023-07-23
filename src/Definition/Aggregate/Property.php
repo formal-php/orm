@@ -99,12 +99,4 @@ final class Property
                 $this->type->normalize($value),
             ));
     }
-
-    /**
-     * @return K
-     */
-    public function denormalize(null|string|int|bool $value): mixed
-    {
-        return $this->type->denormalize($value);
-    }
 }

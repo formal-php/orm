@@ -7,15 +7,10 @@ use Formal\ORM\{
     Definition\Aggregate\Entity\Kind,
     Raw,
 };
-use Innmind\Reflection\{
-    Extract,
-    Instanciate,
-};
+use Innmind\Reflection\Extract;
 use Innmind\Immutable\{
     Set,
-    Map,
     Maybe,
-    Predicate\Instance,
 };
 
 /**
@@ -127,31 +122,5 @@ final class Entity
                 $this->property,
                 $properties,
             ));
-    }
-
-    /**
-     * @return T
-     */
-    public function denormalize(Raw\Aggregate\Entity $data): object
-    {
-        $properties = $this
-            ->properties
-            ->flatMap(
-                static fn($property) => $data
-                    ->property($property->name())
-                    ->map(static fn($raw): mixed => [
-                        $property->name(),
-                        $property->denormalize($raw->value()),
-                    ])
-                    ->toSequence()
-                    ->toSet(),
-            )
-            ->toList();
-
-        /** @var T */
-        return (new Instanciate)($this->class, Map::of(...$properties))->match(
-            static fn($entity) => $entity,
-            fn() => throw new \RuntimeException("Unable to denormalize entity of type {$this->class}"),
-        );
     }
 }

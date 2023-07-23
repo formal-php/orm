@@ -29,7 +29,7 @@ final class Aggregate
     private string $class;
     /** @var Aggregate\Identity<T> */
     private Aggregate\Identity $id;
-    /** @var Set<Aggregate\Property> */
+    /** @var Set<Aggregate\Property<T, mixed>> */
     private Set $properties;
     /** @var Set<Aggregate\Entity> */
     private Set $entities;
@@ -37,7 +37,7 @@ final class Aggregate
     /**
      * @param class-string<T> $class
      * @param Aggregate\Identity<T> $id
-     * @param Set<Aggregate\Property> $properties
+     * @param Set<Aggregate\Property<T, mixed>> $properties
      * @param Set<Aggregate\Entity> $entities
      */
     private function __construct(
@@ -111,7 +111,7 @@ final class Aggregate
     }
 
     /**
-     * @return Set<Aggregate\Property>
+     * @return Set<Aggregate\Property<T, mixed>>
      */
     public function properties(): Set
     {
@@ -153,51 +153,6 @@ final class Aggregate
                         ->toSequence()
                         ->toSet(),
                 ),
-        );
-    }
-
-    /**
-     * @param Id<T> $id
-     *
-     * @return T
-     */
-    public function denormalize(Raw\Aggregate $data, Id $id = null): object
-    {
-        $id = match ($id) {
-            null => $this->id()->denormalize($data->id()),
-            default => $id,
-        };
-
-        $properties = Map::of(
-            [$this->id()->property(), $id],
-            ...$this
-                ->properties
-                ->flatMap(
-                    static fn($property) => $data
-                        ->property($property->name())
-                        ->map(static fn($raw): mixed => $property->denormalize($raw->value()))
-                        ->map(static fn($value) => [$property->name(), $value])
-                        ->toSequence()
-                        ->toSet(),
-                )
-                ->toList(),
-            ...$this
-                ->entities
-                ->flatMap(
-                    static fn($entity) => $data
-                        ->entity($entity->property())
-                        ->map(static fn($raw): mixed => $entity->denormalize($raw))
-                        ->map(static fn($value) => [$entity->property(), $value])
-                        ->toSequence()
-                        ->toSet(),
-                )
-                ->toList(),
-        );
-
-        /** @var T */
-        return (new Instanciate)($this->class, $properties)->match(
-            static fn($aggregate) => $aggregate,
-            fn() => throw new \RuntimeException("Unable to denormalize aggregate of type {$this->class}"),
         );
     }
 }
