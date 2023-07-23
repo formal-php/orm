@@ -38,6 +38,9 @@ final class Repository implements RepositoryInterface
     private Definition $definition;
     /** @var Fold<T> */
     private Fold $fold;
+    private Encode $encode;
+    /** @var Decode<T> */
+    private Decode $decode;
 
     /**
      * @param Definition<T> $definition
@@ -47,6 +50,8 @@ final class Repository implements RepositoryInterface
         $this->adapter = $adapter;
         $this->definition = $definition;
         $this->fold = Fold::of($definition);
+        $this->encode = Encode::new();
+        $this->decode = Decode::of($definition);
     }
 
     /**
@@ -63,31 +68,10 @@ final class Repository implements RepositoryInterface
 
     public function get(Aggregate\Id $id): Maybe
     {
-        /**
-         * @psalm-suppress NamedArgumentNotAllowed
-         * @psalm-suppress MixedArgument
-         * @psalm-suppress MixedArrayAccess
-         */
         return $this
             ->directory()
             ->get(Name::of($id->value()))
-            ->map(static fn($file) => $file->content()->toString())
-            ->map(Json::decode(...))
-            ->filter(\is_array(...))
-            ->map(static fn(array $raw) => Aggregate::of(
-                $id,
-                Set::of(...$raw['properties'])->map(static fn($property) => Aggregate\Property::of(
-                    $property[0],
-                    $property[1],
-                )),
-                Set::of(...$raw['entities'])->map(static fn($entity) => Aggregate\Entity::of(
-                    $entity[0],
-                    Set::of(...$entity[1])->map(static fn($property) => Aggregate\Property::of(
-                        $property[0],
-                        $property[1],
-                    )),
-                )),
-            ));
+            ->flatMap(($this->decode)($id));
     }
 
     public function contains(Aggregate\Id $id): bool
@@ -101,27 +85,7 @@ final class Repository implements RepositoryInterface
     {
         $this->adapter->add(
             Directory\Directory::named($this->definition->name())->add(
-                File::named(
-                    $data->id()->value(),
-                    Content\Lines::ofContent(Json::encode([
-                        'properties' => $data
-                            ->properties()
-                            ->map(static fn($property) => [$property->name(), $property->value()])
-                            ->toList(),
-                        'entities' => $data
-                            ->entities()
-                            ->map(
-                                static fn($entity) => [
-                                    $entity->name(),
-                                    $entity
-                                        ->properties()
-                                        ->map(static fn($property) => [$property->name(), $property->value()])
-                                        ->toList(),
-                                ],
-                            )
-                            ->toList(),
-                    ])),
-                ),
+                ($this->encode)($data),
             ),
         );
     }
@@ -253,38 +217,10 @@ final class Repository implements RepositoryInterface
 
     public function all(): Sequence
     {
-        /**
-         * @psalm-suppress ArgumentTypeCoercion
-         * @psalm-suppress NamedArgumentNotAllowed
-         * @psalm-suppress MixedArgument
-         * @psalm-suppress MixedArrayAccess
-         */
         return $this
             ->directory()
             ->files()
-            ->flatMap(
-                fn($file) => Maybe::just($file->content()->toString())
-                    ->map(Json::decode(...))
-                    ->filter(\is_array(...))
-                    ->map(fn($raw) => Aggregate::of(
-                        Aggregate\Id::of(
-                            $this->definition->id()->property(),
-                            $file->name()->toString(),
-                        ),
-                        Set::of(...$raw['properties'])->map(static fn($property) => Aggregate\Property::of(
-                            $property[0],
-                            $property[1],
-                        )),
-                        Set::of(...$raw['entities'])->map(static fn($entity) => Aggregate\Entity::of(
-                            $entity[0],
-                            Set::of(...$entity[1])->map(static fn($property) => Aggregate\Property::of(
-                                $property[0],
-                                $property[1],
-                            )),
-                        )),
-                    ))
-                    ->toSequence(),
-            );
+            ->flatMap(fn($file) => ($this->decode)()($file)->toSequence());
     }
 
     private function directory(): Directory
