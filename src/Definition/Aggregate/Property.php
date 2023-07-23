@@ -3,15 +3,7 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition\Aggregate;
 
-use Formal\ORM\{
-    Definition\Type,
-    Raw,
-};
-use Innmind\Reflection\Extract;
-use Innmind\Immutable\{
-    Set,
-    Maybe,
-};
+use Formal\ORM\Definition\Type;
 
 /**
  * @template T of object
@@ -67,36 +59,5 @@ final class Property
     public function type(): Type
     {
         return $this->type;
-    }
-
-    /**
-     * The diff relies on the immutable nature of aggregates and the properties
-     * being strictly typed
-     *
-     * This allows to not unwrap monadic types and accidently loading
-     * unnecessary data
-     *
-     * @param T $then
-     * @param T $now
-     *
-     * @return Maybe<Raw\Aggregate\Property>
-     */
-    public function diff(object $then, object $now): Maybe
-    {
-        $thenValue = (new Extract)($then, Set::of($this->name))
-            ->flatMap(fn($properties) => $properties->get($this->name));
-        $nowValue = (new Extract)($now, Set::of($this->name))
-            ->flatMap(fn($properties) => $properties->get($this->name));
-
-        /** @psalm-suppress MixedArgument No way to tell psalm the property type */
-        return Maybe::all($thenValue, $nowValue)
-            ->flatMap(
-                static fn(mixed $then, mixed $now) => Maybe::just($now)
-                    ->filter(static fn($now) => $now !== $then),
-            )
-            ->map(fn($value) => Raw\Aggregate\Property::of(
-                $this->name,
-                $this->type->normalize($value),
-            ));
     }
 }
