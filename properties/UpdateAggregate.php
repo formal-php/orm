@@ -50,14 +50,12 @@ final class UpdateAggregate implements Property
 
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
-        $manager
-            ->repository(User::class)
-            ->put($user = User::new($this->createdAt, $this->name));
+        $repository = $manager->repository(User::class);
+        $repository->put($user = User::new($this->createdAt, $this->name));
         $id = $user->id()->toString();
         unset($user); // to make sure there is no in memory cache somewhere
 
-        $loaded = $manager
-            ->repository(User::class)
+        $loaded = $repository
             ->get(Id::of(User::class, $id))
             ->match(
                 static fn($user) => $user,
@@ -70,8 +68,7 @@ final class UpdateAggregate implements Property
             ->repository(User::class)
             ->put($user);
 
-        $reloaded = $manager
-            ->repository(User::class)
+        $reloaded = $repository
             ->get(Id::of(User::class, $id))
             ->match(
                 static fn($user) => $user,
@@ -98,12 +95,9 @@ final class UpdateAggregate implements Property
 
         // make sure the diff is correctly updated
         $user = $reloaded->rename($this->name);
-        $manager
-            ->repository(User::class)
-            ->put($user);
+        $repository->put($user);
 
-        $back = $manager
-            ->repository(User::class)
+        $back = $repository
             ->get(Id::of(User::class, $id))
             ->match(
                 static fn($user) => $user,
