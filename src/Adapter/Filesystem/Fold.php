@@ -68,7 +68,8 @@ final class Fold
         }
 
         return static fn(Aggregate $aggregate) => $aggregate
-            ->property($specification->property())
+            ->properties()
+            ->find(static fn($property) => $property->name() === $specification->property())
             ->match(
                 static fn($property) => $filter($property->value()),
                 static fn() => false,

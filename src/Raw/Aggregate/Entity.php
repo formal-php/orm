@@ -15,8 +15,6 @@ final class Entity
     private string $name;
     /** @var Set<Property> */
     private Set $properties;
-    /** @var Map<non-empty-string, Property> */
-    private Map $denormalizedProperties;
 
     /**
      * @param non-empty-string $name
@@ -26,11 +24,6 @@ final class Entity
     {
         $this->name = $name;
         $this->properties = $properties;
-        $this->denormalizedProperties = Map::of(
-            ...$properties
-                ->map(static fn($property) => [$property->name(), $property])
-                ->toList(),
-        );
     }
 
     /**
@@ -56,16 +49,6 @@ final class Entity
     public function properties(): Set
     {
         return $this->properties;
-    }
-
-    /**
-     * @param non-empty-string $name
-     *
-     * @return Maybe<Property>
-     */
-    public function property(string $name): Maybe
-    {
-        return $this->denormalizedProperties->get($name);
     }
 
     public function referenceSame(self $entity): bool

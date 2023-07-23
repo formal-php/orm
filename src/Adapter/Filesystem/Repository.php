@@ -116,25 +116,22 @@ final class Repository implements RepositoryInterface
             ->filter($filter);
 
         if (\is_array($sort)) {
-            [$property, $direction] = $sort;
+            [$name, $direction] = $sort;
             $compare = match ($direction) {
                 Sort::asc => static fn(null|string|int|bool $a, null|string|int|bool $b) => $a <=> $b,
                 Sort::desc => static fn(null|string|int|bool $a, null|string|int|bool $b) => $b <=> $a,
             };
+            $pluck = static fn(Aggregate $x): mixed => $x
+                ->properties()
+                ->find(static fn($property) => $property->name() === $name)
+                ->match(
+                    static fn($property) => $property->value(),
+                    static fn() => throw new \LogicException("'$name' not found"),
+                );
 
             $aggregates = $aggregates->sort(static fn($a, $b) => $compare(
-                $a
-                    ->property($property)
-                    ->match(
-                        static fn($property) => $property->value(),
-                        static fn() => throw new \LogicException("'$property' not found"),
-                    ),
-                $b
-                    ->property($property)
-                    ->match(
-                        static fn($property) => $property->value(),
-                        static fn() => throw new \LogicException("'$property' not found"),
-                    ),
+                $pluck($a),
+                $pluck($b),
             ));
         }
 
