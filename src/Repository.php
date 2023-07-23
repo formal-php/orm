@@ -9,6 +9,7 @@ use Formal\ORM\{
     Repository\Loaded,
     Repository\Normalize,
     Repository\Denormalize,
+    Repository\Diff,
     Specification\Normalize as NormalizeSpecification,
 };
 use Innmind\Specification\Specification;
@@ -25,8 +26,8 @@ final class Repository
 {
     /** @var Adapter\Repository<T> */
     private Adapter\Repository $adapter;
-    /** @var Aggregate<T> */
-    private Aggregate $definition;
+    /** @var Aggregate\Identity<T> */
+    private Aggregate\Identity $id;
     /** @var NormalizeSpecification<T> */
     private NormalizeSpecification $normalizeSpecification;
     /** @var Loaded<T> */
@@ -35,6 +36,8 @@ final class Repository
     private Normalize $normalize;
     /** @var Denormalize<T> */
     private Denormalize $denormalize;
+    /** @var Diff<T> */
+    private Diff $diff;
 
     /**
      * @param Adapter\Repository<T> $adapter
@@ -45,11 +48,12 @@ final class Repository
         Aggregate $definition,
     ) {
         $this->adapter = $adapter;
-        $this->definition = $definition;
+        $this->id = $definition->id();
         $this->normalizeSpecification = NormalizeSpecification::of($definition);
         $this->loaded = Loaded::of($definition);
         $this->normalize = Normalize::of($definition);
         $this->denormalize = Denormalize::of($definition);
+        $this->diff = Diff::of($this->normalize);
     }
 
     /**
@@ -80,7 +84,7 @@ final class Repository
             ->otherwise(
                 fn() => $this
                     ->adapter
-                    ->get($this->definition->id()->normalize($id))
+                    ->get($this->id->normalize($id))
                     ->map(($this->denormalize)($id))
                     ->map($this->loaded->put($id)),
             );
@@ -92,7 +96,7 @@ final class Repository
     public function contains(Id $id): bool
     {
         return $this->adapter->contains(
-            $this->definition->id()->normalize($id),
+            $this->id->normalize($id),
         );
     }
 
@@ -101,7 +105,7 @@ final class Repository
      */
     public function put(object $aggregate): void
     {
-        $id = $this->definition->id()->extract($aggregate);
+        $id = $this->id->extract($aggregate);
         $loaded = $this->loaded->get($id);
 
         $this->loaded->put($id)($aggregate);
@@ -109,7 +113,7 @@ final class Repository
         /** @psalm-suppress InvalidArgument For some reason Psalm lose track of $loaded type */
         $_ = $loaded->match(
             fn($loaded) =>$this->adapter->update(
-                $this->definition->diff($loaded, $aggregate),
+                ($this->diff)($loaded, $aggregate),
             ),
             fn() => $this->adapter->add(
                 ($this->normalize)($aggregate),
@@ -123,7 +127,7 @@ final class Repository
     public function delete(Id $id): void
     {
         $this->adapter->delete(
-            $this->definition->id()->normalize($id),
+            $this->id->normalize($id),
         );
         $this->loaded->remove($id);
     }

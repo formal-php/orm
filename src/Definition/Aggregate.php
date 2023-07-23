@@ -3,21 +3,12 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition;
 
-use Formal\ORM\{
-    Id,
-    Raw,
-    Definition\Aggregate\Parsing,
-};
-use Innmind\Reflection\{
-    ReflectionClass,
-    Instanciate,
-};
+use Formal\ORM\Definition\Aggregate\Parsing;
+use Innmind\Reflection\ReflectionClass;
 use Innmind\Immutable\{
     Str,
     Set,
-    Map,
     Monoid\Concat,
-    Predicate\Instance,
 };
 
 /**
@@ -124,35 +115,5 @@ final class Aggregate
     public function entities(): Set
     {
         return $this->entities;
-    }
-
-    /**
-     * @param T $then
-     * @param T $now
-     */
-    public function diff(object $then, object $now): Raw\Diff
-    {
-        /** @var Id<T> */
-        $id = $this->id()->extract($then);
-
-        return Raw\Diff::of(
-            $this->id()->normalize($id),
-            $this
-                ->properties
-                ->flatMap(
-                    static fn($property) => $property
-                        ->diff($then, $now)
-                        ->toSequence()
-                        ->toSet(),
-                ),
-            $this
-                ->entities
-                ->flatMap(
-                    static fn($entity) => $entity
-                        ->diff($then, $now)
-                        ->toSequence()
-                        ->toSet(),
-                ),
-        );
     }
 }
