@@ -59,7 +59,7 @@ final class Apply
     private function applyEntities(Set $then, Set $now): Set
     {
         return $then->map(
-            static fn($entity) => $now
+            fn($entity) => $now
                 ->find($entity->referenceSame(...))
                 ->match(
                     fn($diff) => Aggregate\Entity::of(
