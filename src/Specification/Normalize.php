@@ -48,7 +48,7 @@ final class Normalize
                 ->entities()
                 ->map(
                     static fn($entity) => [
-                        $entity->property(),
+                        $entity->name(),
                         Map::of(
                             ...$entity
                                 ->properties()

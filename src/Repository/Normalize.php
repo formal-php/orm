@@ -41,7 +41,7 @@ final class Normalize
             ->merge(
                 $definition
                     ->entities()
-                    ->map(static fn($entity) => $entity->property()),
+                    ->map(static fn($entity) => $entity->name()),
             );
         $this->normalizeEntity = Map::of(
             ...$definition
@@ -96,7 +96,7 @@ final class Normalize
                         ->get($entity)
                         ->flatMap(
                             static fn($normalize) => $properties
-                                ->get($entity->property())
+                                ->get($entity->name())
                                 ->map($normalize),
                         )
                         ->toSequence()

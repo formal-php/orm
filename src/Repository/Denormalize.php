@@ -46,7 +46,7 @@ final class Denormalize
         $this->entities = Map::of(
             ...$definition
                 ->entities()
-                ->map(fn($entity) => [$entity->property(), Denormalize\Entity::of(
+                ->map(fn($entity) => [$entity->name(), Denormalize\Entity::of(
                     $entity,
                     $this->instanciate,
                 )])

@@ -46,7 +46,7 @@ final class Entity
         );
 
         return Raw::of(
-            $this->definition->property(),
+            $this->definition->name(),
             $this
                 ->definition
                 ->properties()

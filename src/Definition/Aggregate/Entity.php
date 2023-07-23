@@ -14,24 +14,24 @@ final class Entity
     /** @var class-string<T> */
     private string $class;
     /** @var non-empty-string */
-    private string $property;
+    private string $name;
     private Kind $kind;
     /** @var Set<Property<T, mixed>> */
     private Set $properties;
 
     /**
      * @param class-string<T> $class
-     * @param non-empty-string $property
+     * @param non-empty-string $name
      * @param Set<Property<T, mixed>> $properties
      */
     private function __construct(
         string $class,
-        string $property,
+        string $name,
         Kind $kind,
         Set $properties,
     ) {
         $this->class = $class;
-        $this->property = $property;
+        $this->name = $name;
         $this->kind = $kind;
         $this->properties = $properties;
     }
@@ -40,17 +40,17 @@ final class Entity
      * @template A of object
      *
      * @param class-string<A> $class
-     * @param non-empty-string $property
+     * @param non-empty-string $name
      * @param Set<Property<A, mixed>> $properties
      *
      * @return self<A>
      */
     public static function required(
         string $class,
-        string $property,
+        string $name,
         Set $properties,
     ): self {
-        return new self($class, $property, Kind::required, $properties);
+        return new self($class, $name, Kind::required, $properties);
     }
 
     /**
@@ -64,9 +64,9 @@ final class Entity
     /**
      * @return non-empty-string
      */
-    public function property(): string
+    public function name(): string
     {
-        return $this->property;
+        return $this->name;
     }
 
     /**
