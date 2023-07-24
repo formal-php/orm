@@ -3,7 +3,10 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Specification;
 
-use Formal\ORM\Definition\Aggregate;
+use Formal\ORM\{
+    Definition\Aggregate,
+    Id,
+};
 use Innmind\Specification\{
     Specification,
     Comparator,
@@ -16,6 +19,7 @@ use Innmind\Immutable\{
     Sequence,
     Map,
     Str,
+    Predicate\Instance,
 };
 
 /**
@@ -135,12 +139,24 @@ final class Normalize
         /**
          * @psalm-suppress MixedArgument
          * @psalm-suppress MixedMethodCall
+         * @psalm-suppress MixedInferredReturnType
+         * @psalm-suppress MixedReturnStatement
          */
         return Property::of(
             $property,
             $specification->sign(),
             match ($property) {
-                $this->definition->id()->property() => $value->toString(),
+                $this->definition->id()->property() => match (true) {
+                    \is_array($value) => \array_values(\array_map(
+                        static fn($value): string => $value->toString(),
+                        $value,
+                    )),
+                    $value instanceof Set, $value instanceof Sequence => $value
+                        ->keep(Instance::of(Id::class))
+                        ->map(static fn($value) => $value->toString())
+                        ->toList(),
+                    default => $value->toString(),
+                },
                 default => $this->normalizeProperty(
                     $this->properties,
                     $property,
