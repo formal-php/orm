@@ -41,7 +41,7 @@ final class Entity
      *
      * @return self<A>
      */
-    public static function required(
+    public static function of(
         string $class,
         string $name,
         Set $properties,

@@ -207,7 +207,7 @@ final class Parsing
         return Maybe::just($property)
             ->exclude(static fn($property) => $property->name() === 'id')
             ->filter(static fn($property) => $property->type()->type() instanceof ClassName)
-            ->map(fn($property) => Entity::required(
+            ->map(fn($property) => Entity::of(
                 $property->type()->toString(),
                 $property->name(),
                 ReflectionClass::of($property->type()->toString())
