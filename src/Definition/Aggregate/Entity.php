@@ -3,7 +3,6 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition\Aggregate;
 
-use Formal\ORM\Definition\Aggregate\Entity\Kind;
 use Innmind\Immutable\Set;
 
 /**
@@ -15,7 +14,6 @@ final class Entity
     private string $class;
     /** @var non-empty-string */
     private string $name;
-    private Kind $kind;
     /** @var Set<Property<T, mixed>> */
     private Set $properties;
 
@@ -27,12 +25,10 @@ final class Entity
     private function __construct(
         string $class,
         string $name,
-        Kind $kind,
         Set $properties,
     ) {
         $this->class = $class;
         $this->name = $name;
-        $this->kind = $kind;
         $this->properties = $properties;
     }
 
@@ -50,7 +46,7 @@ final class Entity
         string $name,
         Set $properties,
     ): self {
-        return new self($class, $name, Kind::required, $properties);
+        return new self($class, $name, $properties);
     }
 
     /**
