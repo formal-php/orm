@@ -52,6 +52,7 @@ final class Types
             Type\StrType::of(...),
             Type\IntType::of(...),
             Type\BoolType::of(...),
+            Type\IdType::of(...),
             ...$builders,
         );
     }
@@ -65,6 +66,7 @@ final class Types
             Type\StrType::of(...),
             Type\IntType::of(...),
             Type\BoolType::of(...),
+            Type\IdType::of(...),
         );
     }
 }
