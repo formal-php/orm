@@ -33,6 +33,8 @@ final class Diff
     private Map $normalizeEntity;
     /** @var Map<non-empty-string, Normalize\Optional> */
     private Map $normalizeOptional;
+    /** @var Map<non-empty-string, Normalize\Collection> */
+    private Map $normalizeCollection;
     /** @var \Closure(T): Raw\Aggregate\Id */
     private \Closure $extractId;
 
@@ -55,6 +57,11 @@ final class Diff
                 $definition
                     ->optionals()
                     ->map(static fn($optional) => $optional->name()),
+            )
+            ->merge(
+                $definition
+                    ->collections()
+                    ->map(static fn($collection) => $collection->name()),
             );
         $this->normalizeEntity = Map::of(
             ...$definition
@@ -70,6 +77,15 @@ final class Diff
                 ->optionals()
                 ->map(fn($optional) => [$optional->name(), Normalize\Optional::of(
                     $optional,
+                    $this->extract,
+                )])
+                ->toList(),
+        );
+        $this->normalizeCollection = Map::of(
+            ...$definition
+                ->collections()
+                ->map(fn($collection) => [$collection->name(), Normalize\Collection::of(
+                    $collection,
                     $this->extract,
                 )])
                 ->toList(),
@@ -169,12 +185,27 @@ final class Diff
             )
             ->values()
             ->toSet();
+        /** @psalm-suppress MixedArgument */
+        $collections = $diff
+            ->flatMap(
+                fn($name, $value) => $this
+                    ->normalizeCollection
+                    ->get($name)
+                    ->map(static fn($normalize) => $normalize($value->now())) // TODO diff inside the collection
+                    ->match(
+                        static fn($value) => Map::of([$name, $value]),
+                        static fn() => Map::of(),
+                    ),
+            )
+            ->values()
+            ->toSet();
 
         return Raw\Diff::of(
             $id,
             $properties,
             $entities,
             $optionals,
+            $collections,
         );
     }
 

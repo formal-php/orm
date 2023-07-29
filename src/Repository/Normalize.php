@@ -27,6 +27,8 @@ final class Normalize
     private Map $normalizeEntity;
     /** @var Map<Definition\Optional, Normalize\Optional> */
     private Map $normalizeOptional;
+    /** @var Map<Definition\Collection, Normalize\Collection> */
+    private Map $normalizeCollection;
     /** @var \Closure(T): Aggregate\Id */
     private \Closure $extractId;
 
@@ -49,6 +51,11 @@ final class Normalize
                 $definition
                     ->optionals()
                     ->map(static fn($optional) => $optional->name()),
+            )
+            ->merge(
+                $definition
+                    ->collections()
+                    ->map(static fn($collection) => $collection->name()),
             );
         $this->normalizeEntity = Map::of(
             ...$definition
@@ -64,6 +71,15 @@ final class Normalize
                 ->optionals()
                 ->map(fn($optional) => [$optional, Normalize\Optional::of(
                     $optional,
+                    $this->extract,
+                )])
+                ->toList(),
+        );
+        $this->normalizeCollection = Map::of(
+            ...$definition
+                ->collections()
+                ->map(fn($collection) => [$collection, Normalize\Collection::of(
+                    $collection,
                     $this->extract,
                 )])
                 ->toList(),
@@ -127,6 +143,21 @@ final class Normalize
                         ->flatMap(
                             static fn($normalize) => $properties
                                 ->get($optional->name())
+                                ->map($normalize),
+                        )
+                        ->toSequence()
+                        ->toSet(),
+                ),
+            $this
+                ->definition
+                ->collections()
+                ->flatMap(
+                    fn($collection) => $this
+                        ->normalizeCollection
+                        ->get($collection)
+                        ->flatMap(
+                            static fn($normalize) => $properties
+                                ->get($collection->name())
                                 ->map($normalize),
                         )
                         ->toSequence()

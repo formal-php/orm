@@ -59,6 +59,25 @@ final class Encode
                         ],
                     )
                     ->toList(),
+                'collections' => $data
+                    ->collections()
+                    ->map(
+                        static fn($collection) => [
+                            $collection->name(),
+                            $collection
+                                ->properties()
+                                ->map(
+                                    static fn($properties) => $properties
+                                        ->map(static fn($property) => [
+                                            $property->name(),
+                                            $property->value(),
+                                        ])
+                                        ->toList(),
+                                )
+                                ->toList(),
+                        ],
+                    )
+                    ->toList(),
             ])),
         );
     }

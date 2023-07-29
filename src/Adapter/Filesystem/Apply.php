@@ -25,6 +25,7 @@ final class Apply
             $this->applyProperties($source->properties(), $this->diff->properties()),
             $this->applyEntities($source->entities(), $this->diff->entities()),
             $this->applyOptionals($source->optionals(), $this->diff->optionals()),
+            $this->applyCollections($source->collections(), $this->diff->collections()),
         );
     }
 
@@ -98,6 +99,24 @@ final class Apply
                             ),
                     ),
                     static fn() => $optional,
+                ),
+        );
+    }
+
+    /**
+     * @param Set<Aggregate\Collection> $then
+     * @param Set<Aggregate\Collection> $now
+     *
+     * @return Set<Aggregate\Collection>
+     */
+    private function applyCollections(Set $then, Set $now): Set
+    {
+        return $then->map(
+            static fn($collection) => $now
+                ->find($collection->referenceSame(...))
+                ->match(
+                    static fn($collection) => $collection,
+                    static fn() => $collection,
                 ),
         );
     }

@@ -14,6 +14,7 @@ use Innmind\Reflection\Instanciate;
 use Innmind\Immutable\{
     Map,
     Maybe,
+    Set,
 };
 
 /**
@@ -32,6 +33,8 @@ final class Denormalize
     private Map $entities;
     /** @var Map<non-empty-string, Denormalize\Optional> */
     private Map $optionals;
+    /** @var Map<non-empty-string, Denormalize\Collection> */
+    private Map $collections;
 
     /**
      * @param Definition<T> $definition
@@ -62,6 +65,15 @@ final class Denormalize
                 ->optionals()
                 ->map(fn($optional) => [$optional->name(), Denormalize\Optional::of(
                     $optional,
+                    $this->instanciate,
+                )])
+                ->toList(),
+        );
+        $this->collections = Map::of(
+            ...$definition
+                ->collections()
+                ->map(fn($collection) => [$collection->name(), Denormalize\Collection::of(
+                    $collection,
                     $this->instanciate,
                 )])
                 ->toList(),
@@ -146,6 +158,18 @@ final class Denormalize
                         ->get($optional->name())
                         ->map(static fn($denormalize): Maybe => $denormalize($optional))
                         ->map(static fn($value) => [$optional->name(), $value])
+                        ->toSequence()
+                        ->toSet(),
+                )
+                ->toList(),
+            ...$data
+                ->collections()
+                ->flatMap(
+                    fn($collection) => $this
+                        ->collections
+                        ->get($collection->name())
+                        ->map(static fn($denormalize): Set => $denormalize($collection))
+                        ->map(static fn($value) => [$collection->name(), $value])
                         ->toSequence()
                         ->toSet(),
                 )

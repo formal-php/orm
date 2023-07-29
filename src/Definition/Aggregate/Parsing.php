@@ -35,6 +35,8 @@ final class Parsing
     private Set $entities;
     /** @var Set<Optional> */
     private Set $optionals;
+    /** @var Set<Collection> */
+    private Set $collections;
 
     /**
      * @param class-string<T> $class
@@ -42,6 +44,7 @@ final class Parsing
      * @param Set<Property<T, mixed>> $properties
      * @param Set<Entity> $entities
      * @param Set<Optional> $optionals
+     * @param Set<Collection> $collections
      */
     private function __construct(
         string $class,
@@ -49,12 +52,14 @@ final class Parsing
         Set $properties,
         Set $entities,
         Set $optionals,
+        Set $collections,
     ) {
         $this->class = $class;
         $this->id = $id;
         $this->properties = $properties;
         $this->entities = $entities;
         $this->optionals = $optionals;
+        $this->collections = $collections;
     }
 
     /**
@@ -69,7 +74,7 @@ final class Parsing
         /** @var Maybe<Identity<A>> */
         $id = Maybe::nothing();
 
-        return new self($class, $id, Set::of(), Set::of(), Set::of());
+        return new self($class, $id, Set::of(), Set::of(), Set::of(), Set::of());
     }
 
     /**
@@ -89,6 +94,7 @@ final class Parsing
                         $this->properties,
                         $this->entities,
                         $this->optionals,
+                        $this->collections,
                     ),
                     Property::class => new self(
                         $this->class,
@@ -96,6 +102,7 @@ final class Parsing
                         ($this->properties)($parsed),
                         $this->entities,
                         $this->optionals,
+                        $this->collections,
                     ),
                     Entity::class => new self(
                         $this->class,
@@ -103,6 +110,7 @@ final class Parsing
                         $this->properties,
                         ($this->entities)($parsed),
                         $this->optionals,
+                        $this->collections,
                     ),
                     Optional::class => new self(
                         $this->class,
@@ -110,6 +118,15 @@ final class Parsing
                         $this->properties,
                         $this->entities,
                         ($this->optionals)($parsed),
+                        $this->collections,
+                    ),
+                    Collection::class => new self(
+                        $this->class,
+                        $this->id,
+                        $this->properties,
+                        $this->entities,
+                        $this->optionals,
+                        ($this->collections)($parsed),
                     ),
                 },
                 fn() => $this, // silently discard unparseable properties
@@ -149,9 +166,17 @@ final class Parsing
     }
 
     /**
+     * @return Set<Collection>
+     */
+    public function collections(): Set
+    {
+        return $this->collections;
+    }
+
+    /**
      * @param ReflectionProperty<T> $property
      *
-     * @return Maybe<Identity<T>|Property<T, mixed>|Entity|Optional>
+     * @return Maybe<Identity<T>|Property<T, mixed>|Entity|Optional|Collection>
      */
     private function parse(ReflectionProperty $property, Types $types): Maybe
     {
@@ -159,6 +184,7 @@ final class Parsing
             ->parseId($property)
             ->otherwise(fn() => $this->parseProperty($this->class, $property, $types))
             ->otherwise(fn() => $this->parseOptional($property, $types))
+            ->otherwise(fn() => $this->parseCollection($property, $types))
             ->otherwise(fn() => $this->parseEntity($property, $types));
     }
 
@@ -269,6 +295,44 @@ final class Parsing
                     ->map(static fn($attribute) => $attribute->instance())
                     ->keep(Instance::of(Template::class))
                     ->map(fn($template) => Optional::of(
+                        $template->type()->toString(),
+                        $property->name(),
+                        ReflectionClass::of($template->type()->toString())
+                            ->properties()
+                            ->flatMap(
+                                fn($innerProperty) => $this->parseProperty(
+                                    $property->type()->toString(),
+                                    $innerProperty,
+                                    $types,
+                                )
+                                    ->toSequence()
+                                    ->toSet(),
+                            ),
+                    )),
+            );
+    }
+
+    /**
+     * @param ReflectionProperty<T> $property
+     *
+     * @return Maybe<Collection>
+     */
+    private function parseCollection(ReflectionProperty $property, Types $types): Maybe
+    {
+        /**
+         * @psalm-suppress ArgumentTypeCoercion
+         * @psalm-suppress InvalidArgument
+         */
+        return Maybe::just($property)
+            ->exclude(static fn($property) => $property->name() === 'id')
+            ->filter(static fn($property) => $property->type()->type()->accepts(ClassName::of(Set::class)))
+            ->flatMap(
+                fn($property) => $property
+                    ->attributes()
+                    ->find(static fn($attribute) => $attribute->class() === Template::class)
+                    ->map(static fn($attribute) => $attribute->instance())
+                    ->keep(Instance::of(Template::class))
+                    ->map(fn($template) => Collection::of(
                         $template->type()->toString(),
                         $property->name(),
                         ReflectionClass::of($template->type()->toString())

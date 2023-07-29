@@ -73,6 +73,15 @@ final class Decode
                         ),
                     )),
                 )),
+                Set::of(...$raw['collections'])->map(static fn($collection) => Aggregate\Collection::of(
+                    $collection[0],
+                    Set::of(...$collection[1])->map(static fn($properties) => Set::of(...$properties)->map(
+                        static fn($property) => Aggregate\Property::of(
+                            $property[0],
+                            $property[1],
+                        ),
+                    )),
+                )),
             ));
     }
 

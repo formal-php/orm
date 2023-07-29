@@ -11,6 +11,7 @@ use Innmind\TimeContinuum\PointInTime;
 use Innmind\Immutable\{
     Str,
     Maybe,
+    Set,
 };
 
 final class User
@@ -27,10 +28,14 @@ final class User
     /** @var Maybe<User\Address> */
     #[Template(User\Address::class)]
     private Maybe $billingAddress;
+    /** @var Set<User\Address> */
+    #[Template(User\Address::class)]
+    private Set $addresses;
 
     /**
      * @param Id<self> $id
      * @param Maybe<User\Address> $billingAddress
+     * @param Set<User\Address> $addresses
      */
     private function __construct(
         Id $id,
@@ -38,6 +43,7 @@ final class User
         ?string $name,
         User\Address $mainAddress,
         Maybe $billingAddress,
+        Set $addresses,
     ) {
         $this->id = $id;
         $this->createdAt = $createdAt;
@@ -45,6 +51,7 @@ final class User
         $this->nameStr = Maybe::of($name)->map(Str::of(...));
         $this->mainAddress = $mainAddress;
         $this->billingAddress = $billingAddress;
+        $this->addresses = $addresses;
     }
 
     public static function new(
@@ -60,6 +67,7 @@ final class User
             $name,
             User\Address::new('nowhere'),
             $billingAddress,
+            Set::of(),
         );
     }
 
@@ -99,6 +107,14 @@ final class User
         return $this->billingAddress;
     }
 
+    /**
+     * @return Set<User\Address>
+     */
+    public function addresses(): Set
+    {
+        return $this->addresses;
+    }
+
     public function rename(string $name): self
     {
         return new self(
@@ -107,6 +123,7 @@ final class User
             $name,
             $this->mainAddress,
             $this->billingAddress,
+            $this->addresses,
         );
     }
 
@@ -118,6 +135,7 @@ final class User
             $this->name,
             User\Address::new($address),
             $this->billingAddress,
+            $this->addresses,
         );
     }
 
@@ -129,6 +147,7 @@ final class User
             $this->name,
             $this->mainAddress,
             Maybe::just(User\Address::new($address)),
+            $this->addresses,
         );
     }
 
@@ -143,6 +162,31 @@ final class User
             $this->name,
             $this->mainAddress,
             $billingAddress,
+            $this->addresses,
+        );
+    }
+
+    public function addAddress(string $address): self
+    {
+        return new self(
+            $this->id,
+            $this->createdAt,
+            $this->name,
+            $this->mainAddress,
+            $this->billingAddress,
+            ($this->addresses)(User\Address::new($address)),
+        );
+    }
+
+    public function removeAddress(string $address): self
+    {
+        return new self(
+            $this->id,
+            $this->createdAt,
+            $this->name,
+            $this->mainAddress,
+            $this->billingAddress,
+            $this->addresses->filter(static fn($existing) => $existing->toString() !== $address),
         );
     }
 }
