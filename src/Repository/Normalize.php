@@ -81,7 +81,6 @@ final class Normalize
      */
     public function __invoke(object $aggregate): Aggregate
     {
-        $id = ($this->extractId)($aggregate);
         $class = $this->definition->class();
         $properties = ($this->extract)($aggregate, $this->allProperties)->match(
             static fn($properties) => $properties,
