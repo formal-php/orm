@@ -37,6 +37,28 @@ final class Encode
                         ],
                     )
                     ->toList(),
+                'optionals' => $data
+                    ->optionals()
+                    ->map(
+                        static fn($optional) => [
+                            $optional->name(),
+                            $optional
+                                ->properties()
+                                ->map(
+                                    static fn($properties) => $properties
+                                        ->map(static fn($property) => [
+                                            $property->name(),
+                                            $property->value(),
+                                        ])
+                                        ->toList(),
+                                )
+                                ->match(
+                                    static fn($properties) => $properties,
+                                    static fn() => null,
+                                ),
+                        ],
+                    )
+                    ->toList(),
             ])),
         );
     }

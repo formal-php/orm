@@ -24,6 +24,7 @@ final class Apply
             $this->diff->id(),
             $this->applyProperties($source->properties(), $this->diff->properties()),
             $this->applyEntities($source->entities(), $this->diff->entities()),
+            $this->applyOptionals($source->optionals(), $this->diff->optionals()),
         );
     }
 
@@ -67,6 +68,36 @@ final class Apply
                         $this->applyProperties($entity->properties(), $diff->properties()),
                     ),
                     static fn() => $entity,
+                ),
+        );
+    }
+
+    /**
+     * @param Set<Aggregate\Optional> $then
+     * @param Set<Aggregate\Optional> $now
+     *
+     * @return Set<Aggregate\Optional>
+     */
+    private function applyOptionals(Set $then, Set $now): Set
+    {
+        return $then->map(
+            fn($optional) => $now
+                ->find($optional->referenceSame(...))
+                ->match(
+                    fn($diff) => Aggregate\Optional::of(
+                        $diff->name(),
+                        $diff
+                            ->properties()
+                            ->map(
+                                fn($properties) => $optional
+                                    ->properties()
+                                    ->match(
+                                        fn($then) => $this->applyProperties($then, $properties),
+                                        static fn() => $properties,
+                                    ),
+                            ),
+                    ),
+                    static fn() => $optional,
                 ),
         );
     }

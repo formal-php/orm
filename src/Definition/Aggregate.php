@@ -24,23 +24,28 @@ final class Aggregate
     private Set $properties;
     /** @var Set<Aggregate\Entity> */
     private Set $entities;
+    /** @var Set<Aggregate\Optional> */
+    private Set $optionals;
 
     /**
      * @param class-string<T> $class
      * @param Aggregate\Identity<T> $id
      * @param Set<Aggregate\Property<T, mixed>> $properties
      * @param Set<Aggregate\Entity> $entities
+     * @param Set<Aggregate\Optional> $optionals
      */
     private function __construct(
         string $class,
         Aggregate\Identity $id,
         Set $properties,
         Set $entities,
+        Set $optionals,
     ) {
         $this->class = $class;
         $this->id = $id;
         $this->properties = $properties;
         $this->entities = $entities;
+        $this->optionals = $optionals;
     }
 
     /**
@@ -66,6 +71,7 @@ final class Aggregate
                 $id,
                 $parsed->properties(),
                 $parsed->entities(),
+                $parsed->optionals(),
             ),
             static fn() => throw new \LogicException('A property named "id" must be typed Id<self>'),
         );
@@ -115,5 +121,13 @@ final class Aggregate
     public function entities(): Set
     {
         return $this->entities;
+    }
+
+    /**
+     * @return Set<Aggregate\Optional>
+     */
+    public function optionals(): Set
+    {
+        return $this->optionals;
     }
 }

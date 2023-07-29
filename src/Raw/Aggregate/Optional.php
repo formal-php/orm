@@ -8,18 +8,18 @@ use Innmind\Immutable\{
     Maybe,
 };
 
-final class Entity
+final class Optional
 {
     /** @var non-empty-string */
     private string $name;
-    /** @var Set<Property> */
-    private Set $properties;
+    /** @var Maybe<Set<Property>> */
+    private Maybe $properties;
 
     /**
      * @param non-empty-string $name
-     * @param Set<Property> $properties
+     * @param Maybe<Set<Property>> $properties
      */
-    private function __construct(string $name, Set $properties)
+    private function __construct(string $name, Maybe $properties)
     {
         $this->name = $name;
         $this->properties = $properties;
@@ -27,9 +27,9 @@ final class Entity
 
     /**
      * @param non-empty-string $name
-     * @param Set<Property> $properties
+     * @param Maybe<Set<Property>> $properties
      */
-    public static function of(string $name, Set $properties): self
+    public static function of(string $name, Maybe $properties): self
     {
         return new self($name, $properties);
     }
@@ -43,15 +43,15 @@ final class Entity
     }
 
     /**
-     * @return Set<Property>
+     * @return Maybe<Set<Property>>
      */
-    public function properties(): Set
+    public function properties(): Maybe
     {
         return $this->properties;
     }
 
-    public function referenceSame(self $entity): bool
+    public function referenceSame(self $optional): bool
     {
-        return $this->name === $entity->name();
+        return $this->name === $optional->name();
     }
 }

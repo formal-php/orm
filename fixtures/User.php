@@ -24,32 +24,42 @@ final class User
     #[Template(Str::class)]
     private Maybe $nameStr;
     private User\Address $mainAddress;
+    /** @var Maybe<User\Address> */
+    #[Template(User\Address::class)]
+    private Maybe $billingAddress;
 
     /**
      * @param Id<self> $id
+     * @param Maybe<User\Address> $billingAddress
      */
     private function __construct(
         Id $id,
         PointInTime $createdAt,
         ?string $name,
         User\Address $mainAddress,
+        Maybe $billingAddress,
     ) {
         $this->id = $id;
         $this->createdAt = $createdAt;
         $this->name = $name;
         $this->nameStr = Maybe::of($name)->map(Str::of(...));
         $this->mainAddress = $mainAddress;
+        $this->billingAddress = $billingAddress;
     }
 
     public static function new(
         PointInTime $createdAt,
         string $name = null,
     ): self {
+        /** @var Maybe<User\Address> */
+        $billingAddress = Maybe::nothing();
+
         return new self(
             Id::new(self::class),
             $createdAt,
             $name,
             User\Address::new('nowhere'),
+            $billingAddress,
         );
     }
 
@@ -81,6 +91,14 @@ final class User
         return $this->mainAddress;
     }
 
+    /**
+     * @return Maybe<User\Address>
+     */
+    public function billingAddress(): Maybe
+    {
+        return $this->billingAddress;
+    }
+
     public function rename(string $name): self
     {
         return new self(
@@ -88,6 +106,7 @@ final class User
             $this->createdAt,
             $name,
             $this->mainAddress,
+            $this->billingAddress,
         );
     }
 
@@ -98,6 +117,32 @@ final class User
             $this->createdAt,
             $this->name,
             User\Address::new($address),
+            $this->billingAddress,
+        );
+    }
+
+    public function changeBillingAddress(string $address): self
+    {
+        return new self(
+            $this->id,
+            $this->createdAt,
+            $this->name,
+            $this->mainAddress,
+            Maybe::just(User\Address::new($address)),
+        );
+    }
+
+    public function removeBillingAddress(): self
+    {
+        /** @var Maybe<User\Address> */
+        $billingAddress = Maybe::nothing();
+
+        return new self(
+            $this->id,
+            $this->createdAt,
+            $this->name,
+            $this->mainAddress,
+            $billingAddress,
         );
     }
 }

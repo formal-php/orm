@@ -33,23 +33,28 @@ final class Parsing
     private Set $properties;
     /** @var Set<Entity> */
     private Set $entities;
+    /** @var Set<Optional> */
+    private Set $optionals;
 
     /**
      * @param class-string<T> $class
      * @param Maybe<Identity<T>> $id
      * @param Set<Property<T, mixed>> $properties
      * @param Set<Entity> $entities
+     * @param Set<Optional> $optionals
      */
     private function __construct(
         string $class,
         Maybe $id,
         Set $properties,
         Set $entities,
+        Set $optionals,
     ) {
         $this->class = $class;
         $this->id = $id;
         $this->properties = $properties;
         $this->entities = $entities;
+        $this->optionals = $optionals;
     }
 
     /**
@@ -64,7 +69,7 @@ final class Parsing
         /** @var Maybe<Identity<A>> */
         $id = Maybe::nothing();
 
-        return new self($class, $id, Set::of(), Set::of());
+        return new self($class, $id, Set::of(), Set::of(), Set::of());
     }
 
     /**
@@ -83,18 +88,28 @@ final class Parsing
                         Maybe::just($parsed), // we can override here because we force the id property to be named "id" so there can only be one
                         $this->properties,
                         $this->entities,
+                        $this->optionals,
                     ),
                     Property::class => new self(
                         $this->class,
                         $this->id,
                         ($this->properties)($parsed),
                         $this->entities,
+                        $this->optionals,
                     ),
                     Entity::class => new self(
                         $this->class,
                         $this->id,
                         $this->properties,
                         ($this->entities)($parsed),
+                        $this->optionals,
+                    ),
+                    Optional::class => new self(
+                        $this->class,
+                        $this->id,
+                        $this->properties,
+                        $this->entities,
+                        ($this->optionals)($parsed),
                     ),
                 },
                 fn() => $this, // silently discard unparseable properties
@@ -126,15 +141,24 @@ final class Parsing
     }
 
     /**
+     * @return Set<Optional>
+     */
+    public function optionals(): Set
+    {
+        return $this->optionals;
+    }
+
+    /**
      * @param ReflectionProperty<T> $property
      *
-     * @return Maybe<Identity<T>|Property<T, mixed>|Entity>
+     * @return Maybe<Identity<T>|Property<T, mixed>|Entity|Optional>
      */
     private function parse(ReflectionProperty $property, Types $types): Maybe
     {
         return $this
             ->parseId($property)
             ->otherwise(fn() => $this->parseProperty($this->class, $property, $types))
+            ->otherwise(fn() => $this->parseOptional($property, $types))
             ->otherwise(fn() => $this->parseEntity($property, $types));
     }
 
@@ -222,5 +246,43 @@ final class Parsing
                             ->toSet(),
                     ),
             ));
+    }
+
+    /**
+     * @param ReflectionProperty<T> $property
+     *
+     * @return Maybe<Optional>
+     */
+    private function parseOptional(ReflectionProperty $property, Types $types): Maybe
+    {
+        /**
+         * @psalm-suppress ArgumentTypeCoercion
+         * @psalm-suppress InvalidArgument
+         */
+        return Maybe::just($property)
+            ->exclude(static fn($property) => $property->name() === 'id')
+            ->filter(static fn($property) => $property->type()->type()->accepts(ClassName::of(Maybe::class)))
+            ->flatMap(
+                fn($property) => $property
+                    ->attributes()
+                    ->find(static fn($attribute) => $attribute->class() === Template::class)
+                    ->map(static fn($attribute) => $attribute->instance())
+                    ->keep(Instance::of(Template::class))
+                    ->map(fn($template) => Optional::of(
+                        $template->type()->toString(),
+                        $property->name(),
+                        ReflectionClass::of($template->type()->toString())
+                            ->properties()
+                            ->flatMap(
+                                fn($innerProperty) => $this->parseProperty(
+                                    $property->type()->toString(),
+                                    $innerProperty,
+                                    $types,
+                                )
+                                    ->toSequence()
+                                    ->toSet(),
+                            ),
+                    )),
+            );
     }
 }

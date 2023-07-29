@@ -48,6 +48,12 @@ final class Diff
                 ->map(static fn($entity) => [$entity->name(), $entity])
                 ->toList(),
         );
+        $nowOptionals = Map::of(
+            ...$now
+                ->optionals()
+                ->map(static fn($optional) => [$optional->name(), $optional])
+                ->toList(),
+        );
 
         $properties = self::diffProperties($then->properties(), $now->properties());
         $entities = $then->entities()->flatMap(
@@ -58,11 +64,23 @@ final class Diff
                 ->toSequence()
                 ->toSet(),
         );
+        $optionals = $then->optionals()->flatMap(
+            static fn($then) => $nowOptionals
+                ->get($then->name())
+                ->map(static fn($now) => self::diffOptionals($then, $now))
+                ->filter(static fn($now) => $now->properties()->match( // TODO avoid unwrapping
+                    static fn($properties) => !$properties->empty(),
+                    static fn() => true,
+                ))
+                ->toSequence()
+                ->toSet(),
+        );
 
         return Raw\Diff::of(
             $then->id(),
             $properties,
             $entities,
+            $optionals,
         );
     }
 
@@ -85,6 +103,25 @@ final class Diff
         return Raw\Aggregate\Entity::of(
             $then->name(),
             self::diffProperties($then->properties(), $now->properties()),
+        );
+    }
+
+    private static function diffOptionals(
+        Raw\Aggregate\Optional $then,
+        Raw\Aggregate\Optional $now,
+    ): Raw\Aggregate\Optional {
+        return Raw\Aggregate\Optional::of(
+            $then->name(),
+            $now
+                ->properties()
+                ->map(
+                    static fn($properties) => $then
+                        ->properties()
+                        ->match(
+                            static fn($then) => self::diffProperties($then, $properties),
+                            static fn() => $properties,
+                        ),
+                ),
         );
     }
 

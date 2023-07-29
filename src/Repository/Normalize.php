@@ -25,6 +25,8 @@ final class Normalize
     private Set $allProperties;
     /** @var Map<Definition\Entity, Normalize\Entity> */
     private Map $normalizeEntity;
+    /** @var Map<Definition\Optional, Normalize\Optional> */
+    private Map $normalizeOptional;
     /** @var \Closure(T): Aggregate\Id */
     private \Closure $extractId;
 
@@ -42,12 +44,26 @@ final class Normalize
                 $definition
                     ->entities()
                     ->map(static fn($entity) => $entity->name()),
+            )
+            ->merge(
+                $definition
+                    ->optionals()
+                    ->map(static fn($optional) => $optional->name()),
             );
         $this->normalizeEntity = Map::of(
             ...$definition
                 ->entities()
                 ->map(fn($entity) => [$entity, Normalize\Entity::of(
                     $entity,
+                    $this->extract,
+                )])
+                ->toList(),
+        );
+        $this->normalizeOptional = Map::of(
+            ...$definition
+                ->optionals()
+                ->map(fn($optional) => [$optional, Normalize\Optional::of(
+                    $optional,
                     $this->extract,
                 )])
                 ->toList(),
@@ -97,6 +113,21 @@ final class Normalize
                         ->flatMap(
                             static fn($normalize) => $properties
                                 ->get($entity->name())
+                                ->map($normalize),
+                        )
+                        ->toSequence()
+                        ->toSet(),
+                ),
+            $this
+                ->definition
+                ->optionals()
+                ->flatMap(
+                    fn($optional) => $this
+                        ->normalizeOptional
+                        ->get($optional)
+                        ->flatMap(
+                            static fn($normalize) => $properties
+                                ->get($optional->name())
                                 ->map($normalize),
                         )
                         ->toSequence()

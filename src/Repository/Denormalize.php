@@ -11,7 +11,10 @@ use Formal\ORM\{
     Id,
 };
 use Innmind\Reflection\Instanciate;
-use Innmind\Immutable\Map;
+use Innmind\Immutable\{
+    Map,
+    Maybe,
+};
 
 /**
  * @template T of object
@@ -27,6 +30,8 @@ final class Denormalize
     private Map $properties;
     /** @var Map<non-empty-string, Denormalize\Entity> */
     private Map $entities;
+    /** @var Map<non-empty-string, Denormalize\Optional> */
+    private Map $optionals;
 
     /**
      * @param Definition<T> $definition
@@ -48,6 +53,15 @@ final class Denormalize
                 ->entities()
                 ->map(fn($entity) => [$entity->name(), Denormalize\Entity::of(
                     $entity,
+                    $this->instanciate,
+                )])
+                ->toList(),
+        );
+        $this->optionals = Map::of(
+            ...$definition
+                ->optionals()
+                ->map(fn($optional) => [$optional->name(), Denormalize\Optional::of(
+                    $optional,
                     $this->instanciate,
                 )])
                 ->toList(),
@@ -120,6 +134,18 @@ final class Denormalize
                         ->get($entity->name())
                         ->map(static fn($denormalize): object => $denormalize($entity))
                         ->map(static fn($value) => [$entity->name(), $value])
+                        ->toSequence()
+                        ->toSet(),
+                )
+                ->toList(),
+            ...$data
+                ->optionals()
+                ->flatMap(
+                    fn($optional) => $this
+                        ->optionals
+                        ->get($optional->name())
+                        ->map(static fn($denormalize): Maybe => $denormalize($optional))
+                        ->map(static fn($value) => [$optional->name(), $value])
                         ->toSequence()
                         ->toSet(),
                 )

@@ -64,6 +64,15 @@ final class Decode
                         $property[1],
                     )),
                 )),
+                Set::of(...$raw['optionals'])->map(static fn($optional) => Aggregate\Optional::of(
+                    $optional[0],
+                    Maybe::of($optional[1])->map(static fn($properties) => Set::of(...$properties)->map(
+                        static fn($property) => Aggregate\Property::of(
+                            $property[0],
+                            $property[1],
+                        ),
+                    )),
+                )),
             ));
     }
 
