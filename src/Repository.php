@@ -53,7 +53,7 @@ final class Repository
         $this->loaded = Loaded::of($definition);
         $this->normalize = Normalize::of($definition);
         $this->denormalize = Denormalize::of($definition);
-        $this->diff = Diff::of($this->normalize);
+        $this->diff = Diff::of($definition);
     }
 
     /**

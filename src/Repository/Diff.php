@@ -7,6 +7,7 @@ use Formal\ORM\{
     Definition\Aggregate as Definition,
     Raw,
 };
+use Innmind\Reflection\Extract;
 use Innmind\Immutable\{
     Map,
     Set,
@@ -23,15 +24,62 @@ use Innmind\Immutable\{
  */
 final class Diff
 {
-    /** @var Normalize<T> */
-    private Normalize $normalize;
+    /** @var Definition<T> */
+    private Definition $definition;
+    private Extract $extract;
+    /** @var Set<non-empty-string> */
+    private Set $properties;
+    /** @var Map<non-empty-string, Normalize\Entity> */
+    private Map $normalizeEntity;
+    /** @var Map<non-empty-string, Normalize\Optional> */
+    private Map $normalizeOptional;
+    /** @var \Closure(T): Raw\Aggregate\Id */
+    private \Closure $extractId;
 
     /**
-     * @param Normalize<T> $normalize
+     * @param Definition<T> $definition
      */
-    private function __construct(Normalize $normalize)
+    private function __construct(Definition $definition)
     {
-        $this->normalize = $normalize;
+        $this->definition = $definition;
+        $this->extract = new Extract;
+        $this->properties = $definition
+            ->properties()
+            ->map(static fn($property) => $property->name())
+            ->merge(
+                $definition
+                    ->entities()
+                    ->map(static fn($entity) => $entity->name()),
+            )
+            ->merge(
+                $definition
+                    ->optionals()
+                    ->map(static fn($optional) => $optional->name()),
+            );
+        $this->normalizeEntity = Map::of(
+            ...$definition
+                ->entities()
+                ->map(fn($entity) => [$entity->name(), Normalize\Entity::of(
+                    $entity,
+                    $this->extract,
+                )])
+                ->toList(),
+        );
+        $this->normalizeOptional = Map::of(
+            ...$definition
+                ->optionals()
+                ->map(fn($optional) => [$optional->name(), Normalize\Optional::of(
+                    $optional,
+                    $this->extract,
+                )])
+                ->toList(),
+        );
+        $id = $definition->id();
+        /**
+         * @psalm-suppress InvalidArgument
+         * @var \Closure(T): Raw\Aggregate\Id
+         */
+        $this->extractId = static fn(object $aggregate): Raw\Aggregate\Id => $id->normalize($id->extract($aggregate));
     }
 
     /**
@@ -40,44 +88,90 @@ final class Diff
      */
     public function __invoke(object $then, object $now): Raw\Diff
     {
-        $then = ($this->normalize)($then);
-        $now = ($this->normalize)($now);
-        $nowEntities = Map::of(
-            ...$now
-                ->entities()
-                ->map(static fn($entity) => [$entity->name(), $entity])
-                ->toList(),
+        $class = $this->definition->class();
+        $id = ($this->extractId)($now);
+        $then = ($this->extract)($then, $this->properties)->match(
+            static fn($properties) => $properties,
+            static fn() => throw new \LogicException("Failed to extract properties from '$class'"),
         );
-        $nowOptionals = Map::of(
-            ...$now
-                ->optionals()
-                ->map(static fn($optional) => [$optional->name(), $optional])
-                ->toList(),
+        $now = ($this->extract)($now, $this->properties)->match(
+            static fn($properties) => $properties,
+            static fn() => throw new \LogicException("Failed to extract properties from '$class'"),
         );
 
-        $properties = self::diffProperties($then->properties(), $now->properties());
-        $entities = $then->entities()->flatMap(
-            static fn($then) => $nowEntities
-                ->get($then->name())
-                ->map(static fn($now) => self::diffEntities($then, $now))
-                ->filter(static fn($now) => !$now->properties()->empty())
-                ->toSequence()
-                ->toSet(),
-        );
-        $optionals = $then->optionals()->flatMap(
-            static fn($then) => $nowOptionals
-                ->get($then->name())
-                ->map(static fn($now) => self::diffOptionals($then, $now))
-                ->filter(static fn($now) => $now->properties()->match( // TODO avoid unwrapping
-                    static fn($properties) => !$properties->empty(),
-                    static fn() => true,
-                ))
-                ->toSequence()
-                ->toSet(),
-        );
+        // Diffing on denormalized values that has to be immutable we allow to
+        // not unwrap monads (such as Maybe for optionals) unless necessary,
+        // thus avoiding possible roundtrips to the storage adapter
+        $diff = $now
+            ->flatMap(
+                static fn($name, $nowValue) => $then
+                    ->get($name)
+                    ->map(static fn($thenValue) => Diff\Property::of(
+                        $name,
+                        $thenValue,
+                        $nowValue,
+                    ))
+                    ->match(
+                        static fn($property) => Map::of([$name, $property]),
+                        static fn() => Map::of(),
+                    ),
+            )
+            ->filter(static fn($_, $property) => $property->changed());
+
+        $properties = $diff
+            ->flatMap(
+                fn($name, $value) => $this
+                    ->definition
+                    ->properties()
+                    ->find(static fn($property) => $property->name() === $name)
+                    ->match(
+                        static fn($property) => Map::of([$property, $value]),
+                        static fn() => Map::of(),
+                    ),
+            )
+            ->map(static fn($property, $value) => Raw\Aggregate\Property::of(
+                $property->name(),
+                $property->type()->normalize($value->now()),
+            ))
+            ->values()
+            ->toSet();
+        /** @psalm-suppress MixedArgument */
+        $entities = $diff
+            ->flatMap(
+                fn($name, $value) => $this
+                    ->normalizeEntity
+                    ->get($name)
+                    ->map(static fn($normalize) => self::diffEntities(
+                        $normalize($value->then()),
+                        $normalize($value->now()),
+                    ))
+                    ->match(
+                        static fn($value) => Map::of([$name, $value]),
+                        static fn() => Map::of(),
+                    ),
+            )
+            ->values()
+            ->toSet();
+        /** @psalm-suppress MixedArgument */
+        $optionals = $diff
+            ->flatMap(
+                fn($name, $value) => $this
+                    ->normalizeOptional
+                    ->get($name)
+                    ->map(static fn($normalize) => self::diffOptionals(
+                        $normalize($value->then()),
+                        $normalize($value->now()),
+                    ))
+                    ->match(
+                        static fn($value) => Map::of([$name, $value]),
+                        static fn() => Map::of(),
+                    ),
+            )
+            ->values()
+            ->toSet();
 
         return Raw\Diff::of(
-            $then->id(),
+            $id,
             $properties,
             $entities,
             $optionals,
@@ -87,13 +181,13 @@ final class Diff
     /**
      * @template A of object
      *
-     * @param Normalize<A> $normalize
+     * @param Definition<A> $definition
      *
      * @return self<A>
      */
-    public static function of(Normalize $normalize): self
+    public static function of(Definition $definition): self
     {
-        return new self($normalize);
+        return new self($definition);
     }
 
     private static function diffEntities(
