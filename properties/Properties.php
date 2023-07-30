@@ -47,7 +47,8 @@ final class Properties
             MatchingExclusion::class,
             MatchingComposite::class,
             SuccessfulTransaction::class,
-            FailingTransaction::class,
+            FailingTransactionDueToLeftSide::class,
+            FailingTransactionDueToException::class,
         ];
     }
 
@@ -78,7 +79,8 @@ final class Properties
             MatchingExclusion::class,
             MatchingComposite::class,
             SuccessfulTransaction::class,
-            FailingTransaction::class,
+            FailingTransactionDueToLeftSide::class,
+            FailingTransactionDueToException::class,
         ];
     }
 }

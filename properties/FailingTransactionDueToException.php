@@ -10,13 +10,12 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\Immutable\Either;
 use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
 
 /**
  * @implements Property<Manager>
  */
-final class FailingTransaction implements Property
+final class FailingTransactionDueToException implements Property
 {
     private $createdAt;
 
@@ -39,22 +38,6 @@ final class FailingTransaction implements Property
     {
         $user = User::new($this->createdAt);
         $initialSize = $manager->repository(User::class)->size();
-
-        $manager->transactional(
-            function() use ($manager, $user, $assert, $initialSize) {
-                $manager
-                    ->repository(User::class)
-                    ->put($user);
-                $manager
-                    ->repository(User::class)
-                    ->delete($user->id());
-                $this->validate($assert, $manager, $user, $initialSize);
-
-                return Either::left(null);
-            },
-        );
-
-        $this->validate($assert, $manager, $user, $initialSize);
 
         try {
             $expected = new \Exception;
