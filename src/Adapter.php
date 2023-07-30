@@ -6,6 +6,7 @@ namespace Formal\ORM;
 use Formal\ORM\{
     Definition\Aggregate,
     Adapter\Repository,
+    Adapter\Transaction,
 };
 
 interface Adapter
@@ -19,5 +20,5 @@ interface Adapter
      */
     public function repository(Aggregate $definition): Repository;
 
-    // TODO transactions
+    public function transaction(): Transaction;
 }

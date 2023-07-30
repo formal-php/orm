@@ -13,6 +13,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
+use Innmind\Immutable\Either;
 
 /**
  * @implements Property<Manager>
@@ -41,9 +42,13 @@ final class DeleteUnknownAggregateDoesNothing implements Property
         $assert
             ->not()
             ->throws(
-                fn() => $manager
-                    ->repository(User::class)
-                    ->delete(Id::of(User::class, $this->uuid)),
+                fn() => $manager->transactional(
+                    fn() => Either::right(
+                        $manager
+                            ->repository(User::class)
+                            ->delete(Id::of(User::class, $this->uuid)),
+                    ),
+                ),
             );
 
         return $manager;

@@ -10,6 +10,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
+use Innmind\Immutable\Either;
 use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
 
 /**
@@ -43,12 +44,18 @@ final class SavingAggregateTwiceAddsItOnce implements Property
 
         $user = User::new($this->createdAt);
 
-        $manager
-            ->repository(User::class)
-            ->put($user);
-        $manager
-            ->repository(User::class)
-            ->put($user);
+        $manager->transactional(
+            static function() use ($manager, $user) {
+                $manager
+                    ->repository(User::class)
+                    ->put($user);
+                $manager
+                    ->repository(User::class)
+                    ->put($user);
+
+                return Either::right(null);
+            },
+        );
 
         $assert
             ->expected($current + 1)

@@ -10,6 +10,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
+use Innmind\Immutable\Either;
 use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
 
 /**
@@ -44,9 +45,13 @@ final class ContainsAggregate implements Property
                 ->contains($user->id()),
         );
 
-        $manager
-            ->repository(User::class)
-            ->put($user);
+        $manager->transactional(
+            static fn() => Either::right(
+                $manager
+                    ->repository(User::class)
+                    ->put($user),
+            ),
+        );
 
         $assert->true(
             $manager

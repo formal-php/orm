@@ -46,6 +46,8 @@ final class Properties
             MatchingDropAndTake::class,
             MatchingExclusion::class,
             MatchingComposite::class,
+            SuccessfulTransaction::class,
+            FailingTransaction::class,
         ];
     }
 
@@ -75,6 +77,8 @@ final class Properties
             MatchingDropAndTake::class,
             MatchingExclusion::class,
             MatchingComposite::class,
+            SuccessfulTransaction::class,
+            FailingTransaction::class,
         ];
     }
 }

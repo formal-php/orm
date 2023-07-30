@@ -15,7 +15,10 @@ use Innmind\BlackBox\{
     Runner\Assert,
 };
 use Innmind\TimeContinuum\Earth\Timezone\UTC;
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Either,
+};
 use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
 
 /**
@@ -52,9 +55,14 @@ final class AddAggregate implements Property
             ->repository(User::class)
             ->all()
             ->size();
-        $manager
-            ->repository(User::class)
-            ->put($user = User::new($this->createdAt, $this->name));
+        $user = User::new($this->createdAt, $this->name);
+        $manager->transactional(
+            static fn() => Either::right(
+                $manager
+                    ->repository(User::class)
+                    ->put($user),
+            ),
+        );
         $id = $user->id()->toString();
         unset($user); // to make sure there is no in memory cache somewhere
 

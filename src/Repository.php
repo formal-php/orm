@@ -28,6 +28,8 @@ final class Repository
     private Adapter\Repository $adapter;
     /** @var Aggregate\Identity<T> */
     private Aggregate\Identity $id;
+    /** @var \Closure(): bool */
+    private \Closure $inTransaction;
     /** @var NormalizeSpecification<T> */
     private NormalizeSpecification $normalizeSpecification;
     /** @var Loaded<T> */
@@ -42,13 +44,16 @@ final class Repository
     /**
      * @param Adapter\Repository<T> $adapter
      * @param Aggregate<T> $definition
+     * @param \Closure(): bool $inTransaction
      */
     private function __construct(
         Adapter\Repository $adapter,
         Aggregate $definition,
+        \Closure $inTransaction,
     ) {
         $this->adapter = $adapter;
         $this->id = $definition->id();
+        $this->inTransaction = $inTransaction;
         $this->normalizeSpecification = NormalizeSpecification::of($definition);
         $this->loaded = Loaded::of($definition);
         $this->normalize = Normalize::of($definition);
@@ -61,14 +66,16 @@ final class Repository
      *
      * @param Adapter\Repository<A> $adapter
      * @param Aggregate<A> $definition
+     * @param \Closure(): bool $inTransaction
      *
      * @return self<A>
      */
     public static function of(
         Adapter\Repository $adapter,
         Aggregate $definition,
+        \Closure $inTransaction,
     ): self {
-        return new self($adapter, $definition);
+        return new self($adapter, $definition, $inTransaction);
     }
 
     /**
@@ -105,6 +112,10 @@ final class Repository
      */
     public function put(object $aggregate): void
     {
+        if (!($this->inTransaction)()) {
+            throw new \LogicException('Mutation outside of a transaction');
+        }
+
         $id = $this->id->extract($aggregate);
         $loaded = $this->loaded->get($id);
 
@@ -126,6 +137,10 @@ final class Repository
      */
     public function delete(Id $id): void
     {
+        if (!($this->inTransaction)()) {
+            throw new \LogicException('Mutation outside of a transaction');
+        }
+
         $this->adapter->delete(
             $this->id->normalize($id),
         );

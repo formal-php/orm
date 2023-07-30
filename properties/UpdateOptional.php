@@ -15,6 +15,7 @@ use Innmind\BlackBox\{
     Runner\Assert,
 };
 use Innmind\TimeContinuum\Earth\Timezone\UTC;
+use Innmind\Immutable\Either;
 use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
 
 /**
@@ -51,7 +52,11 @@ final class UpdateOptional implements Property
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
         $repository = $manager->repository(User::class);
-        $repository->put($user = User::new($this->createdAt, $this->name));
+        $user = User::new($this->createdAt, $this->name);
+
+        $manager->transactional(
+            static fn() => Either::right($repository->put($user)),
+        );
         $id = $user->id()->toString();
         unset($user); // to make sure there is no in memory cache somewhere
 
@@ -64,7 +69,10 @@ final class UpdateOptional implements Property
         $assert->not()->null($loaded);
 
         $user = $loaded->changeBillingAddress($this->address);
-        $repository->put($user);
+
+        $manager->transactional(
+            static fn() => Either::right($repository->put($user)),
+        );
 
         $reloaded = $repository
             ->get(Id::of(User::class, $id))
@@ -98,7 +106,10 @@ final class UpdateOptional implements Property
             );
 
         $user = $loaded->removeBillingAddress();
-        $repository->put($user);
+
+        $manager->transactional(
+            static fn() => Either::right($repository->put($user)),
+        );
 
         $reloaded = $repository
             ->get(Id::of(User::class, $id))

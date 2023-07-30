@@ -15,6 +15,7 @@ final class Manager
     private Aggregates $aggregates;
     /** @var \WeakMap<Repository, class-string> */
     private \WeakMap $repositories;
+    private bool $inTransaction;
 
     private function __construct(Adapter $adapter, Aggregates $aggregates)
     {
@@ -22,6 +23,7 @@ final class Manager
         $this->aggregates = $aggregates;
         /** @var \WeakMap<Repository, class-string> */
         $this->repositories = new \WeakMap;
+        $this->inTransaction = false;
     }
 
     public static function of(
@@ -56,6 +58,7 @@ final class Manager
         $repository = Repository::of(
             $this->adapter->repository($definition),
             $definition,
+            fn() => $this->inTransaction,
         );
         $this->repositories[$repository] = $class;
 
@@ -72,6 +75,23 @@ final class Manager
      */
     public function transactional(callable $transaction): Either
     {
-        return $transaction();
+        if ($this->inTransaction) {
+            throw new \LogicException('Nested transactions not allowed');
+        }
+
+        $this->inTransaction = true;
+        $transactionAdapter = $this->adapter->transaction();
+        $transactionAdapter->start();
+
+        try {
+            return $transaction()
+                ->map($transactionAdapter->commit())
+                ->leftMap($transactionAdapter->rollback());
+        } catch (\Throwable $e) {
+            /** @psalm-suppress InvalidArgument */
+            throw $transactionAdapter->rollback()($e);
+        } finally {
+            $this->inTransaction = false;
+        }
     }
 }

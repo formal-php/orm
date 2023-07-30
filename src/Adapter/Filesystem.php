@@ -11,11 +11,11 @@ use Innmind\Filesystem\Adapter as Storage;
 
 final class Filesystem implements Adapter
 {
-    private Storage $adapter;
+    private Filesystem\Transaction $transaction;
 
     private function __construct(Storage $adapter)
     {
-        $this->adapter = $adapter;
+        $this->transaction = Filesystem\Transaction::of($adapter);
     }
 
     public static function of(Storage $adapter): self
@@ -25,6 +25,14 @@ final class Filesystem implements Adapter
 
     public function repository(Aggregate $definition): Repository
     {
-        return Filesystem\Repository::of($this->adapter, $definition);
+        return Filesystem\Repository::of(
+            $this->transaction,
+            $definition,
+        );
+    }
+
+    public function transaction(): Transaction
+    {
+        return $this->transaction;
     }
 }

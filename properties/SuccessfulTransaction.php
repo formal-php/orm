@@ -3,10 +3,7 @@ declare(strict_types = 1);
 
 namespace Properties\Formal\ORM;
 
-use Formal\ORM\{
-    Manager,
-    Id,
-};
+use Formal\ORM\Manager;
 use Fixtures\Formal\ORM\User;
 use Innmind\BlackBox\{
     Set,
@@ -19,7 +16,7 @@ use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
 /**
  * @implements Property<Manager>
  */
-final class DeleteAggregate implements Property
+final class SuccessfulTransaction implements Property
 {
     private $createdAt;
 
@@ -40,52 +37,56 @@ final class DeleteAggregate implements Property
 
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
-        $current = $manager
-            ->repository(User::class)
-            ->all()
-            ->size();
-
         $user = User::new($this->createdAt);
-        $manager->transactional(
-            static fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->put($user),
-            ),
-        );
+        $initialSize = $manager->repository(User::class)->size();
 
         $manager->transactional(
-            static fn() => Either::right(
+            function() use ($manager, $user, $assert, $initialSize) {
                 $manager
                     ->repository(User::class)
-                    ->delete($user->id()),
-            ),
+                    ->put($user);
+                $this->validate($assert, $manager, $user, $initialSize);
+
+                return Either::right(null);
+            },
         );
 
-        $assert->false(
+        $this->validate($assert, $manager, $user, $initialSize);
+
+        return $manager;
+    }
+
+    private function validate(
+        Assert $assert,
+        Manager $manager,
+        User $user,
+        int $initialSize,
+    ): void {
+        $assert->true(
             $manager
                 ->repository(User::class)
                 ->contains($user->id()),
         );
-        $assert->null(
+        $assert->true(
             $manager
                 ->repository(User::class)
                 ->get($user->id())
                 ->match(
-                    static fn($user) => $user,
-                    static fn() => null,
+                    static fn() => true,
+                    static fn() => false,
                 ),
         );
         $assert
-            ->expected($current)
-            ->same(
+            ->expected($initialSize + 1)
+            ->same($manager->repository(User::class)->size());
+        $assert
+            ->expected($user->id()->toString())
+            ->in(
                 $manager
                     ->repository(User::class)
                     ->all()
-                    ->size(),
-                $user->id()->toString(),
+                    ->map(static fn($user) => $user->id()->toString())
+                    ->toList(),
             );
-
-        return $manager;
     }
 }

@@ -29,7 +29,7 @@ use Innmind\Immutable\{
  */
 final class Repository implements RepositoryInterface
 {
-    private Storage $adapter;
+    private Transaction $transaction;
     /** @var Definition<T> */
     private Definition $definition;
     /** @var Fold<T> */
@@ -41,9 +41,9 @@ final class Repository implements RepositoryInterface
     /**
      * @param Definition<T> $definition
      */
-    private function __construct(Storage $adapter, Definition $definition)
+    private function __construct(Transaction $transaction, Definition $definition)
     {
-        $this->adapter = $adapter;
+        $this->transaction = $transaction;
         $this->definition = $definition;
         $this->fold = Fold::of($definition);
         $this->encode = Encode::new();
@@ -57,9 +57,9 @@ final class Repository implements RepositoryInterface
      *
      * @return self<A>
      */
-    public static function of(Storage $adapter, Definition $definition): self
+    public static function of(Transaction $transaction, Definition $definition): self
     {
-        return new self($adapter, $definition);
+        return new self($transaction, $definition);
     }
 
     public function get(Aggregate\Id $id): Maybe
@@ -79,9 +79,11 @@ final class Repository implements RepositoryInterface
 
     public function add(Aggregate $data): void
     {
-        $this->adapter->add(
-            Directory\Directory::named($this->definition->name())->add(
-                ($this->encode)($data),
+        $this->transaction->mutate(
+            fn($adapter) => $adapter->add(
+                Directory\Directory::named($this->definition->name())->add(
+                    ($this->encode)($data),
+                ),
             ),
         );
     }
@@ -99,8 +101,12 @@ final class Repository implements RepositoryInterface
 
     public function delete(Aggregate\Id $id): void
     {
-        $this->adapter->add(
-            $this->directory()->remove(Name::of($id->value())),
+        $this->transaction->mutate(
+            fn($adapter) => $adapter->add(
+                Directory\Directory::named($this->definition->name())->remove(
+                    Name::of($id->value()),
+                ),
+            ),
         );
     }
 
@@ -171,13 +177,6 @@ final class Repository implements RepositoryInterface
     {
         $name = Name::of($this->definition->name());
 
-        return $this
-            ->adapter
-            ->get($name)
-            ->keep(Instance::of(Directory::class))
-            ->match(
-                static fn($directory) => $directory,
-                static fn() => Directory\Directory::of($name),
-            );
+        return $this->transaction->get($name);
     }
 }

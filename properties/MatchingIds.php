@@ -14,6 +14,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
+use Innmind\Immutable\Either;
 use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
 
 /**
@@ -45,9 +46,15 @@ final class MatchingIds implements Property
         $user3 = User::new($this->createdAt);
 
         $repository = $manager->repository(User::class);
-        $repository->put($user1);
-        $repository->put($user2);
-        $repository->put($user3);
+        $manager->transactional(
+            static function() use ($repository, $user1, $user2, $user3) {
+                $repository->put($user1);
+                $repository->put($user2);
+                $repository->put($user3);
+
+                return Either::right(null);
+            },
+        );
 
         $found = $repository
             ->matching(Ids::in(Sequence::of($user1->id())))
