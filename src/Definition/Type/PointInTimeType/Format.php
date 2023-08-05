@@ -12,6 +12,6 @@ final class Format implements FormatInterface
 {
     public function toString(): string
     {
-        return 'Y:m:d\TH:m:i:s.uP';
+        return 'Y:m:d\TH:i:s.uP';
     }
 }
