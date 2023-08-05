@@ -26,7 +26,7 @@ interface Repository
     public function contains(Aggregate\Id $id): bool;
     public function add(Aggregate $data): void;
     public function update(Diff $data): void;
-    public function delete(Aggregate\Id $id): void;
+    public function remove(Aggregate\Id $id): void;
 
     /**
      * @param ?array{non-empty-string, Sort} $sort

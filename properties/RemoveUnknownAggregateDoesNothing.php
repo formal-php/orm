@@ -18,7 +18,7 @@ use Innmind\Immutable\Either;
 /**
  * @implements Property<Manager>
  */
-final class DeleteUnknownAggregateDoesNothing implements Property
+final class RemoveUnknownAggregateDoesNothing implements Property
 {
     private string $uuid;
 
@@ -46,7 +46,7 @@ final class DeleteUnknownAggregateDoesNothing implements Property
                     fn() => Either::right(
                         $manager
                             ->repository(User::class)
-                            ->delete(Id::of(User::class, $this->uuid)),
+                            ->remove(Id::of(User::class, $this->uuid)),
                     ),
                 ),
             );

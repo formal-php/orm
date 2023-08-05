@@ -135,13 +135,13 @@ final class Repository
     /**
      * @param Id<T> $id
      */
-    public function delete(Id $id): void
+    public function remove(Id $id): void
     {
         if (!($this->inTransaction)()) {
             throw new \LogicException('Mutation outside of a transaction');
         }
 
-        $this->adapter->delete(
+        $this->adapter->remove(
             $this->id->normalize($id),
         );
         $this->loaded->remove($id);

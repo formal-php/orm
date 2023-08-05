@@ -19,7 +19,7 @@ use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
 /**
  * @implements Property<Manager>
  */
-final class DeleteAggregate implements Property
+final class RemoveAggregate implements Property
 {
     private $createdAt;
 
@@ -58,7 +58,7 @@ final class DeleteAggregate implements Property
             static fn() => Either::right(
                 $manager
                     ->repository(User::class)
-                    ->delete($user->id()),
+                    ->remove($user->id()),
             ),
         );
 

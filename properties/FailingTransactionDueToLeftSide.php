@@ -47,7 +47,7 @@ final class FailingTransactionDueToLeftSide implements Property
                     ->put($user);
                 $manager
                     ->repository(User::class)
-                    ->delete($user->id());
+                    ->remove($user->id());
                 $this->validate($assert, $manager, $user, $initialSize);
 
                 return Either::left(null);

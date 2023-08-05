@@ -99,7 +99,7 @@ final class Repository implements RepositoryInterface
             );
     }
 
-    public function delete(Aggregate\Id $id): void
+    public function remove(Aggregate\Id $id): void
     {
         $this->transaction->mutate(
             fn($adapter) => $adapter->add(
