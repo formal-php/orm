@@ -44,6 +44,14 @@ final class NullableType implements Type
             ->map(static fn($inner) => new self($inner));
     }
 
+    /**
+     * @return Type<I>
+     */
+    public function inner(): Type
+    {
+        return $this->inner;
+    }
+
     public function normalize(mixed $value): null|string|int|bool
     {
         if (\is_null($value)) {

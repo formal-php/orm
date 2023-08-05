@@ -23,7 +23,8 @@
         "innmind/filesystem": "^6.5.1",
         "innmind/json": "~1.3",
         "innmind/time-continuum": "~3.3",
-        "innmind/type": "~1.1"
+        "innmind/type": "~1.1",
+        "formal/access-layer": "~2.2"
     },
     "autoload": {
         "psr-4": {
