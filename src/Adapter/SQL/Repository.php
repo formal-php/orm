@@ -71,7 +71,7 @@ final class Repository implements RepositoryInterface
         $select = $this
             ->mainTable
             ->select()
-            ->where(Property::of('id', Sign::equality, $id->value()));
+            ->where(Property::of('entity.id', Sign::equality, $id->value()));
 
         return ($this->connection)($select)
             ->first()
