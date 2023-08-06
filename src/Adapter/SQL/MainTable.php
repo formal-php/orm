@@ -104,7 +104,7 @@ final class MainTable
         // No need for this query to be lazy as the result is directly collapsed
         // to a boolean
         $this->contains = Select::from($this->name)
-            ->columns(Column\Name::of($definition->id()->property()));
+            ->columns(Column\Name::of($definition->id()->property())->in($this->name));
         // No need for this query to be lazy as the result is directly collapsed
         // to a boolean
         $this->count = Select::from($this->name)->count('count');
