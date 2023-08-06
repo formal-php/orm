@@ -13,6 +13,7 @@ use Formal\AccessLayer\{
     Table,
     Table\Column,
     Query,
+    Query\Delete,
     Query\Select,
     Query\Select\Join,
     Row,
@@ -41,6 +42,7 @@ final class MainTable
     private Select $select;
     private Select $contains;
     private Select $count;
+    private Delete $delete;
     /** @var Map<non-empty-string, EntityTable> */
     private Map $entities;
     /** @var Map<non-empty-string, OptionalTable> */
@@ -59,6 +61,15 @@ final class MainTable
                 ->map(fn($entity) => [
                     $entity->name(),
                     EntityTable::of($entity, $this->name),
+                ])
+                ->toList(),
+        );
+        $optionals = Map::of(
+            ...$definition
+                ->optionals()
+                ->map(fn($entity) => [
+                    $entity->name(),
+                    OptionalTable::of($entity, $this->name),
                 ])
                 ->toList(),
         );
@@ -97,16 +108,26 @@ final class MainTable
         // No need for this query to be lazy as the result is directly collapsed
         // to a boolean
         $this->count = Select::from($this->name)->count('count');
-        $this->entities = $entities;
-        $this->optionals = Map::of(
-            ...$definition
-                ->optionals()
-                ->map(fn($entity) => [
-                    $entity->name(),
-                    OptionalTable::of($entity, $this->name),
-                ])
-                ->toList(),
+        $delete = $entities->reduce(
+            Delete::from($this->name->name()),
+            fn(Delete $delete, $name, $table) => $delete->join(
+                Join::left($table->name())->on(
+                    Column\Name::of($name)->in($this->name->name()),
+                    Column\Name::of('id')->in($table->name()),
+                ),
+            ),
         );
+        $this->delete = $optionals->reduce(
+            $delete,
+            fn(Delete $delete, $name, $table) => $delete->join(
+                Join::left($table->name())->on(
+                    Column\Name::of($name)->in($this->name->name()),
+                    Column\Name::of('id')->in($table->name()),
+                ),
+            ),
+        );
+        $this->entities = $entities;
+        $this->optionals = $optionals;
     }
 
     /**
@@ -182,6 +203,11 @@ final class MainTable
                     ->toList(),
             ),
         );
+    }
+
+    public function delete(): Delete
+    {
+        return $this->delete;
     }
 
     public function where(Specification $specification): Specification

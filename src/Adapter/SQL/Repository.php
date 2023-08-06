@@ -104,6 +104,12 @@ final class Repository implements RepositoryInterface
 
     public function remove(Aggregate\Id $id): void
     {
+        $_ = ($this->connection)(
+            $this
+                ->mainTable
+                ->delete()
+                ->where(Property::of('user.id', Sign::equality, $id->value())),
+        );
     }
 
     public function matching(

@@ -9,6 +9,7 @@ use Formal\ORM\Definition\{
 };
 use Formal\AccessLayer\{
     Query,
+    Query\Constraint\ForeignKey,
     Table,
 };
 use Innmind\Immutable\Sequence;
@@ -85,10 +86,12 @@ final class CreateTable
                         self::determineType($property->type()),
                     ))
                     ->toList(),
-            )->foreignKey(
-                Table\Column\Name::of('id'),
-                Table\Name::of($definition->name()),
-                $id->name(),
+            )->constraint(
+                ForeignKey::of(
+                    Table\Column\Name::of('id'),
+                    Table\Name::of($definition->name()),
+                    $id->name(),
+                )->onDeleteCascade(),
             ))
             ->toList();
 
