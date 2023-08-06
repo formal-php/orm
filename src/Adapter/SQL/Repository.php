@@ -108,7 +108,7 @@ final class Repository implements RepositoryInterface
             $this
                 ->mainTable
                 ->delete()
-                ->where(Property::of('user.id', Sign::equality, $id->value())),
+                ->where(Property::of($this->definition->name().'.id', Sign::equality, $id->value())),
         );
     }
 
