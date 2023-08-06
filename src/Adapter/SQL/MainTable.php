@@ -12,6 +12,7 @@ use Formal\AccessLayer\{
     Query\Select,
     Query\Select\Join,
 };
+use Innmind\Immutable\Map;
 
 /**
  * @template T of object
@@ -24,6 +25,8 @@ final class MainTable
     private Select $select;
     private Select $contains;
     private Select $count;
+    /** @var Map<non-empty-string, EntityTable> */
+    private Map $entities;
 
     /**
      * @param Definition<T> $definition
@@ -32,17 +35,24 @@ final class MainTable
     {
         $this->definition = $definition;
         $this->name = Table\Name::of($definition->name())->as('entity');
-        $select = $definition
-            ->entities()
-            ->reduce(
-                Select::onDemand($this->name),
-                fn(Select $select, $entity) => $select->join(
-                    Join::left(Table\Name::of($definition->name().'_'.$entity->name())->as($entity->name()))->on(
-                        Column\Name::of($entity->name())->in($this->name),
-                        Column\Name::of('id')->in(Table\Name::of($entity->name())),
-                    ),
+        $entities = Map::of(
+            ...$definition
+                ->entities()
+                ->map(fn($entity) => [
+                    $entity->name(),
+                    EntityTable::of($entity, $this->name),
+                ])
+                ->toList(),
+        );
+        $select = $entities->reduce(
+            Select::onDemand($this->name),
+            fn(Select $select, $name, $table) => $select->join(
+                Join::left($table->name())->on(
+                    Column\Name::of($name)->in($this->name),
+                    Column\Name::of('id')->in($table->name()),
                 ),
-            );
+            ),
+        );
         $this->select = $select
             ->columns(
                 Column\Name::of($definition->id()->property())
@@ -56,17 +66,10 @@ final class MainTable
                             ->as('entity_'.$property->name()),
                     )
                     ->toList(),
-                ...$definition
-                    ->entities()
-                    ->flatMap(
-                        static fn($entity) => $entity
-                            ->properties()
-                            ->map(
-                                static fn($property) => Column\Name::of($property->name())
-                                    ->in(Table\Name::of($entity->name()))
-                                    ->as($entity->name().'_'.$property->name()),
-                            ),
-                    )
+                ...$entities
+                    ->values()
+                    ->toSet()
+                    ->flatMap(static fn($table) => $table->columns())
                     ->toList(),
             );
         // No need for this query to be lazy as the result is directly collapsed
@@ -76,6 +79,7 @@ final class MainTable
         $this->count = Select::onDemand($this->name)->columns(
             Column\Name::of('count(1)')->as('count'),
         );
+        $this->entities = $entities;
     }
 
     /**
