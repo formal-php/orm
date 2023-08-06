@@ -134,6 +134,10 @@ final class MainTable
         return Query\Insert::into(
             $this->name->name(),
             new Row(
+                new Row\Value(
+                    Column\Name::of($this->definition->id()->property()),
+                    $uuid,
+                ),
                 ...$properties
                     ->map(static fn($property) => new Row\Value(
                         Column\Name::of($property->name()),
