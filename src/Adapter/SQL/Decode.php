@@ -85,8 +85,20 @@ final class Decode
                                 ->toSet(),
                         ),
                     ),
-                Set::of(), // TODO
-                Set::of(), // TODO
+                $this
+                    ->definition
+                    ->optionals()
+                    ->map(static fn($optional) => Aggregate\Optional::of(
+                        $optional->name(),
+                        Maybe::nothing(), // TODO
+                    )),
+                $this
+                    ->definition
+                    ->collections()
+                    ->map(static fn($collection) => Aggregate\Collection::of(
+                        $collection->name(),
+                        Set::of(), // TODO
+                    )),
             ));
     }
 
