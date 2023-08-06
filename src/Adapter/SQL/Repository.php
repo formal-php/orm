@@ -115,7 +115,9 @@ final class Repository implements RepositoryInterface
         $select = $this
             ->mainTable
             ->select()
-            ->where($specification); // TODO translate properties to correct columns
+            ->where(
+                $this->mainTable->where($specification),
+            );
 
         if (\is_array($sort)) {
             [$column, $direction] = $sort;
@@ -152,7 +154,9 @@ final class Repository implements RepositoryInterface
         $count = $this->mainTable->count();
         $count = match ($specification) {
             null => $count,
-            default => $count->where($specification), // TODO translate specification
+            default => $count->where(
+                $this->mainTable->where($specification),
+            ),
         };
 
         /** @var 0|positive-int SQL count() should never return a negative value */

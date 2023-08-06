@@ -5,7 +5,9 @@ namespace Formal\ORM\Adapter\SQL;
 
 use Formal\ORM\{
     Definition\Aggregate as Definition,
-    Raw\Aggregate\Property,
+    Raw\Aggregate,
+    Specification\Property,
+    Specification\Entity,
 };
 use Formal\AccessLayer\{
     Table,
@@ -14,6 +16,13 @@ use Formal\AccessLayer\{
     Query\Select,
     Query\Select\Join,
     Row,
+};
+use Innmind\Specification\{
+    Specification,
+    Not,
+    Comparator,
+    Composite,
+    Operator,
 };
 use Innmind\Immutable\{
     Map,
@@ -134,7 +143,7 @@ final class MainTable
 
     /**
      * @param non-empty-string $uuid
-     * @param Set<Property> $properties
+     * @param Set<Aggregate\Property> $properties
      * @param Map<non-empty-string, non-empty-string> $entities
      * @param Map<non-empty-string, non-empty-string> $optionals
      */
@@ -172,6 +181,47 @@ final class MainTable
                     ->values()
                     ->toList(),
             ),
+        );
+    }
+
+    public function where(Specification $specification): Specification
+    {
+        if ($specification instanceof Not) {
+            return $this->where($specification->specification());
+        }
+
+        if ($specification instanceof Composite) {
+            $left = $this->where($specification->left());
+            $right = $this->where($specification->right());
+
+            return match ($specification->operator()) {
+                Operator::and => $left->and($right),
+                Operator::or => $left->or($right),
+            };
+        }
+
+        if ($specification instanceof Entity) {
+            return Property::of(
+                \sprintf(
+                    '%s.%s',
+                    $specification->entity(),
+                    $specification->property(),
+                ),
+                $specification->sign(),
+                $specification->value(),
+            );
+        }
+
+        if (!($specification instanceof Property)) {
+            $class = $specification::class;
+
+            throw new \LogicException("Unsupported specification '$class'");
+        }
+
+        return Property::of(
+            'entity.'.$specification->property(),
+            $specification->sign(),
+            $specification->value(),
         );
     }
 
