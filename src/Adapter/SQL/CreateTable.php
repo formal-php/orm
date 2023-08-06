@@ -124,7 +124,7 @@ final class CreateTable
                 $main,
                 static fn(Query\CreateTable $main, $entity) => $main->foreignKey(
                     Table\Column\Name::of($entity->name()),
-                    Table\Name::of($definition->id()->property().'_'.$entity->name()),
+                    Table\Name::of($definition->name().'_'.$entity->name()),
                     Table\Column\Name::of('id'),
                 ),
             );
@@ -134,7 +134,7 @@ final class CreateTable
                 $main,
                 static fn(Query\CreateTable $main, $optional) => $main->foreignKey(
                     Table\Column\Name::of($optional->name()),
-                    Table\Name::of($definition->id()->property().'_'.$optional->name()),
+                    Table\Name::of($definition->name().'_'.$optional->name()),
                     Table\Column\Name::of('id'),
                 ),
             );
