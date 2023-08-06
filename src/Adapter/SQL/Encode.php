@@ -43,10 +43,16 @@ final class Encode
     public function __invoke(Aggregate $data): Sequence
     {
         $entities = $this->entities($data);
-        $main = $this->main($data, $entities->keys());
+        $optionals = $this->optionals($data);
+        $main = $this->main(
+            $data,
+            $entities->keys(),
+            $optionals->keys(),
+        );
 
         return $entities
             ->values()
+            ->append($optionals->values())
             ->add($main);
     }
 
@@ -90,16 +96,47 @@ final class Encode
     }
 
     /**
-     * @param Set<array{non-empty-string, non-empty-string}> $entities
+     * @return Map<array{non-empty-string, non-empty-string}, Query>
      */
-    private function main(Aggregate $data, Set $entities): Query
+    private function optionals(Aggregate $data): Map
     {
+        $inserts = $data
+            ->optionals()
+            ->flatMap(
+                fn($optional) => $this
+                    ->mainTable
+                    ->optional($optional->name())
+                    ->flatMap(
+                        static fn($table) => $optional->properties()->map(
+                            static fn($properties) => [
+                                [$optional->name(), $uuid = Uuid::uuid4()->toString()],
+                                $table->insert($uuid, $properties),
+                            ],
+                        ),
+                    )
+                    ->toSequence()
+                    ->toSet(),
+            );
+
+        return Map::of(...$inserts->toList());
+    }
+
+    /**
+     * @param Set<array{non-empty-string, non-empty-string}> $entities
+     * @param Set<array{non-empty-string, non-empty-string}> $optionals
+     */
+    private function main(
+        Aggregate $data,
+        Set $entities,
+        Set $optionals,
+    ): Query {
         return $this
             ->mainTable
             ->insert(
                 $data->id()->value(),
                 $data->properties(),
                 Map::of(...$entities->toList()),
+                Map::of(...$optionals->toList()),
             );
     }
 }

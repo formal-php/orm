@@ -34,6 +34,8 @@ final class MainTable
     private Select $count;
     /** @var Map<non-empty-string, EntityTable> */
     private Map $entities;
+    /** @var Map<non-empty-string, OptionalTable> */
+    private Map $optionals;
 
     /**
      * @param Definition<T> $definition
@@ -87,6 +89,15 @@ final class MainTable
         // to a boolean
         $this->count = Select::from($this->name)->count('count');
         $this->entities = $entities;
+        $this->optionals = Map::of(
+            ...$definition
+                ->optionals()
+                ->map(fn($entity) => [
+                    $entity->name(),
+                    OptionalTable::of($entity, $this->name),
+                ])
+                ->toList(),
+        );
     }
 
     /**
@@ -125,11 +136,13 @@ final class MainTable
      * @param non-empty-string $uuid
      * @param Set<Property> $properties
      * @param Map<non-empty-string, non-empty-string> $entities
+     * @param Map<non-empty-string, non-empty-string> $optionals
      */
     public function insert(
         string $uuid,
         Set $properties,
         Map $entities,
+        Map $optionals,
     ): Query {
         return Query\Insert::into(
             $this->name->name(),
@@ -151,6 +164,13 @@ final class MainTable
                     ))
                     ->values()
                     ->toList(),
+                ...$optionals
+                    ->map(static fn($name, $value) => new Row\Value(
+                        Column\Name::of($name),
+                        $value,
+                    ))
+                    ->values()
+                    ->toList(),
             ),
         );
     }
@@ -163,5 +183,15 @@ final class MainTable
     public function entity(string $name): Maybe
     {
         return $this->entities->get($name);
+    }
+
+    /**
+     * @param non-empty-string $name
+     *
+     * @return Maybe<OptionalTable>
+     */
+    public function optional(string $name): Maybe
+    {
+        return $this->optionals->get($name);
     }
 }
