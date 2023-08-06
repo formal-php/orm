@@ -83,9 +83,9 @@ final class MainTable
         // to a boolean
         $this->contains = Select::from($this->name)
             ->columns(Column\Name::of($definition->id()->property()));
-        $this->count = Select::onDemand($this->name)->columns(
-            Column\Name::of('count(1)')->as('count'),
-        );
+        // No need for this query to be lazy as the result is directly collapsed
+        // to a boolean
+        $this->count = Select::from($this->name)->count('count');
         $this->entities = $entities;
     }
 
