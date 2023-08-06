@@ -13,8 +13,14 @@ use Fixtures\Formal\ORM\{
     Random,
 };
 use Properties\Formal\ORM\Properties;
+use Formal\AccessLayer\{
+    Connection\PDO,
+    Query\DropTable,
+    Table,
+};
 use Innmind\Filesystem\Adapter\InMemory;
 use Innmind\TimeContinuum\Earth\Clock;
+use Innmind\Url\Url;
 use Innmind\BlackBox\Set;
 
 return static function() {
@@ -64,5 +70,50 @@ return static function() {
                 )),
             )),
         )->named('Filesystem');
+    }
+
+    yield properties(
+        'SQL properties',
+        Properties::any(),
+        Set\Call::of(static function() {
+            $aggregates = Aggregates::of(Types::of(
+                Type\PointInTimeType::of(new Clock),
+            ));
+            $port = \getenv('DB_PORT') ?: '3306';
+            $connection = PDO::of(Url::of("mysql://root:root@127.0.0.1:$port/example"));
+            $connection(DropTable::ifExists(Table\Name::of('user_addresses')));
+            $connection(DropTable::ifExists(Table\Name::of('user')));
+            $connection(DropTable::ifExists(Table\Name::of('user_mainAddress')));
+            $connection(DropTable::ifExists(Table\Name::of('user_billingAddress')));
+            $_ = Adapter\SQL\CreateTable::of($aggregates)(User::class)->foreach($connection);
+
+            return Manager::of(
+                Adapter\SQL::of($connection),
+                $aggregates,
+            );
+        }),
+    );
+
+    foreach (Properties::alwaysApplicable() as $property) {
+        yield property(
+            $property,
+            Set\Call::of(static function() {
+                $aggregates = Aggregates::of(Types::of(
+                    Type\PointInTimeType::of(new Clock),
+                ));
+                $port = \getenv('DB_PORT') ?: '3306';
+                $connection = PDO::of(Url::of("mysql://root:root@127.0.0.1:$port/example"));
+                $connection(DropTable::ifExists(Table\Name::of('user_addresses')));
+                $connection(DropTable::ifExists(Table\Name::of('user')));
+                $connection(DropTable::ifExists(Table\Name::of('user_mainAddress')));
+                $connection(DropTable::ifExists(Table\Name::of('user_billingAddress')));
+                $_ = Adapter\SQL\CreateTable::of($aggregates)(User::class)->foreach($connection);
+
+                return Manager::of(
+                    Adapter\SQL::of($connection),
+                    $aggregates,
+                );
+            }),
+        )->named('SQL');
     }
 };
