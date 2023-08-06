@@ -5,14 +5,21 @@ namespace Formal\ORM\Adapter\SQL;
 
 use Formal\ORM\{
     Definition\Aggregate as Definition,
+    Raw\Aggregate\Property,
 };
 use Formal\AccessLayer\{
     Table,
     Table\Column,
+    Query,
     Query\Select,
     Query\Select\Join,
+    Row,
 };
-use Innmind\Immutable\Map;
+use Innmind\Immutable\{
+    Map,
+    Maybe,
+    Set,
+};
 
 /**
  * @template T of object
@@ -112,5 +119,45 @@ final class MainTable
     public function count(): Select
     {
         return $this->count;
+    }
+
+    /**
+     * @param non-empty-string $uuid
+     * @param Set<Property> $properties
+     * @param Map<non-empty-string, non-empty-string> $entities
+     */
+    public function insert(
+        string $uuid,
+        Set $properties,
+        Map $entities,
+    ): Query {
+        return Query\Insert::into(
+            $this->name->name(),
+            new Row(
+                ...$properties
+                    ->map(static fn($property) => new Row\Value(
+                        Column\Name::of($property->name()),
+                        $property->value(),
+                    ))
+                    ->toList(),
+                ...$entities
+                    ->map(static fn($name, $value) => new Row\Value(
+                        Column\Name::of($name),
+                        $value,
+                    ))
+                    ->values()
+                    ->toList(),
+            ),
+        );
+    }
+
+    /**
+     * @param non-empty-string $name
+     *
+     * @return Maybe<EntityTable>
+     */
+    public function entity(string $name): Maybe
+    {
+        return $this->entities->get($name);
     }
 }

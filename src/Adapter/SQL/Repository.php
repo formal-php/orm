@@ -39,6 +39,8 @@ final class Repository implements RepositoryInterface
     private MainTable $mainTable;
     /** @var Decode<T> */
     private Decode $decode;
+    /** @var Encode<T> */
+    private Encode $encode;
 
     /**
      * @param Definition<T> $definition
@@ -49,6 +51,7 @@ final class Repository implements RepositoryInterface
         $this->definition = $definition;
         $this->mainTable = MainTable::of($definition);
         $this->decode = Decode::of($definition);
+        $this->encode = Encode::of($definition, $this->mainTable);
     }
 
     /**
@@ -92,6 +95,7 @@ final class Repository implements RepositoryInterface
 
     public function add(Aggregate $data): void
     {
+        $_ = ($this->encode)($data)->foreach($this->connection);
     }
 
     public function update(Diff $data): void

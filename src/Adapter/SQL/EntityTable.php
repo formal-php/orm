@@ -5,10 +5,13 @@ namespace Formal\ORM\Adapter\SQL;
 
 use Formal\ORM\{
     Definition\Aggregate\Entity as Definition,
+    Raw\Aggregate\Property,
 };
 use Formal\AccessLayer\{
     Table,
     Table\Column,
+    Query,
+    Row,
 };
 use Innmind\Immutable\Set;
 
@@ -68,5 +71,28 @@ final class EntityTable
     public function columns(): Set
     {
         return $this->columns;
+    }
+
+    /**
+     * @param non-empty-string $uuid
+     * @param Set<Property> $properties
+     */
+    public function insert(string $uuid, Set $properties): Query
+    {
+        return Query\Insert::into(
+            $this->name->name(),
+            new Row(
+                new Row\Value(
+                    Column\Name::of('id'),
+                    $uuid,
+                ),
+                ...$properties
+                    ->map(static fn($property) => new Row\Value(
+                        Column\Name::of($property->name()),
+                        $property->value(),
+                    ))
+                    ->toList(),
+            ),
+        );
     }
 }
