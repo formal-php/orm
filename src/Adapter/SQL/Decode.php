@@ -8,6 +8,7 @@ use Formal\ORM\{
     Raw\Aggregate,
 };
 use Formal\AccessLayer\{
+    Connection,
     Row,
     Table\Column,
 };
@@ -26,6 +27,7 @@ final class Decode
     private Definition $definition;
     /** @var MainTable<T> */
     private MainTable $mainTable;
+    private Connection $connection;
     /** @var non-empty-string */
     private string $entityPrefix;
     /** @var non-empty-string */
@@ -35,10 +37,14 @@ final class Decode
      * @param Definition<T> $definition
      * @param MainTable<T> $mainTable
      */
-    private function __construct(Definition $definition, MainTable $mainTable)
-    {
+    private function __construct(
+        Definition $definition,
+        MainTable $mainTable,
+        Connection $connection,
+    ) {
         $this->definition = $definition;
         $this->mainTable = $mainTable;
+        $this->connection = $connection;
         $this->entityPrefix = $mainTable->name()->alias().'_';
         $this->id = $this->entityPrefix.$definition->id()->property();
     }
@@ -81,29 +87,20 @@ final class Decode
                     ->map(
                         static fn($entity) => Aggregate\Entity::of(
                             $entity->name()->alias(),
-                            $entity
-                                ->columns()
-                                ->flatMap(
-                                    static fn($column) => $row
-                                        ->column($column->alias())
-                                        ->map(static fn($value) => Aggregate\Property::of(
-                                            match (true) {
-                                                $column->name() instanceof Column\Name => $column->name()->toString(),
-                                                $column->name() instanceof Column\Name\Namespaced => $column->name()->column()->toString(),
-                                            },
-                                            $value,
-                                        ))
-                                        ->toSequence()
-                                        ->toSet(),
-                                ),
+                            self::properties($row, $entity->columns()),
                         ),
                     ),
                 $this
-                    ->definition
+                    ->mainTable
                     ->optionals()
-                    ->map(static fn($optional) => Aggregate\Optional::of(
-                        $optional->name(),
-                        Maybe::nothing(), // TODO
+                    ->map(fn($optional) => Aggregate\Optional::of(
+                        $optional->name()->alias(),
+                        ($this->connection)($optional->select($id))
+                            ->first()
+                            ->map(static fn($row) => self::properties(
+                                $row,
+                                $optional->columns(),
+                            )),
                     )),
                 $this
                     ->definition
@@ -123,8 +120,34 @@ final class Decode
      *
      * @return self<A>
      */
-    public static function of(Definition $definition, MainTable $mainTable): self
+    public static function of(
+        Definition $definition,
+        MainTable $mainTable,
+        Connection $connection,
+    ): self {
+        return new self($definition, $mainTable, $connection);
+    }
+
+    /**
+     * @param Set<Column\Name\Aliased> $columns
+     *
+     * @return Set<Aggregate\Property>
+     */
+    private static function properties(Row $row, Set $columns): Set
     {
-        return new self($definition, $mainTable);
+        /** @psalm-suppress MixedArgument Due to the access-layer type */
+        return $columns->flatMap(
+            static fn($column) => $row
+                ->column($column->alias())
+                ->map(static fn($value) => Aggregate\Property::of(
+                    match (true) {
+                        $column->name() instanceof Column\Name => $column->name()->toString(),
+                        $column->name() instanceof Column\Name\Namespaced => $column->name()->column()->toString(),
+                    },
+                    $value,
+                ))
+                ->toSequence()
+                ->toSet(),
+        );
     }
 }

@@ -71,7 +71,7 @@ final class MainTable
                 ->optionals()
                 ->map(fn($entity) => [
                     $entity->name(),
-                    OptionalTable::of($entity, $this->name),
+                    OptionalTable::of($entity, $this->name, $definition->id()),
                 ])
                 ->toList(),
         );
@@ -279,6 +279,14 @@ final class MainTable
     public function entity(string $name): Maybe
     {
         return $this->entities->get($name);
+    }
+
+    /**
+     * @return Set<OptionalTable>
+     */
+    public function optionals(): Set
+    {
+        return $this->optionals->values()->toSet();
     }
 
     /**
