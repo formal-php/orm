@@ -52,7 +52,7 @@ final class Repository implements RepositoryInterface
         $this->connection = $connection;
         $this->definition = $definition;
         $this->mainTable = MainTable::of($definition);
-        $this->decode = Decode::of($definition);
+        $this->decode = Decode::of($definition, $this->mainTable);
         $this->encode = Encode::of($definition, $this->mainTable);
         $this->idColumn = \sprintf(
             '%s.%s',

@@ -9,6 +9,7 @@ use Formal\ORM\{
 };
 use Formal\AccessLayer\{
     Row,
+    Table\Column,
 };
 use Innmind\Immutable\{
     Maybe,
@@ -23,16 +24,23 @@ final class Decode
 {
     /** @var Definition<T> */
     private Definition $definition;
+    /** @var MainTable<T> */
+    private MainTable $mainTable;
+    /** @var non-empty-string */
+    private string $entityPrefix;
     /** @var non-empty-string */
     private string $id;
 
     /**
      * @param Definition<T> $definition
+     * @param MainTable<T> $mainTable
      */
-    private function __construct(Definition $definition)
+    private function __construct(Definition $definition, MainTable $mainTable)
     {
         $this->definition = $definition;
-        $this->id = 'entity_'.$definition->id()->property();
+        $this->mainTable = $mainTable;
+        $this->entityPrefix = $mainTable->name()->alias().'_';
+        $this->id = $this->entityPrefix.$definition->id()->property();
     }
 
     /**
@@ -61,28 +69,33 @@ final class Decode
                 $id,
                 $row
                     ->values()
-                    ->filter(static fn($value) => Str::of($value->column()->toString())->startsWith('entity_'))
+                    ->filter(fn($value) => Str::of($value->column()->toString())->startsWith($this->entityPrefix))
                     ->map(static fn($value) => Aggregate\Property::of(
                         Str::of($value->column()->toString())->drop(7)->toString(),
                         $value->value(),
                     ))
                     ->toSet(),
                 $this
-                    ->definition
+                    ->mainTable
                     ->entities()
                     ->map(
                         static fn($entity) => Aggregate\Entity::of(
-                            $entity->name(),
-                            $row
-                                ->values()
-                                ->filter(static fn($value) => Str::of($value->column()->toString())->startsWith($entity->name().'_'))
-                                ->map(static fn($value) => Aggregate\Property::of(
-                                    Str::of($value->column()->toString())
-                                        ->drop(Str::of($entity->name())->length() + 1)
-                                        ->toString(),
-                                    $value->value(),
-                                ))
-                                ->toSet(),
+                            $entity->name()->alias(),
+                            $entity
+                                ->columns()
+                                ->flatMap(
+                                    static fn($column) => $row
+                                        ->column($column->alias())
+                                        ->map(static fn($value) => Aggregate\Property::of(
+                                            match (true) {
+                                                $column->name() instanceof Column\Name => $column->name()->toString(),
+                                                $column->name() instanceof Column\Name\Namespaced => $column->name()->column()->toString(),
+                                            },
+                                            $value,
+                                        ))
+                                        ->toSequence()
+                                        ->toSet(),
+                                ),
                         ),
                     ),
                 $this
@@ -106,11 +119,12 @@ final class Decode
      * @template A of object
      *
      * @param Definition<A> $definition
+     * @param MainTable<A> $mainTable
      *
      * @return self<A>
      */
-    public static function of(Definition $definition): self
+    public static function of(Definition $definition, MainTable $mainTable): self
     {
-        return new self($definition);
+        return new self($definition, $mainTable);
     }
 }

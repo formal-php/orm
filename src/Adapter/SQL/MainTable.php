@@ -264,6 +264,14 @@ final class MainTable
     }
 
     /**
+     * @return Set<EntityTable>
+     */
+    public function entities(): Set
+    {
+        return $this->entities->values()->toSet();
+    }
+
+    /**
      * @param non-empty-string $name
      *
      * @return Maybe<EntityTable>
