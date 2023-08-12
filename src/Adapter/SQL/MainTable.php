@@ -213,7 +213,7 @@ final class MainTable
     public function where(Specification $specification): Specification
     {
         if ($specification instanceof Not) {
-            return $this->where($specification->specification());
+            return $this->where($specification->specification())->not();
         }
 
         if ($specification instanceof Composite) {
