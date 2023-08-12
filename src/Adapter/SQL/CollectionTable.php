@@ -57,7 +57,7 @@ final class CollectionTable
                     ->as($definition->name().'_'.$property->name()),
             );
         $this->id = Column\Name::of('id')->in($this->name);
-        $this->select = Select::onDemand($this->name)->columns(
+        $this->select = Select::from($this->name)->columns(
             $this->id,
             ...$this->columns->toList(),
         );

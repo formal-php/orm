@@ -106,12 +106,22 @@ final class Decode
                 ->collections()
                 ->map(fn($collection) => Aggregate\Collection::of(
                     $collection->name()->alias(),
-                    ($this->connection)($collection->select($id))
-                        ->map(static fn($row) => self::properties(
-                            $row,
-                            $collection->columns(),
-                        ))
-                        ->toSet(),
+                    Set::defer(
+                        (function() use ($collection, $id) {
+                            // Wrapping this call in a deferred Set allows to
+                            // not immediately make the request but only when
+                            // asked.
+                            // The memoize is here to make sure the user can't
+                            // work with a partially loaded collection
+                            yield ($this->connection)($collection->select($id))
+                                ->map(static fn($row) => self::properties(
+                                    $row,
+                                    $collection->columns(),
+                                ))
+                                ->toSet()
+                                ->memoize();
+                        })(),
+                    )->flatMap(static fn($collection) => $collection),
                 )),
         ));
     }
