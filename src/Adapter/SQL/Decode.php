@@ -70,46 +70,45 @@ final class Decode
          * @psalm-suppress MixedArgument
          * @psalm-suppress ArgumentTypeCoercion
          */
-        return fn(Row $row) => $id($row)
-            ->map(fn($id) => Aggregate::of(
-                $id,
-                $row
-                    ->values()
-                    ->filter(fn($value) => Str::of($value->column()->toString())->startsWith($this->entityPrefix))
-                    ->map(static fn($value) => Aggregate\Property::of(
-                        Str::of($value->column()->toString())->drop(7)->toString(),
-                        $value->value(),
-                    ))
-                    ->toSet(),
-                $this
-                    ->mainTable
-                    ->entities()
-                    ->map(
-                        static fn($entity) => Aggregate\Entity::of(
-                            $entity->name()->alias(),
-                            self::properties($row, $entity->columns()),
-                        ),
+        return fn(Row $row) => $id($row)->map(fn($id) => Aggregate::of(
+            $id,
+            $row
+                ->values()
+                ->filter(fn($value) => Str::of($value->column()->toString())->startsWith($this->entityPrefix))
+                ->map(static fn($value) => Aggregate\Property::of(
+                    Str::of($value->column()->toString())->drop(7)->toString(),
+                    $value->value(),
+                ))
+                ->toSet(),
+            $this
+                ->mainTable
+                ->entities()
+                ->map(
+                    static fn($entity) => Aggregate\Entity::of(
+                        $entity->name()->alias(),
+                        self::properties($row, $entity->columns()),
                     ),
-                $this
-                    ->mainTable
-                    ->optionals()
-                    ->map(fn($optional) => Aggregate\Optional::of(
-                        $optional->name()->alias(),
-                        ($this->connection)($optional->select($id))
-                            ->first()
-                            ->map(static fn($row) => self::properties(
-                                $row,
-                                $optional->columns(),
-                            )),
-                    )),
-                $this
-                    ->definition
-                    ->collections()
-                    ->map(static fn($collection) => Aggregate\Collection::of(
-                        $collection->name(),
-                        Set::of(), // TODO
-                    )),
-            ));
+                ),
+            $this
+                ->mainTable
+                ->optionals()
+                ->map(fn($optional) => Aggregate\Optional::of(
+                    $optional->name()->alias(),
+                    ($this->connection)($optional->select($id))
+                        ->first()
+                        ->map(static fn($row) => self::properties(
+                            $row,
+                            $optional->columns(),
+                        )),
+                )),
+            $this
+                ->definition
+                ->collections()
+                ->map(static fn($collection) => Aggregate\Collection::of(
+                    $collection->name(),
+                    Set::of(), // TODO
+                )),
+        ));
     }
 
     /**
