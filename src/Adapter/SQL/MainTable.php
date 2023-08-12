@@ -47,6 +47,8 @@ final class MainTable
     private Map $entities;
     /** @var Map<non-empty-string, OptionalTable> */
     private Map $optionals;
+    /** @var Map<non-empty-string, CollectionTable> */
+    private Map $collections;
 
     /**
      * @param Definition<T> $definition
@@ -70,6 +72,15 @@ final class MainTable
                 ->map(fn($entity) => [
                     $entity->name(),
                     OptionalTable::of($entity, $this->name),
+                ])
+                ->toList(),
+        );
+        $collections = Map::of(
+            ...$definition
+                ->collections()
+                ->map(fn($collection) => [
+                    $collection->name(),
+                    CollectionTable::of($collection, $this->name),
                 ])
                 ->toList(),
         );
@@ -128,6 +139,7 @@ final class MainTable
         );
         $this->entities = $entities;
         $this->optionals = $optionals;
+        $this->collections = $collections;
     }
 
     /**
@@ -269,5 +281,15 @@ final class MainTable
     public function optional(string $name): Maybe
     {
         return $this->optionals->get($name);
+    }
+
+    /**
+     * @param non-empty-string $name
+     *
+     * @return Maybe<CollectionTable>
+     */
+    public function collection(string $name): Maybe
+    {
+        return $this->collections->get($name);
     }
 }

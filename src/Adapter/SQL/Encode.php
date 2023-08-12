@@ -49,11 +49,13 @@ final class Encode
             $entities->keys(),
             $optionals->keys(),
         );
+        $collections = $this->collections($data);
 
         return $entities
             ->values()
             ->append($optionals->values())
-            ->add($main);
+            ->add($main)
+            ->append($collections);
     }
 
     /**
@@ -138,5 +140,30 @@ final class Encode
                 Map::of(...$entities->toList()),
                 Map::of(...$optionals->toList()),
             );
+    }
+
+    /**
+     * @return Sequence<Query>
+     */
+    private function collections(Aggregate $data): Sequence
+    {
+        $uuid = $data->id()->value();
+        $inserts = $data
+            ->collections()
+            ->flatMap(
+                fn($collection) => $this
+                    ->mainTable
+                    ->collection($collection->name())
+                    ->flatMap(
+                        static fn($table) => $table->insert(
+                            $uuid,
+                            $collection->properties(),
+                        ),
+                    )
+                    ->toSequence()
+                    ->toSet(),
+            );
+
+        return Sequence::of(...$inserts->toList());
     }
 }
