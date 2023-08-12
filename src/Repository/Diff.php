@@ -234,8 +234,8 @@ final class Diff
     private static function diffOptionals(
         Raw\Aggregate\Optional $then,
         Raw\Aggregate\Optional $now,
-    ): Raw\Aggregate\Optional {
-        return Raw\Aggregate\Optional::of(
+    ): Raw\Aggregate\Optional|Raw\Aggregate\Optional\BrandNew {
+        $diff = Raw\Aggregate\Optional::of(
             $then->name(),
             $now
                 ->properties()
@@ -247,6 +247,11 @@ final class Diff
                             static fn() => $properties,
                         ),
                 ),
+        );
+
+        return $then->properties()->match(
+            static fn() => $diff,
+            static fn() => Raw\Aggregate\Optional\BrandNew::of($diff),
         );
     }
 

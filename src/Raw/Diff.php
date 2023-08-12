@@ -12,7 +12,7 @@ final class Diff
     private Set $properties;
     /** @var Set<Aggregate\Entity> */
     private Set $entities;
-    /** @var Set<Aggregate\Optional> */
+    /** @var Set<Aggregate\Optional|Aggregate\Optional\BrandNew> */
     private Set $optionals;
     /** @var Set<Aggregate\Collection> */
     private Set $collections;
@@ -20,7 +20,7 @@ final class Diff
     /**
      * @param Set<Aggregate\Property> $properties
      * @param Set<Aggregate\Entity> $entities
-     * @param Set<Aggregate\Optional> $optionals
+     * @param Set<Aggregate\Optional|Aggregate\Optional\BrandNew> $optionals
      * @param Set<Aggregate\Collection> $collections
      */
     private function __construct(
@@ -40,7 +40,7 @@ final class Diff
     /**
      * @param Set<Aggregate\Property> $properties
      * @param Set<Aggregate\Entity> $entities
-     * @param Set<Aggregate\Optional> $optionals
+     * @param Set<Aggregate\Optional|Aggregate\Optional\BrandNew> $optionals
      * @param Set<Aggregate\Collection> $collections
      */
     public static function of(
@@ -75,7 +75,7 @@ final class Diff
     }
 
     /**
-     * @return Set<Aggregate\Optional>
+     * @return Set<Aggregate\Optional|Aggregate\Optional\BrandNew>
      */
     public function optionals(): Set
     {

@@ -54,9 +54,8 @@ final class Update
                     ->optional($optional->name())
                     ->map(static fn($table) => $table->update(
                         $data->id(),
-                        $optional->properties(),
+                        $optional,
                     ))
-                    ->map(Sequence::of(...))
                     ->toSequence()
                     ->toSet(),
             );

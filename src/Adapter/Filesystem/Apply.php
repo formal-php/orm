@@ -75,7 +75,7 @@ final class Apply
 
     /**
      * @param Set<Aggregate\Optional> $then
-     * @param Set<Aggregate\Optional> $now
+     * @param Set<Aggregate\Optional|Aggregate\Optional\BrandNew> $now
      *
      * @return Set<Aggregate\Optional>
      */

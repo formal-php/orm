@@ -8,6 +8,7 @@ use Formal\ORM\{
     Definition\Aggregate\Optional as Definition,
     Raw\Aggregate\Id,
     Raw\Aggregate\Property,
+    Raw\Aggregate\Optional,
     Specification\Property as PropertySpecification,
 };
 use Formal\AccessLayer\{
@@ -24,7 +25,9 @@ use Innmind\Specification\Sign;
 use Innmind\Immutable\{
     Set,
     Maybe,
+    Sequence,
 };
+use Ramsey\Uuid\Uuid;
 
 /**
  * @template T of object
@@ -137,54 +140,77 @@ final class OptionalTable
     }
 
     /**
-     * @param Maybe<Set<Property>> $properties
+     * @return Sequence<Query>
      */
-    public function update(Id $id, Maybe $properties): Query
+    public function update(Id $id, Optional|Optional\BrandNew $optional): Sequence
     {
-        // TODO handle the diff scenario : creating optional after aggregate creation
-        return $properties->match(
-            fn($properties) => Update::set(
-                $this->name,
-                new Row(
-                    ...$properties
-                        ->map(static fn($property) => new Row\Value(
-                            Column\Name::of($property->name()),
-                            $property->value(),
-                        ))
-                        ->toList(),
-                ),
-            )
-                ->join(
-                    Join::left($this->main)->on(
-                        Column\Name::of('id')->in($this->name),
-                        Column\Name::of($this->definition->name())->in($this->main),
+        if ($optional instanceof Optional\BrandNew) {
+            // No queries to make if the optional is brand new and no properties
+            // as it means the state is the same
+            return $optional
+                ->properties()
+                ->match(
+                    fn($properties) => Sequence::of(
+                        $this->insert($uuid = Uuid::uuid4()->toString(), $properties),
+                        Update::set(
+                            $this->main,
+                            new Row(new Row\Value(
+                                Column\Name::of($this->definition->name()),
+                                $uuid,
+                            )),
+                        ),
+                    ),
+                    static fn() => Sequence::of(),
+                );
+        }
+
+        return $optional->properties()->match(
+            fn($properties) => Sequence::of(
+                Update::set(
+                    $this->name,
+                    new Row(
+                        ...$properties
+                            ->map(static fn($property) => new Row\Value(
+                                Column\Name::of($property->name()),
+                                $property->value(),
+                            ))
+                            ->toList(),
                     ),
                 )
-                ->where(PropertySpecification::of(
-                    \sprintf(
-                        '%s.%s',
-                        $this->main->alias(),
-                        $this->identity->property(),
-                    ),
-                    Sign::equality,
-                    $id->value(),
-                )),
-            fn() => Delete::from($this->name)
-                ->join(
-                    Join::left($this->main)->on(
-                        Column\Name::of($this->definition->name())->in($this->main),
-                        Column\Name::of('id')->in($this->name),
-                    ),
-                )
-                ->where(PropertySpecification::of(
-                    \sprintf(
-                        '%s.%s',
-                        $this->main->alias(),
-                        $this->identity->property(),
-                    ),
-                    Sign::equality,
-                    $id->value(),
-                )),
+                    ->join(
+                        Join::left($this->main)->on(
+                            Column\Name::of('id')->in($this->name),
+                            Column\Name::of($this->definition->name())->in($this->main),
+                        ),
+                    )
+                    ->where(PropertySpecification::of(
+                        \sprintf(
+                            '%s.%s',
+                            $this->main->alias(),
+                            $this->identity->property(),
+                        ),
+                        Sign::equality,
+                        $id->value(),
+                    )),
+            ),
+            fn() => Sequence::of(
+                Delete::from($this->name)
+                    ->join(
+                        Join::left($this->main)->on(
+                            Column\Name::of($this->definition->name())->in($this->main),
+                            Column\Name::of('id')->in($this->name),
+                        ),
+                    )
+                    ->where(PropertySpecification::of(
+                        \sprintf(
+                            '%s.%s',
+                            $this->main->alias(),
+                            $this->identity->property(),
+                        ),
+                        Sign::equality,
+                        $id->value(),
+                    )),
+            ),
         );
     }
 }
