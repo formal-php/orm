@@ -109,10 +109,10 @@ final class MainTable
         // to a boolean
         $this->count = Select::from($this->name)->count('count');
         $delete = $entities->reduce(
-            Delete::from($this->name->name()),
+            Delete::from($this->name),
             fn(Delete $delete, $name, $table) => $delete->join(
                 Join::left($table->name())->on(
-                    Column\Name::of($name)->in($this->name->name()),
+                    Column\Name::of($name)->in($this->name),
                     Column\Name::of('id')->in($table->name()),
                 ),
             ),
@@ -121,7 +121,7 @@ final class MainTable
             $delete,
             fn(Delete $delete, $name, $table) => $delete->join(
                 Join::left($table->name())->on(
-                    Column\Name::of($name)->in($this->name->name()),
+                    Column\Name::of($name)->in($this->name),
                     Column\Name::of('id')->in($table->name()),
                 ),
             ),

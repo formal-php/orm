@@ -41,6 +41,8 @@ final class Repository implements RepositoryInterface
     private Decode $decode;
     /** @var Encode<T> */
     private Encode $encode;
+    /** @var non-empty-string */
+    private string $idColumn;
 
     /**
      * @param Definition<T> $definition
@@ -52,6 +54,11 @@ final class Repository implements RepositoryInterface
         $this->mainTable = MainTable::of($definition);
         $this->decode = Decode::of($definition);
         $this->encode = Encode::of($definition, $this->mainTable);
+        $this->idColumn = \sprintf(
+            '%s.%s',
+            $this->mainTable->name()->alias(),
+            $definition->id()->property(),
+        );
     }
 
     /**
@@ -71,7 +78,7 @@ final class Repository implements RepositoryInterface
         $select = $this
             ->mainTable
             ->select()
-            ->where(Property::of('entity.id', Sign::equality, $id->value()));
+            ->where(Property::of($this->idColumn, Sign::equality, $id->value()));
 
         return ($this->connection)($select)
             ->first()
@@ -83,7 +90,7 @@ final class Repository implements RepositoryInterface
         $select = $this
             ->mainTable
             ->contains()
-            ->where(Property::of('entity.id', Sign::equality, $id->value()));
+            ->where(Property::of($this->idColumn, Sign::equality, $id->value()));
 
         return ($this->connection)($select)
             ->first()
@@ -108,7 +115,7 @@ final class Repository implements RepositoryInterface
             $this
                 ->mainTable
                 ->delete()
-                ->where(Property::of($this->definition->name().'.id', Sign::equality, $id->value())),
+                ->where(Property::of($this->idColumn, Sign::equality, $id->value())),
         );
     }
 
