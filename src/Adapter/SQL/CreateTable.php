@@ -135,10 +135,12 @@ final class CreateTable
             ->optionals()
             ->reduce(
                 $main,
-                static fn(Query\CreateTable $main, $optional) => $main->foreignKey(
-                    Table\Column\Name::of($optional->name()),
-                    Table\Name::of($definition->name().'_'.$optional->name()),
-                    Table\Column\Name::of('id'),
+                static fn(Query\CreateTable $main, $optional) => $main->constraint(
+                    ForeignKey::of(
+                        Table\Column\Name::of($optional->name()),
+                        Table\Name::of($definition->name().'_'.$optional->name()),
+                        Table\Column\Name::of('id'),
+                    )->onDeleteSetNull(),
                 ),
             );
 
