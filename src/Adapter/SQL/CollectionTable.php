@@ -14,12 +14,15 @@ use Formal\AccessLayer\{
     Table\Column,
     Query,
     Query\Select,
+    Query\Update,
+    Query\Delete,
     Row,
 };
 use Innmind\Specification\Sign;
 use Innmind\Immutable\{
     Set,
     Maybe,
+    Sequence,
 };
 
 /**
@@ -131,5 +134,29 @@ final class CollectionTable
                         ->toList(),
                 ),
             );
+    }
+
+    /**
+     * @param Set<Set<Property>> $collection
+     *
+     * @return Sequence<Query>
+     */
+    public function update(Id $id, Set $collection): Sequence
+    {
+        return Sequence::of(
+            Delete::from($this->name)->where(PropertySpecification::of(
+                \sprintf(
+                    '%s.%s',
+                    $this->name->alias(),
+                    $this->id->column()->toString(),
+                ),
+                Sign::equality,
+                $id->value(),
+            )),
+            ...$this
+                ->insert($id, $collection)
+                ->toSequence()
+                ->toList(),
+        );
     }
 }

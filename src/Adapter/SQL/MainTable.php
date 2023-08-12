@@ -6,6 +6,7 @@ namespace Formal\ORM\Adapter\SQL;
 use Formal\ORM\{
     Definition\Aggregate as Definition,
     Raw\Aggregate,
+    Raw\Diff,
     Specification\Property,
     Specification\Entity,
 };
@@ -14,6 +15,7 @@ use Formal\AccessLayer\{
     Table\Column,
     Query,
     Query\Delete,
+    Query\Update,
     Query\Select,
     Query\Select\Join,
     Row,
@@ -24,6 +26,7 @@ use Innmind\Specification\{
     Comparator,
     Composite,
     Operator,
+    Sign,
 };
 use Innmind\Immutable\{
     Map,
@@ -215,6 +218,32 @@ final class MainTable
                     ->toList(),
             ),
         );
+    }
+
+    /**
+     * @return Maybe<Query>
+     */
+    public function update(Diff $data): Maybe
+    {
+        return Maybe::just($data->properties())
+            ->filter(static fn($properties) => !$properties->empty())
+            ->map(
+                fn($properties) => Update::set(
+                    $this->name->name(),
+                    new Row(
+                        ...$properties
+                            ->map(static fn($property) => new Row\Value(
+                                Column\Name::of($property->name()),
+                                $property->value(),
+                            ))
+                            ->toList(),
+                    ),
+                )->where(Property::of(
+                    $this->definition->id()->property(),
+                    Sign::equality,
+                    $data->id()->value(),
+                )),
+            );
     }
 
     public function delete(): Delete

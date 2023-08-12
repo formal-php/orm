@@ -14,12 +14,17 @@ use Formal\AccessLayer\{
     Table,
     Table\Column,
     Query,
+    Query\Update,
+    Query\Delete,
     Query\Select,
     Query\Select\Join,
     Row,
 };
 use Innmind\Specification\Sign;
-use Innmind\Immutable\Set;
+use Innmind\Immutable\{
+    Set,
+    Maybe,
+};
 
 /**
  * @template T of object
@@ -128,6 +133,58 @@ final class OptionalTable
                     ))
                     ->toList(),
             ),
+        );
+    }
+
+    /**
+     * @param Maybe<Set<Property>> $properties
+     */
+    public function update(Id $id, Maybe $properties): Query
+    {
+        // TODO handle the diff scenario : creating optional after aggregate creation
+        return $properties->match(
+            fn($properties) => Update::set(
+                $this->name,
+                new Row(
+                    ...$properties
+                        ->map(static fn($property) => new Row\Value(
+                            Column\Name::of($property->name()),
+                            $property->value(),
+                        ))
+                        ->toList(),
+                ),
+            )
+                ->join(
+                    Join::left($this->main)->on(
+                        Column\Name::of('id')->in($this->name),
+                        Column\Name::of($this->definition->name())->in($this->main),
+                    ),
+                )
+                ->where(PropertySpecification::of(
+                    \sprintf(
+                        '%s.%s',
+                        $this->main->alias(),
+                        $this->identity->property(),
+                    ),
+                    Sign::equality,
+                    $id->value(),
+                )),
+            fn() => Delete::from($this->name)
+                ->join(
+                    Join::left($this->main)->on(
+                        Column\Name::of($this->definition->name())->in($this->main),
+                        Column\Name::of('id')->in($this->name),
+                    ),
+                )
+                ->where(PropertySpecification::of(
+                    \sprintf(
+                        '%s.%s',
+                        $this->main->alias(),
+                        $this->identity->property(),
+                    ),
+                    Sign::equality,
+                    $id->value(),
+                )),
         );
     }
 }

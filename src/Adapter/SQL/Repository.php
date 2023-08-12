@@ -41,6 +41,8 @@ final class Repository implements RepositoryInterface
     private Decode $decode;
     /** @var Encode<T> */
     private Encode $encode;
+    /** @var Update<T> */
+    private Update $update;
     /** @var non-empty-string */
     private string $idColumn;
 
@@ -54,6 +56,7 @@ final class Repository implements RepositoryInterface
         $this->mainTable = MainTable::of($definition);
         $this->decode = Decode::of($definition, $this->mainTable, $connection);
         $this->encode = Encode::of($definition, $this->mainTable);
+        $this->update = Update::of($this->mainTable);
         $this->idColumn = \sprintf(
             '%s.%s',
             $this->mainTable->name()->alias(),
@@ -107,6 +110,7 @@ final class Repository implements RepositoryInterface
 
     public function update(Diff $data): void
     {
+        $_ = ($this->update)($data)->foreach($this->connection);
     }
 
     public function remove(Aggregate\Id $id): void

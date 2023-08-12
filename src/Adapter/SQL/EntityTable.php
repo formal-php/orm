@@ -5,15 +5,21 @@ namespace Formal\ORM\Adapter\SQL;
 
 use Formal\ORM\{
     Definition\Aggregate\Entity as Definition,
+    Raw\Aggregate\Id,
     Raw\Aggregate\Property,
 };
 use Formal\AccessLayer\{
     Table,
     Table\Column,
     Query,
+    Query\Update,
+    Query\Select\Join,
     Row,
 };
-use Innmind\Immutable\Set;
+use Innmind\Immutable\{
+    Set,
+    Maybe,
+};
 
 /**
  * @template T of object
@@ -94,5 +100,32 @@ final class EntityTable
                     ->toList(),
             ),
         );
+    }
+
+    /**
+     * @param Set<Property> $properties
+     *
+     * @return Maybe<Query>
+     */
+    public function update(Id $id, Set $properties): Maybe
+    {
+        return Maybe::just($properties)
+            ->filter(static fn($properties) => !$properties->empty())
+            ->map(
+                fn($properties) => Update::set(
+                    $this->name,
+                    new Row(
+                        ...$properties
+                            ->map(static fn($property) => new Row\Value(
+                                Column\Name::of($property->name()),
+                                $property->value(),
+                            ))
+                            ->toList(),
+                    ),
+                )->join(Join::left($this->main)->on(
+                    Column\Name::of('id')->in($this->name),
+                    Column\Name::of($this->definition->name())->in($this->main),
+                )),
+            );
     }
 }
