@@ -101,12 +101,11 @@ final class CollectionTable
     }
 
     /**
-     * @param non-empty-string $uuid
      * @param Set<Set<Property>> $collection
      *
      * @return Maybe<Query>
      */
-    public function insert(string $uuid, Set $collection): Maybe
+    public function insert(Id $id, Set $collection): Maybe
     {
         /** @psalm-suppress InvalidScalarArgument Psalm doesn't understand the !empty() */
         return Maybe::just($collection)
@@ -119,7 +118,7 @@ final class CollectionTable
                             static fn($properties) => new Row(
                                 new Row\Value(
                                     Column\Name::of('id'),
-                                    $uuid,
+                                    $id->value(),
                                 ),
                                 ...$properties
                                     ->map(static fn($property) => new Row\Value(

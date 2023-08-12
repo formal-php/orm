@@ -147,7 +147,6 @@ final class Encode
      */
     private function collections(Aggregate $data): Sequence
     {
-        $uuid = $data->id()->value();
         $inserts = $data
             ->collections()
             ->flatMap(
@@ -156,7 +155,7 @@ final class Encode
                     ->collection($collection->name())
                     ->flatMap(
                         static fn($table) => $table->insert(
-                            $uuid,
+                            $data->id(),
                             $collection->properties(),
                         ),
                     )
