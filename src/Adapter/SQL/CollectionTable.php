@@ -5,14 +5,18 @@ namespace Formal\ORM\Adapter\SQL;
 
 use Formal\ORM\{
     Definition\Aggregate\Collection as Definition,
+    Raw\Aggregate\Id,
     Raw\Aggregate\Property,
+    Specification\Property as PropertySpecification,
 };
 use Formal\AccessLayer\{
     Table,
     Table\Column,
     Query,
+    Query\Select,
     Row,
 };
+use Innmind\Specification\Sign;
 use Innmind\Immutable\{
     Set,
     Maybe,
@@ -29,6 +33,8 @@ final class CollectionTable
     private Table\Name\Aliased $name;
     /** @var Set<Column\Name\Aliased> */
     private Set $columns;
+    private Column\Name\Namespaced $id;
+    private Select $select;
 
     /**
      * @param Definition<T> $definition
@@ -47,6 +53,11 @@ final class CollectionTable
                     ->in($this->name)
                     ->as($definition->name().'_'.$property->name()),
             );
+        $this->id = Column\Name::of('id')->in($this->name);
+        $this->select = Select::onDemand($this->name)->columns(
+            $this->id,
+            ...$this->columns->toList(),
+        );
     }
 
     /**
@@ -74,6 +85,19 @@ final class CollectionTable
     public function columns(): Set
     {
         return $this->columns;
+    }
+
+    public function select(Id $id): Query
+    {
+        return $this->select->where(PropertySpecification::of(
+            \sprintf(
+                '%s.%s',
+                $this->name->alias(),
+                $this->id->column()->toString(),
+            ),
+            Sign::equality,
+            $id->value(),
+        ));
     }
 
     /**

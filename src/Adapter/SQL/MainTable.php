@@ -300,6 +300,14 @@ final class MainTable
     }
 
     /**
+     * @return Set<CollectionTable>
+     */
+    public function collections(): Set
+    {
+        return $this->collections->values()->toSet();
+    }
+
+    /**
      * @param non-empty-string $name
      *
      * @return Maybe<CollectionTable>

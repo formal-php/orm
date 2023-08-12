@@ -102,11 +102,16 @@ final class Decode
                         )),
                 )),
             $this
-                ->definition
+                ->mainTable
                 ->collections()
-                ->map(static fn($collection) => Aggregate\Collection::of(
-                    $collection->name(),
-                    Set::of(), // TODO
+                ->map(fn($collection) => Aggregate\Collection::of(
+                    $collection->name()->alias(),
+                    ($this->connection)($collection->select($id))
+                        ->map(static fn($row) => self::properties(
+                            $row,
+                            $collection->columns(),
+                        ))
+                        ->toSet(),
                 )),
         ));
     }
