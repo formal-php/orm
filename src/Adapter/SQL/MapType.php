@@ -15,6 +15,7 @@ final class MapType
     public function __invoke(Type $type): Table\Column\Type
     {
         return match (true) {
+            $type instanceof SQLType => $type->sqlType(),
             $type instanceof Type\NullableType,
             $type instanceof Type\MaybeType => $this($type->inner())->nullable(),
             $type instanceof Type\BoolType => Table\Column\Type::tinyint(1)
