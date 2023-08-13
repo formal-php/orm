@@ -122,16 +122,18 @@ final class OptionalTable
      */
     public function insert(string $uuid, Set $properties): Query
     {
+        $table = $this->name->name();
+
         return Query\Insert::into(
-            $this->name->name(),
+            $table,
             new Row(
                 new Row\Value(
-                    Column\Name::of('id'),
+                    Column\Name::of('id')->in($table),
                     $uuid,
                 ),
                 ...$properties
                     ->map(static fn($property) => new Row\Value(
-                        Column\Name::of($property->name()),
+                        Column\Name::of($property->name())->in($table),
                         $property->value(),
                     ))
                     ->toList(),
@@ -170,8 +172,8 @@ final class OptionalTable
                     $this->name,
                     new Row(
                         ...$properties
-                            ->map(static fn($property) => new Row\Value(
-                                Column\Name::of($property->name()),
+                            ->map(fn($property) => new Row\Value(
+                                Column\Name::of($property->name())->in($this->name),
                                 $property->value(),
                             ))
                             ->toList(),

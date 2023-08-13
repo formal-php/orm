@@ -110,22 +110,24 @@ final class CollectionTable
      */
     public function insert(Id $id, Set $collection): Maybe
     {
+        $table = $this->name->name();
+
         /** @psalm-suppress InvalidScalarArgument Psalm doesn't understand the !empty() */
         return Maybe::just($collection)
             ->filter(static fn($collection) => !$collection->empty())
             ->map(
-                fn($collection) => Query\Insert::into(
-                    $this->name->name(),
+                static fn($collection) => Query\Insert::into(
+                    $table,
                     ...$collection
                         ->map(
                             static fn($properties) => new Row(
                                 new Row\Value(
-                                    Column\Name::of('id'),
+                                    Column\Name::of('id')->in($table),
                                     $id->value(),
                                 ),
                                 ...$properties
                                     ->map(static fn($property) => new Row\Value(
-                                        Column\Name::of($property->name()),
+                                        Column\Name::of($property->name())->in($table),
                                         $property->value(),
                                     ))
                                     ->toList(),

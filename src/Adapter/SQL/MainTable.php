@@ -189,29 +189,31 @@ final class MainTable
         Map $entities,
         Map $optionals,
     ): Query {
+        $table = $this->name->name();
+
         return Query\Insert::into(
-            $this->name->name(),
+            $table,
             new Row(
                 new Row\Value(
-                    Column\Name::of($this->definition->id()->property()),
+                    Column\Name::of($this->definition->id()->property())->in($table),
                     $uuid,
                 ),
                 ...$properties
                     ->map(static fn($property) => new Row\Value(
-                        Column\Name::of($property->name()),
+                        Column\Name::of($property->name())->in($table),
                         $property->value(),
                     ))
                     ->toList(),
                 ...$entities
                     ->map(static fn($name, $value) => new Row\Value(
-                        Column\Name::of($name),
+                        Column\Name::of($name)->in($table),
                         $value,
                     ))
                     ->values()
                     ->toList(),
                 ...$optionals
                     ->map(static fn($name, $value) => new Row\Value(
-                        Column\Name::of($name),
+                        Column\Name::of($name)->in($table),
                         $value,
                     ))
                     ->values()
@@ -225,15 +227,17 @@ final class MainTable
      */
     public function update(Diff $data): Maybe
     {
+        $table = $this->name->name();
+
         return Maybe::just($data->properties())
             ->filter(static fn($properties) => !$properties->empty())
             ->map(
                 fn($properties) => Update::set(
-                    $this->name->name(),
+                    $table,
                     new Row(
                         ...$properties
                             ->map(static fn($property) => new Row\Value(
-                                Column\Name::of($property->name()),
+                                Column\Name::of($property->name())->in($table),
                                 $property->value(),
                             ))
                             ->toList(),
