@@ -24,34 +24,41 @@ use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
 final class UpdateCollection implements Property
 {
     private string $name;
+    private $createdAt;
     private string $address1;
     private string $address2;
     private string $address3;
-    private $createdAt;
 
     private function __construct(
         string $name,
+        $createdAt,
         string $address1,
         string $address2,
         string $address3,
-        $createdAt,
     ) {
         $this->name = $name;
+        $this->createdAt = $createdAt;
         $this->address1 = $address1;
         $this->address2 = $address2;
         $this->address3 = $address3;
-        $this->createdAt = $createdAt;
     }
 
     public static function any(): Set
     {
         return Set\Composite::immutable(
-            static fn(...$args) => new self(...$args),
-            Set\Strings::madeOf(Set\Chars::alphanumerical()),
-            Set\Strings::madeOf(Set\Chars::alphanumerical()),
-            Set\Strings::madeOf(Set\Chars::alphanumerical()),
+            static fn($name, $createdAt, $addresses) => new self($name, $createdAt, ...$addresses),
             Set\Strings::madeOf(Set\Chars::alphanumerical()),
             PointInTime::any(),
+            Set\Composite::immutable(
+                static fn(...$addresses) => $addresses,
+                Set\Strings::madeOf(Set\Chars::alphanumerical()),
+                Set\Strings::madeOf(Set\Chars::alphanumerical()),
+                Set\Strings::madeOf(Set\Chars::alphanumerical()),
+            )->filter(
+                static fn($addresses) => $addresses[0] !== $addresses[1] &&
+                    $addresses[1] !== $addresses[2] &&
+                    $addresses[0] !== $addresses[2],
+            ),
         );
     }
 
