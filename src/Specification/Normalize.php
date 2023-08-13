@@ -19,6 +19,7 @@ use Innmind\Immutable\{
     Sequence,
     Map,
     Str,
+    Maybe,
     Predicate\Instance,
 };
 
@@ -90,29 +91,31 @@ final class Normalize
         $property = Str::of($specification->property());
 
         if ($property->contains('.')) {
-            /**
-             * @psalm-suppress PossiblyUndefinedArrayOffset
-             * @var Str $entity
-             * @var Str $property
-             */
-            [$entity, $property] = $property->split('.')->toList();
-            /** @psalm-suppress ArgumentTypeCoercion */
-            $properties = $this->entities->get($entity->toString())->match(
-                static fn($properties) => $properties,
-                static fn() => throw new \LogicException("Unknown entity '$entity'"),
-            );
+            $parts = $property
+                ->split('.')
+                ->map(static fn($part) => $part->toString());
 
-            /** @psalm-suppress ArgumentTypeCoercion */
-            return Entity::of(
-                $entity->toString(),
-                $property->toString(),
-                $specification->sign(),
-                $this->normalizeProperty(
-                    $properties,
-                    $property->toString(),
-                    $specification->value(),
-                ),
-            );
+            /** @psalm-suppress ArgumentTypeCoercion It doesn't understand the strings are not empty */
+            return Maybe::all($parts->first(), $parts->last())
+                ->flatMap(
+                    fn(string $entity, string $property) => $this
+                        ->entities
+                        ->get($entity)
+                        ->map(fn($properties) => Entity::of(
+                            $entity,
+                            $property,
+                            $specification->sign(),
+                            $this->normalizeProperty(
+                                $properties,
+                                $property,
+                                $specification->value(),
+                            ),
+                        )),
+                )
+                ->match(
+                    static fn($specification) => $specification,
+                    static fn() => throw new \LogicException("Unknown entity '{$property->toString()}'"),
+                );
         }
 
         return $this->normalize($specification);
