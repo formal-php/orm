@@ -31,55 +31,46 @@ final class CreateTable
     public function __invoke(string $class): Sequence
     {
         $definition = $this->aggregates->get($class);
-        $id = Table\Column::of(
-            Table\Column\Name::of($definition->id()->property()),
-            Table\Column\Type::varchar(36),
-        );
+        $mainTable = MainTable::of($definition);
 
-        $entities = $definition
+        $entities = $mainTable
             ->entities()
             ->map(static fn($entity) => Query\CreateTable::named(
-                Table\Name::of($definition->name().'_'.$entity->name()),
-                Table\Column::of(
-                    Table\Column\Name::of('id'),
-                    Table\Column\Type::varchar(36)->comment('UUID'),
-                ),
+                $entity->name()->name(),
+                $entity->primaryKey(),
                 ...$entity
+                    ->definition()
                     ->properties()
                     ->map(static fn($property) => Table\Column::of(
                         Table\Column\Name::of($property->name()),
                         self::determineType($property->type()),
                     ))
                     ->toList(),
-            )->primaryKey(Table\Column\Name::of('id')))
+            )->primaryKey($entity->primaryKey()->name()))
             ->toList();
-        $optionals = $definition
+        $optionals = $mainTable
             ->optionals()
             ->map(static fn($optional) => Query\CreateTable::named(
-                Table\Name::of($definition->name().'_'.$optional->name()),
-                Table\Column::of(
-                    Table\Column\Name::of('id'),
-                    Table\Column\Type::varchar(36)->comment('UUID'),
-                ),
+                $optional->name()->name(),
+                $optional->primaryKey(),
                 ...$optional
+                    ->definition()
                     ->properties()
                     ->map(static fn($property) => Table\Column::of(
                         Table\Column\Name::of($property->name()),
                         self::determineType($property->type()),
                     ))
                     ->toList(),
-            )->primaryKey(Table\Column\Name::of('id')))
+            )->primaryKey($optional->primaryKey()->name()))
             ->toList();
 
-        $collections = $definition
+        $collections = $mainTable
             ->collections()
             ->map(static fn($collection) => Query\CreateTable::named(
-                Table\Name::of($definition->name().'_'.$collection->name()),
-                Table\Column::of(
-                    Table\Column\Name::of('id'),
-                    Table\Column\Type::varchar(36)->comment('UUID'),
-                ),
+                $collection->name()->name(),
+                $collection->primaryKey(),
                 ...$collection
+                    ->definition()
                     ->properties()
                     ->map(static fn($property) => Table\Column::of(
                         Table\Column\Name::of($property->name()),
@@ -88,16 +79,16 @@ final class CreateTable
                     ->toList(),
             )->constraint(
                 ForeignKey::of(
-                    Table\Column\Name::of('id'),
-                    Table\Name::of($definition->name()),
-                    $id->name(),
+                    $collection->primaryKey()->name(),
+                    $mainTable->name()->name(),
+                    $mainTable->primaryKey()->name(),
                 )->onDeleteCascade(),
             ))
             ->toList();
 
         $main = Query\CreateTable::named(
-            Table\Name::of($definition->name()),
-            $id,
+            $mainTable->name()->name(),
+            $mainTable->primaryKey(),
             ...$definition
                 ->properties()
                 ->map(static fn($property) => Table\Column::of(
@@ -105,41 +96,35 @@ final class CreateTable
                     self::determineType($property->type()),
                 ))
                 ->toList(),
-            ...$definition
+            ...$mainTable
                 ->entities()
-                ->map(static fn($entity) => Table\Column::of(
-                    Table\Column\Name::of($entity->name()),
-                    Table\Column\Type::varchar(36)->comment('UUID'),
-                ))
+                ->map(static fn($entity) => $entity->foreignKey())
                 ->toList(),
-            ...$definition
+            ...$mainTable
                 ->optionals()
-                ->map(static fn($entity) => Table\Column::of(
-                    Table\Column\Name::of($entity->name()),
-                    Table\Column\Type::varchar(36)->nullable()->comment('UUID'),
-                ))
+                ->map(static fn($optional) => $optional->foreignKey())
                 ->toList(),
-        )->primaryKey($id->name());
+        )->primaryKey($mainTable->primaryKey()->name());
 
-        $main = $definition
+        $main = $mainTable
             ->entities()
             ->reduce(
                 $main,
                 static fn(Query\CreateTable $main, $entity) => $main->foreignKey(
-                    Table\Column\Name::of($entity->name()),
-                    Table\Name::of($definition->name().'_'.$entity->name()),
-                    Table\Column\Name::of('id'),
+                    $entity->foreignKey()->name(),
+                    $entity->name()->name(),
+                    $entity->primaryKey()->name(),
                 ),
             );
-        $main = $definition
+        $main = $mainTable
             ->optionals()
             ->reduce(
                 $main,
                 static fn(Query\CreateTable $main, $optional) => $main->constraint(
                     ForeignKey::of(
-                        Table\Column\Name::of($optional->name()),
-                        Table\Name::of($definition->name().'_'.$optional->name()),
-                        Table\Column\Name::of('id'),
+                        $optional->foreignKey()->name(),
+                        $optional->name()->name(),
+                        $optional->primaryKey()->name(),
                     )->onDeleteSetNull(),
                 ),
             );

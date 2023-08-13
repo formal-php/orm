@@ -66,6 +66,30 @@ final class EntityTable
         return new self($definition, $main);
     }
 
+    /**
+     * @return Definition<T>
+     */
+    public function definition(): Definition
+    {
+        return $this->definition;
+    }
+
+    public function primaryKey(): Table\Column
+    {
+        return Table\Column::of(
+            Table\Column\Name::of('id'),
+            Table\Column\Type::varchar(36)->comment('UUID'),
+        );
+    }
+
+    public function foreignKey(): Table\Column
+    {
+        return Table\Column::of(
+            Table\Column\Name::of($this->definition->name()),
+            Table\Column\Type::varchar(36)->comment('UUID'),
+        );
+    }
+
     public function name(): Table\Name\Aliased
     {
         return $this->name;
