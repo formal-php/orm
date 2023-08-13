@@ -21,11 +21,11 @@ final class Matching
     private Repository $repository;
     /** @var Denormalize<T> */
     private Denormalize $denormalize;
-    /** @var Normalize<T> */
-    private Normalize $normalizeSpecification;
+    /** @var ?Normalize<T> */
+    private ?Normalize $normalizeSpecification;
     /** @var Loaded<T> */
     private Loaded $loaded;
-    private Specification $specification;
+    private ?Specification $specification;
     /** @var ?array{non-empty-string, Sort} */
     private ?array $sort;
     /** @var ?positive-int */
@@ -36,7 +36,7 @@ final class Matching
     /**
      * @param Repository<T> $repository
      * @param Denormalize<T> $denormalize
-     * @param Normalize<T> $normalizeSpecification
+     * @param ?Normalize<T> $normalizeSpecification
      * @param Loaded<T> $loaded
      * @param array{non-empty-string, Sort} $sort
      * @param ?positive-int $drop
@@ -45,9 +45,9 @@ final class Matching
     private function __construct(
         Repository $repository,
         Denormalize $denormalize,
-        Normalize $normalizeSpecification,
+        ?Normalize $normalizeSpecification,
         Loaded $loaded,
-        Specification $specification,
+        ?Specification $specification,
         ?array $sort,
         ?int $drop,
         ?int $take,
@@ -85,6 +85,32 @@ final class Matching
             $normalizeSpecification,
             $loaded,
             $specification,
+            null,
+            null,
+            null,
+        );
+    }
+
+    /**
+     * @template A of object
+     *
+     * @param Repository<A> $repository
+     * @param Denormalize<A> $denormalize
+     * @param Loaded<A> $loaded
+     *
+     * @return self<A>
+     */
+    public static function all(
+        Repository $repository,
+        Denormalize $denormalize,
+        Loaded $loaded,
+    ): self {
+        return new self(
+            $repository,
+            $denormalize,
+            null,
+            $loaded,
+            null,
             null,
             null,
             null,
@@ -179,14 +205,20 @@ final class Matching
     public function fetch(): Sequence
     {
         $denormalize = ($this->denormalize)();
+        $specification = null;
+
+        if ($this->normalizeSpecification && $this->specification) {
+            $specification = ($this->normalizeSpecification)($this->specification);
+        }
+
         /**
          * @psalm-suppress InvalidArgument For some reason Psalm lose track of the template after denormalization
          * @var Sequence<T>
          */
         return $this
             ->repository
-            ->matching(
-                ($this->normalizeSpecification)($this->specification),
+            ->fetch(
+                $specification,
                 $this->sort,
                 $this->drop,
                 $this->take,

@@ -123,18 +123,17 @@ final class Repository implements RepositoryInterface
         );
     }
 
-    public function matching(
-        Specification $specification,
+    public function fetch(
+        ?Specification $specification,
         ?array $sort,
         ?int $drop,
         ?int $take,
     ): Sequence {
-        $select = $this
-            ->mainTable
-            ->select()
-            ->where(
-                $this->mainTable->where($specification),
-            );
+        $select = $this->mainTable->select();
+
+        if ($specification) {
+            $select = $select->where($this->mainTable->where($specification));
+        }
 
         if (\is_array($sort)) {
             [$column, $direction] = $sort;
@@ -186,13 +185,5 @@ final class Repository implements RepositoryInterface
                 static fn($count) => $count,
                 static fn() => 0,
             );
-    }
-
-    public function all(): Sequence
-    {
-        $decode = ($this->decode)();
-
-        return ($this->connection)($this->mainTable->select())
-            ->flatMap(static fn($row) => $decode($row)->toSequence());
     }
 }

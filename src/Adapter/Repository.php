@@ -35,8 +35,8 @@ interface Repository
      *
      * @return Sequence<Aggregate>
      */
-    public function matching(
-        Specification $specification,
+    public function fetch(
+        ?Specification $specification,
         ?array $sort,
         ?int $drop,
         ?int $take,
@@ -46,9 +46,4 @@ interface Repository
      * @return 0|positive-int
      */
     public function size(Specification $specification = null): int;
-
-    /**
-     * @return Sequence<Aggregate>
-     */
-    public function all(): Sequence;
 }

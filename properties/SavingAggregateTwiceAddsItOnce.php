@@ -40,6 +40,7 @@ final class SavingAggregateTwiceAddsItOnce implements Property
         $repository = $manager->repository(User::class);
         $current = $repository
             ->all()
+            ->fetch()
             ->size();
 
         $user = User::new($this->createdAt);
@@ -58,6 +59,7 @@ final class SavingAggregateTwiceAddsItOnce implements Property
             ->same(
                 $repository
                     ->all()
+                    ->fetch()
                     ->size(),
             );
 

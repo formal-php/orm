@@ -110,16 +110,19 @@ final class Repository implements RepositoryInterface
         );
     }
 
-    public function matching(
-        Specification $specification,
+    public function fetch(
+        ?Specification $specification,
         ?array $sort,
         ?int $drop,
         ?int $take,
     ): Sequence {
-        $filter = ($this->fold)($specification);
-        $aggregates = $this
-            ->all()
-            ->filter($filter);
+        $aggregates = $this->all();
+
+        if ($specification) {
+            $aggregates = $aggregates->filter(
+                ($this->fold)($specification),
+            );
+        }
 
         if (\is_array($sort)) {
             [$name, $direction] = $sort;
@@ -165,12 +168,17 @@ final class Repository implements RepositoryInterface
             ->size();
     }
 
-    public function all(): Sequence
+    /**
+     * @return Sequence<Aggregate>
+     */
+    private function all(): Sequence
     {
+        $decode = ($this->decode)();
+
         return $this
             ->directory()
             ->files()
-            ->flatMap(fn($file) => ($this->decode)()($file)->toSequence());
+            ->flatMap(static fn($file) => $decode($file)->toSequence());
     }
 
     private function directory(): Directory

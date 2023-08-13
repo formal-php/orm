@@ -13,11 +13,7 @@ use Formal\ORM\{
     Specification\Normalize as NormalizeSpecification,
 };
 use Innmind\Specification\Specification;
-use Innmind\Immutable\{
-    Maybe,
-    Sequence,
-    Predicate\Instance,
-};
+use Innmind\Immutable\Maybe;
 
 /**
  * @template T of object
@@ -173,20 +169,14 @@ final class Repository
     }
 
     /**
-     * @return Sequence<T>
+     * @return Matching<T>
      */
-    public function all(): Sequence
+    public function all(): Matching
     {
-        $denormalize = ($this->denormalize)();
-
-        /**
-         * @psalm-suppress InvalidArgument For some reason Psalm lose track of the template after denormalization
-         * @var Sequence<T>
-         */
-        return $this
-            ->adapter
-            ->all()
-            ->map($denormalize)
-            ->map($this->loaded->add(...));
+        return Matching::all(
+            $this->adapter,
+            $this->denormalize,
+            $this->loaded,
+        );
     }
 }
