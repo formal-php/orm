@@ -37,21 +37,17 @@ final class SavingAggregateTwiceAddsItOnce implements Property
 
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
-        $current = $manager
-            ->repository(User::class)
+        $repository = $manager->repository(User::class);
+        $current = $repository
             ->all()
             ->size();
 
         $user = User::new($this->createdAt);
 
         $manager->transactional(
-            static function() use ($manager, $user) {
-                $manager
-                    ->repository(User::class)
-                    ->put($user);
-                $manager
-                    ->repository(User::class)
-                    ->put($user);
+            static function() use ($repository, $user) {
+                $repository->put($user);
+                $repository->put($user);
 
                 return Either::right(null);
             },
@@ -60,8 +56,7 @@ final class SavingAggregateTwiceAddsItOnce implements Property
         $assert
             ->expected($current + 1)
             ->same(
-                $manager
-                    ->repository(User::class)
+                $repository
                     ->all()
                     ->size(),
             );

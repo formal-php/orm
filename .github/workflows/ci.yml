@@ -7,10 +7,18 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest]
         php-version: ['8.2']
         dependency-versions: ['lowest', 'highest']
     name: 'BlackBox'
+    services:
+      mariadb:
+        image: mariadb:10
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: example
+        ports:
+            - 3306
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -26,14 +34,24 @@ jobs:
           dependency-versions: ${{ matrix.dependencies }}
       - name: BlackBox
         run: php blackbox.php
+        env:
+          DB_PORT: ${{ job.services.mariadb.ports[3306] }}
   coverage:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest]
         php-version: ['8.2']
         dependency-versions: ['lowest', 'highest']
     name: 'Coverage'
+    services:
+      mariadb:
+        image: mariadb:10
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: example
+        ports:
+            - 3306
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -51,6 +69,7 @@ jobs:
         run: php blackbox.php
         env:
           ENABLE_COVERAGE: 'true'
+          DB_PORT: ${{ job.services.mariadb.ports[3306] }}
       - uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

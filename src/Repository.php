@@ -123,7 +123,7 @@ final class Repository
 
         /** @psalm-suppress InvalidArgument For some reason Psalm lose track of $loaded type */
         $_ = $loaded->match(
-            fn($loaded) =>$this->adapter->update(
+            fn($loaded) => $this->adapter->update(
                 ($this->diff)($loaded, $aggregate),
             ),
             fn() => $this->adapter->add(

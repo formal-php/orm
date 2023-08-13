@@ -9,6 +9,7 @@ use Formal\ORM\Definition\{
 };
 use Formal\AccessLayer\{
     Query,
+    Query\Constraint\ForeignKey,
     Table,
 };
 use Innmind\Immutable\Sequence;
@@ -16,10 +17,12 @@ use Innmind\Immutable\Sequence;
 final class CreateTable
 {
     private Aggregates $aggregates;
+    private MapType $mapType;
 
     private function __construct(Aggregates $aggregates)
     {
         $this->aggregates = $aggregates;
+        $this->mapType = MapType::new();
     }
 
     /**
@@ -30,112 +33,74 @@ final class CreateTable
     public function __invoke(string $class): Sequence
     {
         $definition = $this->aggregates->get($class);
-        $id = Table\Column::of(
-            Table\Column\Name::of($definition->id()->property()),
-            Table\Column\Type::varchar(36),
-        );
+        $mainTable = MainTable::of($definition);
 
-        $entities = $definition
+        $entities = $mainTable
             ->entities()
-            ->map(static fn($entity) => Query\CreateTable::named(
-                Table\Name::of($definition->name().'_'.$entity->name()),
-                Table\Column::of(
-                    Table\Column\Name::of('id'),
-                    Table\Column\Type::varchar(36)->comment('UUID'),
-                ),
+            ->map(fn($entity) => Query\CreateTable::named(
+                $entity->name()->name(),
+                $entity->primaryKey(),
                 ...$entity
-                    ->properties()
-                    ->map(static fn($property) => Table\Column::of(
-                        Table\Column\Name::of($property->name()),
-                        self::determineType($property->type()),
-                    ))
+                    ->columnsDefinition($this->mapType)
                     ->toList(),
-            )->primaryKey(Table\Column\Name::of('id')))
+            )->primaryKey($entity->primaryKey()->name()))
             ->toList();
-        $optionals = $definition
+        $optionals = $mainTable
             ->optionals()
-            ->map(static fn($optional) => Query\CreateTable::named(
-                Table\Name::of($definition->name().'_'.$optional->name()),
-                Table\Column::of(
-                    Table\Column\Name::of('id'),
-                    Table\Column\Type::varchar(36)->comment('UUID'),
-                ),
+            ->map(fn($optional) => Query\CreateTable::named(
+                $optional->name()->name(),
+                $optional->primaryKey(),
                 ...$optional
-                    ->properties()
-                    ->map(static fn($property) => Table\Column::of(
-                        Table\Column\Name::of($property->name()),
-                        self::determineType($property->type()),
-                    ))
+                    ->columnsDefinition($this->mapType)
                     ->toList(),
-            )->primaryKey(Table\Column\Name::of('id')))
+            )->primaryKey($optional->primaryKey()->name()))
             ->toList();
 
-        $collections = $definition
+        $collections = $mainTable
             ->collections()
-            ->map(static fn($collection) => Query\CreateTable::named(
-                Table\Name::of($definition->name().'_'.$collection->name()),
-                Table\Column::of(
-                    Table\Column\Name::of('id'),
-                    Table\Column\Type::varchar(36)->comment('UUID'),
-                ),
+            ->map(fn($collection) => Query\CreateTable::named(
+                $collection->name()->name(),
+                $collection->primaryKey(),
                 ...$collection
-                    ->properties()
-                    ->map(static fn($property) => Table\Column::of(
-                        Table\Column\Name::of($property->name()),
-                        self::determineType($property->type()),
-                    ))
+                    ->columnsDefinition($this->mapType)
                     ->toList(),
-            )->foreignKey(
-                Table\Column\Name::of('id'),
-                Table\Name::of($definition->name()),
-                $id->name(),
+            )->constraint(
+                ForeignKey::of(
+                    $collection->primaryKey()->name(),
+                    $mainTable->name()->name(),
+                    $mainTable->primaryKey()->name(),
+                )->onDeleteCascade(),
             ))
             ->toList();
 
         $main = Query\CreateTable::named(
-            Table\Name::of($definition->name()),
-            $id,
-            ...$definition
-                ->properties()
-                ->map(static fn($property) => Table\Column::of(
-                    Table\Column\Name::of($property->name()),
-                    self::determineType($property->type()),
-                ))
+            $mainTable->name()->name(),
+            $mainTable->primaryKey(),
+            ...$mainTable
+                ->columnsDefinition($this->mapType)
                 ->toList(),
-            ...$definition
-                ->entities()
-                ->map(static fn($entity) => Table\Column::of(
-                    Table\Column\Name::of($entity->name()),
-                    Table\Column\Type::varchar(36)->comment('UUID'),
-                ))
-                ->toList(),
-            ...$definition
-                ->optionals()
-                ->map(static fn($entity) => Table\Column::of(
-                    Table\Column\Name::of($entity->name()),
-                    Table\Column\Type::varchar(36)->nullable()->comment('UUID'),
-                ))
-                ->toList(),
-        )->primaryKey($id->name());
+        )->primaryKey($mainTable->primaryKey()->name());
 
-        $main = $definition
+        $main = $mainTable
             ->entities()
             ->reduce(
                 $main,
                 static fn(Query\CreateTable $main, $entity) => $main->foreignKey(
-                    Table\Column\Name::of($entity->name()),
-                    Table\Name::of($definition->id()->property().'_'.$entity->name()),
-                    Table\Column\Name::of('id'),
+                    $entity->foreignKey()->name(),
+                    $entity->name()->name(),
+                    $entity->primaryKey()->name(),
                 ),
             );
-        $main = $definition
+        $main = $mainTable
             ->optionals()
             ->reduce(
                 $main,
-                static fn(Query\CreateTable $main, $optional) => $main->foreignKey(
-                    Table\Column\Name::of($optional->name()),
-                    Table\Name::of($definition->id()->property().'_'.$optional->name()),
-                    Table\Column\Name::of('id'),
+                static fn(Query\CreateTable $main, $optional) => $main->constraint(
+                    ForeignKey::of(
+                        $optional->foreignKey()->name(),
+                        $optional->name()->name(),
+                        $optional->primaryKey()->name(),
+                    )->onDeleteSetNull(),
                 ),
             );
 
@@ -150,23 +115,5 @@ final class CreateTable
     public static function of(Aggregates $aggregates): self
     {
         return new self($aggregates);
-    }
-
-    private static function determineType(Type $type): Table\Column\Type
-    {
-        return match (true) {
-            $type instanceof Type\NullableType,
-            $type instanceof Type\MaybeType => self::determineType($type->inner())->nullable(),
-            $type instanceof Type\BoolType => Table\Column\Type::tinyint(1)
-                ->comment('Boolean'),
-            $type instanceof Type\IdType => Table\Column\Type::varchar(36)
-                ->comment('UUID'),
-            $type instanceof Type\IntType => Table\Column\Type::bigint()
-                ->comment('TODO Adjust the size depending on your use case'),
-            $type instanceof Type\PointInTimeType => Table\Column\Type::varchar(32)
-                ->comment('Date with timezone down to the microsecond'),
-            default => Table\Column\Type::longtext()
-                ->comment('TODO adjust the type depending on your use case'),
-        };
     }
 }
