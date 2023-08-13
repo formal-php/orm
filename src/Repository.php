@@ -186,6 +186,11 @@ final class Repository
         return $this->size($specification) !== 0;
     }
 
+    public function none(Specification $specification = null): bool
+    {
+        return $this->size($specification) === 0;
+    }
+
     /**
      * @return Matching<T>
      */
