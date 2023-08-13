@@ -7,7 +7,10 @@ use Formal\ORM\{
     Definition\Aggregate,
     Id,
 };
-use Innmind\Immutable\Maybe;
+use Innmind\Immutable\{
+    Maybe,
+    Map,
+};
 
 /**
  * @internal
@@ -17,7 +20,7 @@ final class Loaded
 {
     /** @var Aggregate<T> */
     private Aggregate $definition;
-    /** @var \WeakMap<Id<T>, T> */
+    /** @var \WeakMap<Id<T>, Map<non-empty-string, mixed>> */
     private \WeakMap $loaded;
 
     /**
@@ -26,7 +29,7 @@ final class Loaded
     private function __construct(Aggregate $definition)
     {
         $this->definition = $definition;
-        /** @var \WeakMap<Id<T>, T> */
+        /** @var \WeakMap<Id<T>, Map<non-empty-string, mixed>> */
         $this->loaded = new \WeakMap;
     }
 
@@ -43,40 +46,27 @@ final class Loaded
     }
 
     /**
-     * @param T $aggregate
+     * @param Denormalized<T> $denormalized
      *
-     * @return T
+     * @return Denormalized<T>
      */
-    public function add(object $aggregate): object
+    public function add(Denormalized $denormalized): Denormalized
     {
-        $id = $this->definition->id()->extract($aggregate);
-        $this->loaded[$id] = $aggregate;
+        $this->loaded[$denormalized->id()] = $denormalized->properties();
 
-        return $aggregate;
+        return $denormalized;
     }
 
     /**
      * @param Id<T> $id
      *
-     * @return callable(T): T
-     */
-    public function put(Id $id): callable
-    {
-        return function(object $aggregate) use ($id) {
-            $this->loaded[$id] = $aggregate;
-
-            return $aggregate;
-        };
-    }
-
-    /**
-     * @param Id<T> $id
-     *
-     * @return Maybe<T>
+     * @return Maybe<Denormalized<T>>
      */
     public function get(Id $id): Maybe
     {
-        return Maybe::of($this->loaded[$id] ?? null);
+        return Maybe::of($this->loaded[$id] ?? null)->map(
+            static fn($properties) => Denormalized::of($id, $properties),
+        );
     }
 
     /**

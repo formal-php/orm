@@ -7,6 +7,7 @@ use Formal\ORM\{
     Adapter\Repository,
     Repository\Loaded,
     Repository\Denormalize,
+    Repository\Instanciate,
     Specification\Normalize,
 };
 use Innmind\Specification\Specification;
@@ -21,6 +22,8 @@ final class Matching
     private Repository $repository;
     /** @var Denormalize<T> */
     private Denormalize $denormalize;
+    /** @var Instanciate<T> */
+    private Instanciate $instanciate;
     /** @var ?Normalize<T> */
     private ?Normalize $normalizeSpecification;
     /** @var Loaded<T> */
@@ -36,6 +39,7 @@ final class Matching
     /**
      * @param Repository<T> $repository
      * @param Denormalize<T> $denormalize
+     * @param Instanciate<T> $instanciate
      * @param ?Normalize<T> $normalizeSpecification
      * @param Loaded<T> $loaded
      * @param array{non-empty-string, Sort} $sort
@@ -45,6 +49,7 @@ final class Matching
     private function __construct(
         Repository $repository,
         Denormalize $denormalize,
+        Instanciate $instanciate,
         ?Normalize $normalizeSpecification,
         Loaded $loaded,
         ?Specification $specification,
@@ -54,6 +59,7 @@ final class Matching
     ) {
         $this->repository = $repository;
         $this->denormalize = $denormalize;
+        $this->instanciate = $instanciate;
         $this->normalizeSpecification = $normalizeSpecification;
         $this->loaded = $loaded;
         $this->specification = $specification;
@@ -67,6 +73,7 @@ final class Matching
      *
      * @param Repository<A> $repository
      * @param Denormalize<A> $denormalize
+     * @param Instanciate<A> $instanciate
      * @param Normalize<A> $normalizeSpecification
      * @param Loaded<A> $loaded
      *
@@ -75,6 +82,7 @@ final class Matching
     public static function of(
         Repository $repository,
         Denormalize $denormalize,
+        Instanciate $instanciate,
         Normalize $normalizeSpecification,
         Loaded $loaded,
         Specification $specification,
@@ -82,6 +90,7 @@ final class Matching
         return new self(
             $repository,
             $denormalize,
+            $instanciate,
             $normalizeSpecification,
             $loaded,
             $specification,
@@ -96,6 +105,7 @@ final class Matching
      *
      * @param Repository<A> $repository
      * @param Denormalize<A> $denormalize
+     * @param Instanciate<A> $instanciate
      * @param Loaded<A> $loaded
      *
      * @return self<A>
@@ -103,11 +113,13 @@ final class Matching
     public static function all(
         Repository $repository,
         Denormalize $denormalize,
+        Instanciate $instanciate,
         Loaded $loaded,
     ): self {
         return new self(
             $repository,
             $denormalize,
+            $instanciate,
             null,
             $loaded,
             null,
@@ -129,6 +141,7 @@ final class Matching
         return new self(
             $this->repository,
             $this->denormalize,
+            $this->instanciate,
             $this->normalizeSpecification,
             $this->loaded,
             $this->specification,
@@ -153,6 +166,7 @@ final class Matching
         return new self(
             $this->repository,
             $this->denormalize,
+            $this->instanciate,
             $this->normalizeSpecification,
             $this->loaded,
             $this->specification,
@@ -177,6 +191,7 @@ final class Matching
         return new self(
             $this->repository,
             $this->denormalize,
+            $this->instanciate,
             $this->normalizeSpecification,
             $this->loaded,
             $this->specification,
@@ -211,10 +226,6 @@ final class Matching
             $specification = ($this->normalizeSpecification)($this->specification);
         }
 
-        /**
-         * @psalm-suppress InvalidArgument For some reason Psalm lose track of the template after denormalization
-         * @var Sequence<T>
-         */
         return $this
             ->repository
             ->fetch(
@@ -224,6 +235,7 @@ final class Matching
                 $this->take,
             )
             ->map($denormalize)
-            ->map($this->loaded->add(...));
+            ->map(fn($denormalized) => $this->loaded->add($denormalized))
+            ->map($this->instanciate);
     }
 }

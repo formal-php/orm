@@ -9,6 +9,8 @@ use Formal\ORM\{
     Repository\Loaded,
     Repository\Normalize,
     Repository\Denormalize,
+    Repository\Instanciate,
+    Repository\Extract,
     Repository\Diff,
     Specification\Normalize as NormalizeSpecification,
 };
@@ -34,6 +36,10 @@ final class Repository
     private Normalize $normalize;
     /** @var Denormalize<T> */
     private Denormalize $denormalize;
+    /** @var Instanciate<T> */
+    private Instanciate $instanciate;
+    /** @var Extract<T> */
+    private Extract $extract;
     /** @var Diff<T> */
     private Diff $diff;
 
@@ -54,6 +60,8 @@ final class Repository
         $this->loaded = Loaded::of($definition);
         $this->normalize = Normalize::of($definition);
         $this->denormalize = Denormalize::of($definition);
+        $this->instanciate = Instanciate::of($definition);
+        $this->extract = Extract::of($definition);
         $this->diff = Diff::of($definition);
     }
 
@@ -84,12 +92,14 @@ final class Repository
         return $this
             ->loaded
             ->get($id)
+            ->map($this->instanciate)
             ->otherwise(
                 fn() => $this
                     ->adapter
                     ->get($this->id->normalize($id))
                     ->map(($this->denormalize)($id))
-                    ->map($this->loaded->put($id)),
+                    ->map(fn($denormalized) => $this->loaded->add($denormalized))
+                    ->map($this->instanciate),
             );
     }
 
@@ -112,18 +122,18 @@ final class Repository
             throw new \LogicException('Mutation outside of a transaction');
         }
 
-        $id = $this->id->extract($aggregate);
-        $loaded = $this->loaded->get($id);
+        $now = ($this->extract)($aggregate);
+        $then = $this->loaded->get($now->id());
 
-        $this->loaded->put($id)($aggregate);
+        $this->loaded->add($now);
 
-        /** @psalm-suppress InvalidArgument For some reason Psalm lose track of $loaded type */
-        $_ = $loaded->match(
-            fn($loaded) => $this->adapter->update(
-                ($this->diff)($loaded, $aggregate),
+        /** @psalm-suppress InvalidArgument For some reason Psalm lose track of $then type */
+        $_ = $then->match(
+            fn($then) => $this->adapter->update(
+                ($this->diff)($then, $now),
             ),
             fn() => $this->adapter->add(
-                ($this->normalize)($aggregate),
+                ($this->normalize)($now),
             ),
         );
     }
@@ -151,6 +161,7 @@ final class Repository
         return Matching::of(
             $this->adapter,
             $this->denormalize,
+            $this->instanciate,
             $this->normalizeSpecification,
             $this->loaded,
             $specification,
@@ -176,6 +187,7 @@ final class Repository
         return Matching::all(
             $this->adapter,
             $this->denormalize,
+            $this->instanciate,
             $this->loaded,
         );
     }

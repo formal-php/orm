@@ -83,7 +83,7 @@ final class Denormalize
     /**
      * @param ?Id<T> $id
      *
-     * @return callable(Aggregate): T
+     * @return callable(Aggregate): Denormalized<T>
      */
     public function __invoke(Id $id = null): callable
     {
@@ -91,18 +91,10 @@ final class Denormalize
             null => $this->denormalizeId,
             default => static fn(Aggregate\Id $_) => $id,
         };
-        $class = $this->definition->class();
 
-        /**
-         * @psalm-suppress InvalidReturnType
-         * @psalm-suppress InvalidReturnStatement
-         */
-        return fn(Aggregate $data) => ($this->instanciate)(
-            $class,
-            $this->properties($data, $id($data->id())),
-        )->match(
-            static fn($aggregate) => $aggregate,
-            static fn() => throw new \RuntimeException("Unable to denormalize aggregate of type '$class'"),
+        return fn(Aggregate $data) => Denormalized::of(
+            $id($data->id()),
+            $this->properties($data),
         );
     }
 
@@ -119,13 +111,11 @@ final class Denormalize
     }
 
     /**
-     * @param Id<T> $id
      * @return Map<non-empty-string, mixed>
      */
-    private function properties(Aggregate $data, Id $id): Map
+    private function properties(Aggregate $data): Map
     {
         return Map::of(
-            [$this->definition->id()->property(), $id],
             ...$data
                 ->properties()
                 ->flatMap(

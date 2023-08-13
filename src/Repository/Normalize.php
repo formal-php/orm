@@ -21,16 +21,12 @@ final class Normalize
     /** @var Definition<T> */
     private Definition $definition;
     private Extract $extract;
-    /** @var Set<non-empty-string> */
-    private Set $allProperties;
     /** @var Map<Definition\Entity, Normalize\Entity> */
     private Map $normalizeEntity;
     /** @var Map<Definition\Optional, Normalize\Optional> */
     private Map $normalizeOptional;
     /** @var Map<Definition\Collection, Normalize\Collection> */
     private Map $normalizeCollection;
-    /** @var \Closure(T): Aggregate\Id */
-    private \Closure $extractId;
 
     /**
      * @param Definition<T> $definition
@@ -39,24 +35,6 @@ final class Normalize
     {
         $this->definition = $definition;
         $this->extract = new Extract;
-        $this->allProperties = $definition
-            ->properties()
-            ->map(static fn($property) => $property->name())
-            ->merge(
-                $definition
-                    ->entities()
-                    ->map(static fn($entity) => $entity->name()),
-            )
-            ->merge(
-                $definition
-                    ->optionals()
-                    ->map(static fn($optional) => $optional->name()),
-            )
-            ->merge(
-                $definition
-                    ->collections()
-                    ->map(static fn($collection) => $collection->name()),
-            );
         $this->normalizeEntity = Map::of(
             ...$definition
                 ->entities()
@@ -84,27 +62,17 @@ final class Normalize
                 )])
                 ->toList(),
         );
-        $id = $definition->id();
-        /**
-         * @psalm-suppress InvalidArgument
-         * @var \Closure(T): Aggregate\Id
-         */
-        $this->extractId = static fn(object $aggregate): Aggregate\Id => $id->normalize($id->extract($aggregate));
     }
 
     /**
-     * @param T $aggregate
+     * @param Denormalized<T> $denormalized
      */
-    public function __invoke(object $aggregate): Aggregate
+    public function __invoke(Denormalized $denormalized): Aggregate
     {
-        $class = $this->definition->class();
-        $properties = ($this->extract)($aggregate, $this->allProperties)->match(
-            static fn($properties) => $properties,
-            static fn() => throw new \LogicException("Failed to extract properties from '$class'"),
-        );
+        $properties = $denormalized->properties();
 
         return Aggregate::of(
-            ($this->extractId)($aggregate),
+            $this->definition->id()->normalize($denormalized->id()),
             $this
                 ->definition
                 ->properties()

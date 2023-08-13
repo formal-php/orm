@@ -99,21 +99,14 @@ final class Diff
     }
 
     /**
-     * @param T $then
-     * @param T $now
+     * @param Denormalized<T> $then
+     * @param Denormalized<T> $now
      */
-    public function __invoke(object $then, object $now): Raw\Diff
+    public function __invoke(Denormalized $then, Denormalized $now): Raw\Diff
     {
-        $class = $this->definition->class();
-        $id = ($this->extractId)($now);
-        $then = ($this->extract)($then, $this->properties)->match(
-            static fn($properties) => $properties,
-            static fn() => throw new \LogicException("Failed to extract properties from '$class'"),
-        );
-        $now = ($this->extract)($now, $this->properties)->match(
-            static fn($properties) => $properties,
-            static fn() => throw new \LogicException("Failed to extract properties from '$class'"),
-        );
+        $id = $this->definition->id()->normalize($now->id());
+        $then = $then->properties();
+        $now = $now->properties();
 
         // Diffing on denormalized values that has to be immutable we allow to
         // not unwrap monads (such as Maybe for optionals) unless necessary,
