@@ -165,6 +165,22 @@ final class MainTable
         );
     }
 
+    /**
+     * @return Set<Column>
+     */
+    public function columnsDefinition(MapType $mapType): Set
+    {
+        return $this
+            ->definition
+            ->properties()
+            ->map(static fn($property) => Table\Column::of(
+                Table\Column\Name::of($property->name()),
+                $mapType($property->type()),
+            ))
+            ->merge($this->entities()->map(static fn($entity) => $entity->foreignKey()))
+            ->merge($this->optionals()->map(static fn($optional) => $optional->foreignKey()));
+    }
+
     public function name(): Table\Name\Aliased
     {
         return $this->name;

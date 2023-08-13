@@ -77,20 +77,26 @@ final class CollectionTable
         return new self($definition, $main);
     }
 
-    /**
-     * @return Definition<T>
-     */
-    public function definition(): Definition
-    {
-        return $this->definition;
-    }
-
     public function primaryKey(): Table\Column
     {
         return Table\Column::of(
             Table\Column\Name::of('id'),
             Table\Column\Type::varchar(36)->comment('UUID'),
         );
+    }
+
+    /**
+     * @return Set<Column>
+     */
+    public function columnsDefinition(MapType $mapType): Set
+    {
+        return $this
+            ->definition
+            ->properties()
+            ->map(static fn($property) => Table\Column::of(
+                Table\Column\Name::of($property->name()),
+                $mapType($property->type()),
+            ));
     }
 
     public function name(): Table\Name\Aliased

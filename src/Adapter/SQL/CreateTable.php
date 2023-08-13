@@ -41,12 +41,7 @@ final class CreateTable
                 $entity->name()->name(),
                 $entity->primaryKey(),
                 ...$entity
-                    ->definition()
-                    ->properties()
-                    ->map(fn($property) => Table\Column::of(
-                        Table\Column\Name::of($property->name()),
-                        ($this->mapType)($property->type()),
-                    ))
+                    ->columnsDefinition($this->mapType)
                     ->toList(),
             )->primaryKey($entity->primaryKey()->name()))
             ->toList();
@@ -56,12 +51,7 @@ final class CreateTable
                 $optional->name()->name(),
                 $optional->primaryKey(),
                 ...$optional
-                    ->definition()
-                    ->properties()
-                    ->map(fn($property) => Table\Column::of(
-                        Table\Column\Name::of($property->name()),
-                        ($this->mapType)($property->type()),
-                    ))
+                    ->columnsDefinition($this->mapType)
                     ->toList(),
             )->primaryKey($optional->primaryKey()->name()))
             ->toList();
@@ -72,12 +62,7 @@ final class CreateTable
                 $collection->name()->name(),
                 $collection->primaryKey(),
                 ...$collection
-                    ->definition()
-                    ->properties()
-                    ->map(fn($property) => Table\Column::of(
-                        Table\Column\Name::of($property->name()),
-                        ($this->mapType)($property->type()),
-                    ))
+                    ->columnsDefinition($this->mapType)
                     ->toList(),
             )->constraint(
                 ForeignKey::of(
@@ -91,20 +76,8 @@ final class CreateTable
         $main = Query\CreateTable::named(
             $mainTable->name()->name(),
             $mainTable->primaryKey(),
-            ...$definition
-                ->properties()
-                ->map(fn($property) => Table\Column::of(
-                    Table\Column\Name::of($property->name()),
-                    ($this->mapType)($property->type()),
-                ))
-                ->toList(),
             ...$mainTable
-                ->entities()
-                ->map(static fn($entity) => $entity->foreignKey())
-                ->toList(),
-            ...$mainTable
-                ->optionals()
-                ->map(static fn($optional) => $optional->foreignKey())
+                ->columnsDefinition($this->mapType)
                 ->toList(),
         )->primaryKey($mainTable->primaryKey()->name());
 

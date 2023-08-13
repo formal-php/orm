@@ -90,14 +90,6 @@ final class OptionalTable
         return new self($definition, $main, $identity);
     }
 
-    /**
-     * @return Definition<T>
-     */
-    public function definition(): Definition
-    {
-        return $this->definition;
-    }
-
     public function primaryKey(): Table\Column
     {
         return Table\Column::of(
@@ -112,6 +104,20 @@ final class OptionalTable
             Table\Column\Name::of($this->definition->name()),
             Table\Column\Type::varchar(36)->nullable()->comment('UUID'),
         );
+    }
+
+    /**
+     * @return Set<Column>
+     */
+    public function columnsDefinition(MapType $mapType): Set
+    {
+        return $this
+            ->definition
+            ->properties()
+            ->map(static fn($property) => Table\Column::of(
+                Table\Column\Name::of($property->name()),
+                $mapType($property->type()),
+            ));
     }
 
     public function name(): Table\Name\Aliased
