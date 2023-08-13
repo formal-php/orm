@@ -72,15 +72,16 @@ return static function() {
         )->named('Filesystem');
     }
 
+    $port = \getenv('DB_PORT') ?: '3306';
+    $connection = PDO::of(Url::of("mysql://root:root@127.0.0.1:$port/example"));
+
     yield properties(
         'SQL properties',
         Properties::any(),
-        Set\Call::of(static function() {
+        Set\Call::of(static function() use ($connection) {
             $aggregates = Aggregates::of(Types::of(
                 Type\PointInTimeType::of(new Clock),
             ));
-            $port = \getenv('DB_PORT') ?: '3306';
-            $connection = PDO::of(Url::of("mysql://root:root@127.0.0.1:$port/example"));
             $connection(DropTable::ifExists(Table\Name::of('user_addresses')));
             $connection(DropTable::ifExists(Table\Name::of('user')));
             $connection(DropTable::ifExists(Table\Name::of('user_mainAddress')));
@@ -97,12 +98,10 @@ return static function() {
     foreach (Properties::alwaysApplicable() as $property) {
         yield property(
             $property,
-            Set\Call::of(static function() {
+            Set\Call::of(static function() use ($connection) {
                 $aggregates = Aggregates::of(Types::of(
                     Type\PointInTimeType::of(new Clock),
                 ));
-                $port = \getenv('DB_PORT') ?: '3306';
-                $connection = PDO::of(Url::of("mysql://root:root@127.0.0.1:$port/example"));
                 $connection(DropTable::ifExists(Table\Name::of('user_addresses')));
                 $connection(DropTable::ifExists(Table\Name::of('user')));
                 $connection(DropTable::ifExists(Table\Name::of('user_mainAddress')));
