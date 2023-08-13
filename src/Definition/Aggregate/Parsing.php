@@ -198,14 +198,6 @@ final class Parsing
         return Maybe::just($property)
             ->filter(static fn($property) => $property->name() === 'id')
             ->filter(static fn($property) => $property->type()->toString() === Id::class)
-            ->filter(
-                fn($property) => $property
-                    ->attributes()
-                    ->filter(static fn($attribute) => $attribute->class() === Template::class)
-                    ->map(static fn($attribute) => $attribute->instance())
-                    ->keep(Instance::of(Template::class))
-                    ->any(fn($template) => $template->is($this->class)),
-            )
             ->map(fn($property) => Identity::of($property->name(), $this->class));
     }
 

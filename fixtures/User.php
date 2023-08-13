@@ -17,7 +17,6 @@ use Innmind\Immutable\{
 final class User
 {
     /** @var Id<self> */
-    #[Template(self::class)]
     private Id $id;
     private PointInTime $createdAt;
     private ?string $name;
