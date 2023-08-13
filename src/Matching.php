@@ -6,9 +6,11 @@ namespace Formal\ORM;
 use Formal\ORM\{
     Adapter,
     Repository,
+    Sort as SortedBy,
     Repository\Loaded,
     Repository\Denormalize,
     Repository\Instanciate,
+    Repository\Sort,
     Specification\Normalize,
 };
 use Innmind\Specification\Specification;
@@ -31,9 +33,10 @@ final class Matching
     private ?Normalize $normalizeSpecification;
     /** @var Loaded<T> */
     private Loaded $loaded;
+    /** @var Sort<T> */
+    private Sort $sort;
     private ?Specification $specification;
-    /** @var ?array{non-empty-string, Sort} */
-    private ?array $sort;
+    private null|SortedBy\Property|SortedBy\Entity $sorted;
     /** @var ?positive-int */
     private ?int $drop;
     /** @var ?positive-int */
@@ -46,7 +49,7 @@ final class Matching
      * @param Instanciate<T> $instanciate
      * @param ?Normalize<T> $normalizeSpecification
      * @param Loaded<T> $loaded
-     * @param array{non-empty-string, Sort} $sort
+     * @param Sort<T> $sort
      * @param ?positive-int $drop
      * @param ?positive-int $take
      */
@@ -57,8 +60,9 @@ final class Matching
         Instanciate $instanciate,
         ?Normalize $normalizeSpecification,
         Loaded $loaded,
+        Sort $sort,
         ?Specification $specification,
-        ?array $sort,
+        null|SortedBy\Property|SortedBy\Entity $sorted,
         ?int $drop,
         ?int $take,
     ) {
@@ -68,8 +72,9 @@ final class Matching
         $this->instanciate = $instanciate;
         $this->normalizeSpecification = $normalizeSpecification;
         $this->loaded = $loaded;
-        $this->specification = $specification;
         $this->sort = $sort;
+        $this->specification = $specification;
+        $this->sorted = $sorted;
         $this->drop = $drop;
         $this->take = $take;
     }
@@ -83,6 +88,7 @@ final class Matching
      * @param Instanciate<A> $instanciate
      * @param Normalize<A> $normalizeSpecification
      * @param Loaded<A> $loaded
+     * @param Sort<A> $sort
      *
      * @return self<A>
      */
@@ -93,6 +99,7 @@ final class Matching
         Instanciate $instanciate,
         Normalize $normalizeSpecification,
         Loaded $loaded,
+        Sort $sort,
         Specification $specification,
     ): self {
         return new self(
@@ -102,6 +109,7 @@ final class Matching
             $instanciate,
             $normalizeSpecification,
             $loaded,
+            $sort,
             $specification,
             null,
             null,
@@ -117,6 +125,7 @@ final class Matching
      * @param Denormalize<A> $denormalize
      * @param Instanciate<A> $instanciate
      * @param Loaded<A> $loaded
+     * @param Sort<A> $sort
      *
      * @return self<A>
      */
@@ -126,6 +135,7 @@ final class Matching
         Denormalize $denormalize,
         Instanciate $instanciate,
         Loaded $loaded,
+        Sort $sort,
     ): self {
         return new self(
             $repository,
@@ -134,6 +144,7 @@ final class Matching
             $instanciate,
             null,
             $loaded,
+            $sort,
             null,
             null,
             null,
@@ -157,8 +168,9 @@ final class Matching
             $this->instanciate,
             $this->normalizeSpecification,
             $this->loaded,
-            $this->specification,
             $this->sort,
+            $this->specification,
+            $this->sorted,
             $this->drop,
             match ($this->take) {
                 null => $size,
@@ -183,8 +195,9 @@ final class Matching
             $this->instanciate,
             $this->normalizeSpecification,
             $this->loaded,
-            $this->specification,
             $this->sort,
+            $this->specification,
+            $this->sorted,
             match ($this->drop) {
                 null => $size,
                 default => $this->drop + $size,
@@ -200,7 +213,7 @@ final class Matching
      *
      * @return self<T>
      */
-    public function sort(string $property, Sort $direction): self
+    public function sort(string $property, SortedBy $direction): self
     {
         return new self(
             $this->repository,
@@ -209,8 +222,9 @@ final class Matching
             $this->instanciate,
             $this->normalizeSpecification,
             $this->loaded,
+            $this->sort,
             $this->specification,
-            [$property, $direction],
+            ($this->sort)($property, $direction),
             $this->drop,
             $this->take,
         );
@@ -245,7 +259,7 @@ final class Matching
             ->adapter
             ->fetch(
                 $specification,
-                $this->sort,
+                $this->sorted,
                 $this->drop,
                 $this->take,
             )

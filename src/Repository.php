@@ -12,6 +12,7 @@ use Formal\ORM\{
     Repository\Instanciate,
     Repository\Extract,
     Repository\Diff,
+    Repository\Sort,
     Specification\Normalize as NormalizeSpecification,
 };
 use Innmind\Specification\Specification;
@@ -42,6 +43,8 @@ final class Repository
     private Extract $extract;
     /** @var Diff<T> */
     private Diff $diff;
+    /** @var Sort<T> */
+    private Sort $sort;
 
     /**
      * @param Adapter\Repository<T> $adapter
@@ -64,6 +67,7 @@ final class Repository
         $this->instanciate = Instanciate::of($definition);
         $this->extract = Extract::of($definition);
         $this->diff = Diff::of($definition);
+        $this->sort = Sort::of($definition);
     }
 
     /**
@@ -167,6 +171,7 @@ final class Repository
             $this->instanciate,
             $this->normalizeSpecification,
             $this->loaded,
+            $this->sort,
             $specification,
         );
     }
@@ -203,6 +208,7 @@ final class Repository
             $this->denormalize,
             $this->instanciate,
             $this->loaded,
+            $this->sort,
         );
     }
 }

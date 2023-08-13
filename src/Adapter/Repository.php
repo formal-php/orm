@@ -29,7 +29,6 @@ interface Repository
     public function remove(Aggregate\Id $id): void;
 
     /**
-     * @param ?array{non-empty-string, Sort} $sort
      * @param ?positive-int $drop
      * @param ?positive-int $take
      *
@@ -37,7 +36,7 @@ interface Repository
      */
     public function fetch(
         ?Specification $specification,
-        ?array $sort,
+        null|Sort\Property|Sort\Entity $sort,
         ?int $drop,
         ?int $take,
     ): Sequence;

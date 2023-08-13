@@ -125,7 +125,7 @@ final class Repository implements RepositoryInterface
 
     public function fetch(
         ?Specification $specification,
-        ?array $sort,
+        null|Sort\Property|Sort\Entity $sort,
         ?int $drop,
         ?int $take,
     ): Sequence {
@@ -135,11 +135,18 @@ final class Repository implements RepositoryInterface
             $select = $select->where($this->mainTable->where($specification));
         }
 
-        if (\is_array($sort)) {
-            [$column, $direction] = $sort;
+        if ($sort) {
+            $column = match (true) {
+                $sort instanceof Sort\Property => Table\Column\Name::of($sort->name())->in(
+                    $this->mainTable->name(),
+                ),
+                $sort instanceof Sort\Entity => Table\Column\Name::of($sort->property()->name())->in(
+                    Table\Name::of($sort->name()),
+                ),
+            };
             $select = $select->orderBy(
-                Table\Column\Name::of($column)->in($this->mainTable->name()),
-                match ($direction) {
+                $column,
+                match ($sort->direction()) {
                     Sort::asc => Direction::asc,
                     Sort::desc => Direction::desc,
                 },

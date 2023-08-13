@@ -112,7 +112,7 @@ final class Repository implements RepositoryInterface
 
     public function fetch(
         ?Specification $specification,
-        ?array $sort,
+        null|Sort\Property|Sort\Entity $sort,
         ?int $drop,
         ?int $take,
     ): Sequence {
@@ -124,19 +124,32 @@ final class Repository implements RepositoryInterface
             );
         }
 
-        if (\is_array($sort)) {
-            [$name, $direction] = $sort;
-            $compare = match ($direction) {
+        if ($sort) {
+            $compare = match ($sort->direction()) {
                 Sort::asc => static fn(null|string|int|bool $a, null|string|int|bool $b) => $a <=> $b,
                 Sort::desc => static fn(null|string|int|bool $a, null|string|int|bool $b) => $b <=> $a,
             };
-            $pluck = static fn(Aggregate $x): mixed => $x
-                ->properties()
-                ->find(static fn($property) => $property->name() === $name)
-                ->match(
-                    static fn($property) => $property->value(),
-                    static fn() => throw new \LogicException("'$name' not found"),
-                );
+            $pluck = match (true) {
+                $sort instanceof Sort\Property => static fn(Aggregate $x): mixed => $x
+                    ->properties()
+                    ->find(static fn($property) => $property->name() === $sort->name())
+                    ->match(
+                        static fn($property) => $property->value(),
+                        static fn() => throw new \LogicException("'{$sort->name()}' not found"),
+                    ),
+                $sort instanceof Sort\Entity => static fn(Aggregate $x): mixed => $x
+                    ->entities()
+                    ->find(static fn($entity) => $entity->name() === $sort->name())
+                    ->flatMap(
+                        static fn($entity) => $entity
+                            ->properties()
+                            ->find(static fn($property) => $property->name() === $sort->property()->name()),
+                    )
+                    ->match(
+                        static fn($property) => $property->value(),
+                        static fn() => throw new \LogicException("'{$sort->name()}.{$sort->property()->name()}' not found"),
+                    )
+            };
 
             $aggregates = $aggregates->sort(static fn($a, $b) => $compare(
                 $pluck($a),
