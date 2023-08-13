@@ -13,16 +13,14 @@ final class Manager
 {
     private Adapter $adapter;
     private Aggregates $aggregates;
-    /** @var \WeakMap<Repository, class-string> */
-    private \WeakMap $repositories;
+    private Repository\Active $repositories;
     private bool $inTransaction;
 
     private function __construct(Adapter $adapter, Aggregates $aggregates)
     {
         $this->adapter = $adapter;
         $this->aggregates = $aggregates;
-        /** @var \WeakMap<Repository, class-string> */
-        $this->repositories = new \WeakMap;
+        $this->repositories = Repository\Active::new();
         $this->inTransaction = false;
     }
 
@@ -42,27 +40,25 @@ final class Manager
      */
     public function repository(string $class): Repository
     {
-        /**
-         * @var Repository $repository
-         * @var class-string $kind
-         */
-        foreach ($this->repositories as $repository => $kind) {
-            if ($kind === $class) {
-                /** @var Repository<T> */
-                return $repository;
-            }
-        }
+        return $this
+            ->repositories
+            ->get($class)
+            ->match(
+                static fn($repository) => $repository,
+                function() use ($class) {
+                    $definition = $this->aggregates->get($class);
 
-        $definition = $this->aggregates->get($class);
+                    $repository = Repository::of(
+                        $this->repositories,
+                        $this->adapter->repository($definition),
+                        $definition,
+                        fn() => $this->inTransaction,
+                    );
+                    $this->repositories->register($class, $repository);
 
-        $repository = Repository::of(
-            $this->adapter->repository($definition),
-            $definition,
-            fn() => $this->inTransaction,
-        );
-        $this->repositories[$repository] = $class;
-
-        return $repository;
+                    return $repository;
+                },
+            );
     }
 
     /**

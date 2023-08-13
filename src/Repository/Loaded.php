@@ -18,6 +18,7 @@ use Innmind\Immutable\{
  */
 final class Loaded
 {
+    private Active $repositories;
     /** @var Aggregate<T> */
     private Aggregate $definition;
     /** @var \WeakMap<Id<T>, Map<non-empty-string, mixed>> */
@@ -26,8 +27,9 @@ final class Loaded
     /**
      * @param Aggregate<T> $definition
      */
-    private function __construct(Aggregate $definition)
+    private function __construct(Active $repositories, Aggregate $definition)
     {
+        $this->repositories = $repositories;
         $this->definition = $definition;
         /** @var \WeakMap<Id<T>, Map<non-empty-string, mixed>> */
         $this->loaded = new \WeakMap;
@@ -40,9 +42,9 @@ final class Loaded
      *
      * @return self<A>
      */
-    public static function of(Aggregate $definition): self
+    public static function of(Active $repositories, Aggregate $definition): self
     {
-        return new self($definition);
+        return new self($repositories, $definition);
     }
 
     /**
@@ -53,6 +55,7 @@ final class Loaded
     public function add(Denormalized $denormalized): Denormalized
     {
         $this->loaded[$denormalized->id()] = $denormalized->properties();
+        $this->repositories->active($this->definition->class(), $denormalized->id());
 
         return $denormalized;
     }
@@ -75,5 +78,6 @@ final class Loaded
     public function remove(Id $id): void
     {
         $this->loaded->offsetUnset($id);
+        $this->repositories->forget($id);
     }
 }

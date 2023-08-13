@@ -49,6 +49,7 @@ final class Repository
      * @param \Closure(): bool $inTransaction
      */
     private function __construct(
+        Repository\Active $repositories,
         Adapter\Repository $adapter,
         Aggregate $definition,
         \Closure $inTransaction,
@@ -57,7 +58,7 @@ final class Repository
         $this->id = $definition->id();
         $this->inTransaction = $inTransaction;
         $this->normalizeSpecification = NormalizeSpecification::of($definition);
-        $this->loaded = Loaded::of($definition);
+        $this->loaded = Loaded::of($repositories, $definition);
         $this->normalize = Normalize::of($definition);
         $this->denormalize = Denormalize::of($definition);
         $this->instanciate = Instanciate::of($definition);
@@ -75,11 +76,12 @@ final class Repository
      * @return self<A>
      */
     public static function of(
+        Repository\Active $repositories,
         Adapter\Repository $adapter,
         Aggregate $definition,
         \Closure $inTransaction,
     ): self {
-        return new self($adapter, $definition, $inTransaction);
+        return new self($repositories, $adapter, $definition, $inTransaction);
     }
 
     /**
