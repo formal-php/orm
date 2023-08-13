@@ -37,15 +37,9 @@ final class Active
         $this->repositories[$repository] = $class;
     }
 
-    /**
-     * @param class-string $class
-     */
-    public function active(string $class, Id $id): void
+    public function active(Repository $repository, Id $id): void
     {
-        $_ = $this->get($class)->match(
-            fn($repository) => $this->active[$id] = $repository,
-            static fn() => null,
-        );
+        $this->active[$id] = $repository;
     }
 
     public function forget(Id $id): void

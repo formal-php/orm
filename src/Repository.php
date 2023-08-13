@@ -58,7 +58,8 @@ final class Repository
         $this->id = $definition->id();
         $this->inTransaction = $inTransaction;
         $this->normalizeSpecification = NormalizeSpecification::of($definition);
-        $this->loaded = Loaded::of($repositories, $definition);
+        /** @psalm-suppress InvalidArgument Due to $this not having its type as we're in the constructor */
+        $this->loaded = Loaded::of($repositories, $this, $definition);
         $this->normalize = Normalize::of($definition);
         $this->denormalize = Denormalize::of($definition);
         $this->instanciate = Instanciate::of($definition);

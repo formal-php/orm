@@ -51,6 +51,7 @@ final class Properties
             SuccessfulTransaction::class,
             FailingTransactionDueToLeftSide::class,
             FailingTransactionDueToException::class,
+            StreamUpdate::class,
         ];
     }
 
