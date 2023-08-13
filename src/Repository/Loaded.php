@@ -20,24 +20,19 @@ use Innmind\Immutable\{
 final class Loaded
 {
     private Active $repositories;
-    /** @var Repository<T> */
-    private Repository $repository;
     /** @var Aggregate<T> */
     private Aggregate $definition;
     /** @var \WeakMap<Id<T>, Map<non-empty-string, mixed>> */
     private \WeakMap $loaded;
 
     /**
-     * @param Repository<T> $repository
      * @param Aggregate<T> $definition
      */
     private function __construct(
         Active $repositories,
-        Repository $repository,
         Aggregate $definition,
     ) {
         $this->repositories = $repositories;
-        $this->repository = $repository;
         $this->definition = $definition;
         /** @var \WeakMap<Id<T>, Map<non-empty-string, mixed>> */
         $this->loaded = new \WeakMap;
@@ -46,28 +41,29 @@ final class Loaded
     /**
      * @template A of object
      *
-     * @param Repository<A> $repository
      * @param Aggregate<A> $definition
      *
      * @return self<A>
      */
     public static function of(
         Active $repositories,
-        Repository $repository,
         Aggregate $definition,
     ): self {
-        return new self($repositories, $repository, $definition);
+        return new self($repositories, $definition);
     }
 
     /**
+     * @param Repository<T> $repository
      * @param Denormalized<T> $denormalized
      *
      * @return Denormalized<T>
      */
-    public function add(Denormalized $denormalized): Denormalized
-    {
+    public function add(
+        Repository $repository,
+        Denormalized $denormalized,
+    ): Denormalized {
         $this->loaded[$denormalized->id()] = $denormalized->properties();
-        $this->repositories->active($this->repository, $denormalized->id());
+        $this->repositories->active($repository, $denormalized->id());
 
         return $denormalized;
     }

@@ -4,7 +4,8 @@ declare(strict_types = 1);
 namespace Formal\ORM;
 
 use Formal\ORM\{
-    Adapter\Repository,
+    Adapter,
+    Repository,
     Repository\Loaded,
     Repository\Denormalize,
     Repository\Instanciate,
@@ -20,6 +21,8 @@ final class Matching
 {
     /** @var Repository<T> */
     private Repository $repository;
+    /** @var Adapter\Repository<T> */
+    private Adapter\Repository $adapter;
     /** @var Denormalize<T> */
     private Denormalize $denormalize;
     /** @var Instanciate<T> */
@@ -38,6 +41,7 @@ final class Matching
 
     /**
      * @param Repository<T> $repository
+     * @param Adapter\Repository<T> $adapter
      * @param Denormalize<T> $denormalize
      * @param Instanciate<T> $instanciate
      * @param ?Normalize<T> $normalizeSpecification
@@ -48,6 +52,7 @@ final class Matching
      */
     private function __construct(
         Repository $repository,
+        Adapter\Repository $adapter,
         Denormalize $denormalize,
         Instanciate $instanciate,
         ?Normalize $normalizeSpecification,
@@ -58,6 +63,7 @@ final class Matching
         ?int $take,
     ) {
         $this->repository = $repository;
+        $this->adapter = $adapter;
         $this->denormalize = $denormalize;
         $this->instanciate = $instanciate;
         $this->normalizeSpecification = $normalizeSpecification;
@@ -72,6 +78,7 @@ final class Matching
      * @template A of object
      *
      * @param Repository<A> $repository
+     * @param Adapter\Repository<A> $adapter
      * @param Denormalize<A> $denormalize
      * @param Instanciate<A> $instanciate
      * @param Normalize<A> $normalizeSpecification
@@ -81,6 +88,7 @@ final class Matching
      */
     public static function of(
         Repository $repository,
+        Adapter\Repository $adapter,
         Denormalize $denormalize,
         Instanciate $instanciate,
         Normalize $normalizeSpecification,
@@ -89,6 +97,7 @@ final class Matching
     ): self {
         return new self(
             $repository,
+            $adapter,
             $denormalize,
             $instanciate,
             $normalizeSpecification,
@@ -104,6 +113,7 @@ final class Matching
      * @template A of object
      *
      * @param Repository<A> $repository
+     * @param Adapter\Repository<A> $adapter
      * @param Denormalize<A> $denormalize
      * @param Instanciate<A> $instanciate
      * @param Loaded<A> $loaded
@@ -112,12 +122,14 @@ final class Matching
      */
     public static function all(
         Repository $repository,
+        Adapter\Repository $adapter,
         Denormalize $denormalize,
         Instanciate $instanciate,
         Loaded $loaded,
     ): self {
         return new self(
             $repository,
+            $adapter,
             $denormalize,
             $instanciate,
             null,
@@ -140,6 +152,7 @@ final class Matching
     {
         return new self(
             $this->repository,
+            $this->adapter,
             $this->denormalize,
             $this->instanciate,
             $this->normalizeSpecification,
@@ -165,6 +178,7 @@ final class Matching
     {
         return new self(
             $this->repository,
+            $this->adapter,
             $this->denormalize,
             $this->instanciate,
             $this->normalizeSpecification,
@@ -190,6 +204,7 @@ final class Matching
     {
         return new self(
             $this->repository,
+            $this->adapter,
             $this->denormalize,
             $this->instanciate,
             $this->normalizeSpecification,
@@ -227,7 +242,7 @@ final class Matching
         }
 
         return $this
-            ->repository
+            ->adapter
             ->fetch(
                 $specification,
                 $this->sort,
@@ -235,7 +250,10 @@ final class Matching
                 $this->take,
             )
             ->map($denormalize)
-            ->map(fn($denormalized) => $this->loaded->add($denormalized))
+            ->map(fn($denormalized) => $this->loaded->add(
+                $this->repository,
+                $denormalized,
+            ))
             ->map($this->instanciate);
     }
 }

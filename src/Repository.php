@@ -58,8 +58,7 @@ final class Repository
         $this->id = $definition->id();
         $this->inTransaction = $inTransaction;
         $this->normalizeSpecification = NormalizeSpecification::of($definition);
-        /** @psalm-suppress InvalidArgument Due to $this not having its type as we're in the constructor */
-        $this->loaded = Loaded::of($repositories, $this, $definition);
+        $this->loaded = Loaded::of($repositories, $definition);
         $this->normalize = Normalize::of($definition);
         $this->denormalize = Denormalize::of($definition);
         $this->instanciate = Instanciate::of($definition);
@@ -101,7 +100,7 @@ final class Repository
                     ->adapter
                     ->get($this->id->normalize($id))
                     ->map(($this->denormalize)($id))
-                    ->map(fn($denormalized) => $this->loaded->add($denormalized))
+                    ->map(fn($denormalized) => $this->loaded->add($this, $denormalized))
                     ->map($this->instanciate),
             );
     }
@@ -128,7 +127,7 @@ final class Repository
         $now = ($this->extract)($aggregate);
         $then = $this->loaded->get($now->id());
 
-        $this->loaded->add($now);
+        $this->loaded->add($this, $now);
 
         /** @psalm-suppress InvalidArgument For some reason Psalm lose track of $then type */
         $_ = $then->match(
@@ -162,6 +161,7 @@ final class Repository
     public function matching(Specification $specification): Matching
     {
         return Matching::of(
+            $this,
             $this->adapter,
             $this->denormalize,
             $this->instanciate,
@@ -198,6 +198,7 @@ final class Repository
     public function all(): Matching
     {
         return Matching::all(
+            $this,
             $this->adapter,
             $this->denormalize,
             $this->instanciate,
