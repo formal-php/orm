@@ -79,7 +79,7 @@ final class UpdateAggregate implements Property
         );
 
         $reloaded = $repository
-            ->get(Id::of(User::class, $id))
+            ->get($user->id())
             ->match(
                 static fn($user) => $user,
                 static fn() => null,
@@ -113,7 +113,7 @@ final class UpdateAggregate implements Property
         );
 
         $back = $repository
-            ->get(Id::of(User::class, $id))
+            ->get($user->id())
             ->match(
                 static fn($user) => $user,
                 static fn() => null,

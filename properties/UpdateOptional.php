@@ -75,7 +75,7 @@ final class UpdateOptional implements Property
         );
 
         $reloaded = $repository
-            ->get(Id::of(User::class, $id))
+            ->get($user->id())
             ->match(
                 static fn($user) => $user,
                 static fn() => null,
@@ -105,14 +105,14 @@ final class UpdateOptional implements Property
                     ->format(new Format),
             );
 
-        $user = $loaded->removeBillingAddress();
+        $user = $reloaded->removeBillingAddress();
 
         $manager->transactional(
             static fn() => Either::right($repository->put($user)),
         );
 
         $reloaded = $repository
-            ->get(Id::of(User::class, $id))
+            ->get($user->id())
             ->match(
                 static fn($user) => $user,
                 static fn() => null,
