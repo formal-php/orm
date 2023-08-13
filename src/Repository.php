@@ -181,6 +181,11 @@ final class Repository
         });
     }
 
+    public function any(Specification $specification = null): bool
+    {
+        return $this->size($specification) !== 0;
+    }
+
     /**
      * @return Matching<T>
      */
