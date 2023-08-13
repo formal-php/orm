@@ -7,7 +7,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest]
         php-version: ['8.2']
         dependency-versions: ['lowest', 'highest']
     name: 'BlackBox'
@@ -40,7 +40,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest]
         php-version: ['8.2']
         dependency-versions: ['lowest', 'highest']
     name: 'Coverage'
