@@ -7,12 +7,7 @@ use Formal\ORM\{
     Manager,
     Sort,
 };
-use Fixtures\Formal\ORM\{
-    User,
-    Username,
-};
-use Innmind\Specification\Sign;
-use Innmind\Immutable\Str;
+use Fixtures\Formal\ORM\User;
 use Innmind\BlackBox\{
     Set,
     Property,
@@ -28,13 +23,19 @@ final class DroppingMoreElementsThanWasTakenReturnsNothing implements Property
 {
     private $createdAt;
     private string $name;
+    private int $take;
+    private int $drop;
 
     private function __construct(
         $createdAt,
         string $name,
+        int $take,
+        int $drop,
     ) {
         $this->createdAt = $createdAt;
         $this->name = $name;
+        $this->take = $take;
+        $this->drop = $drop;
     }
 
     public static function any(): Set
@@ -42,7 +43,9 @@ final class DroppingMoreElementsThanWasTakenReturnsNothing implements Property
         return Set\Composite::immutable(
             static fn(...$args) => new self(...$args),
             PointInTime::any(),
-            Set\Strings::madeOf(Set\Chars::alphanumerical())->between(10, 100),
+            Set\Strings::madeOf(Set\Chars::alphanumerical())->between(0, 100),
+            Set\Integers::between(1, 1_000_000), // upper limit to avoid PHP switching the type to float
+            Set\Integers::between(0, 1_000_000), // upper limit to avoid PHP switching the type to float
         );
     }
 
@@ -53,28 +56,21 @@ final class DroppingMoreElementsThanWasTakenReturnsNothing implements Property
 
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
-        $user1 = User::new($this->createdAt, $this->name);
-        $user2 = User::new($this->createdAt, $this->name);
-        $user3 = User::new($this->createdAt, $this->name);
+        $user = User::new($this->createdAt, $this->name);
 
         $repository = $manager->repository(User::class);
         $manager->transactional(
-            static function() use ($repository, $user1, $user2, $user3) {
-                $repository->put($user1);
-                $repository->put($user2);
-                $repository->put($user3);
+            static function() use ($repository, $user) {
+                $repository->put($user);
 
                 return Either::right(null);
             },
         );
 
         $found = $repository
-            ->matching(Username::of(
-                Sign::equality,
-                Str::of($this->name),
-            ))
-            ->take(1)
-            ->drop(2)
+            ->all()
+            ->take($this->take)
+            ->drop($this->take + $this->drop)
             ->fetch();
 
         $assert
