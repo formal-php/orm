@@ -21,6 +21,7 @@ use Formal\AccessLayer\{
 use Innmind\Filesystem\Adapter\InMemory;
 use Innmind\TimeContinuum\Earth\Clock;
 use Innmind\Url\Url;
+use Innmind\Immutable\Either;
 use Innmind\BlackBox\Set;
 
 return static function() {
@@ -46,6 +47,23 @@ return static function() {
                 ->expected($repositoryA)
                 ->not()
                 ->same($repositoryB);
+        },
+    );
+
+    yield test(
+        'Nested transactions are forbidden',
+        static function($assert) {
+            $manager = Manager::of(Adapter\Filesystem::of(InMemory::emulateFilesystem()));
+
+            $assert->throws(
+                static fn() => $manager->transactional(
+                    static fn() => $manager->transactional(
+                        static fn() => Either::right(null),
+                    ),
+                ),
+                \LogicException::class,
+                'Nested transactions not allowed',
+            );
         },
     );
 
