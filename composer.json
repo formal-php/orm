@@ -12,25 +12,35 @@
         }
     ],
     "support": {
-        "issues": "http://github.com/formal/orm/issues"
+        "issues": "http://github.com/formal-php/orm/issues"
     },
     "require": {
-        "php": "~7.4|~8.0"
+        "php": "~8.2",
+        "innmind/immutable": "~4.15",
+        "innmind/specification": "~3.0",
+        "ramsey/uuid": "~4.7",
+        "innmind/reflection": "~5.1",
+        "innmind/filesystem": "^6.5.1",
+        "innmind/json": "~1.3",
+        "innmind/time-continuum": "~3.3",
+        "innmind/type": "~1.1",
+        "formal/access-layer": "~2.11"
     },
     "autoload": {
         "psr-4": {
-            "formal\\orm\\": "src/"
+            "Formal\\ORM\\": "src/",
+            "Properties\\Formal\\ORM\\": "properties/",
+            "Fixtures\\Formal\\ORM\\": "fixtures/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\formal\\orm\\": "tests/"
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "~9.0",
-        "vimeo/psalm": "~4.0",
-        "innmind/black-box": "~4.10",
-        "innmind/coding-standard": "~1.0"
+        "vimeo/psalm": "~5.13",
+        "innmind/black-box": "~5.1",
+        "innmind/coding-standard": "~2.0",
+        "innmind/operating-system": "~3.7"
     }
 }
