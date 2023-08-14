@@ -80,7 +80,11 @@ final class Manager
         $transactionAdapter->start();
 
         try {
+            // We force unwrapping the Either monad to prevent leaving this
+            // method with a deferred Either meaning the system would have an
+            // opened transaction hanging around
             return $transaction()
+                ->memoize()
                 ->map($transactionAdapter->commit())
                 ->leftMap($transactionAdapter->rollback());
         } catch (\Throwable $e) {
