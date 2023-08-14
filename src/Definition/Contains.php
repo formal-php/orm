@@ -22,14 +22,6 @@ final class Contains
         $this->type = $type;
     }
 
-    /**
-     * @param class-string $type
-     */
-    public function is(string $type): bool
-    {
-        return $this->type === $type;
-    }
-
     public function type(): Type
     {
         return ClassName::of($this->type);
