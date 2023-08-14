@@ -3,15 +3,11 @@ declare(strict_types = 1);
 
 namespace Fixtures\Formal\ORM;
 
-use Formal\ORM\{
-    Id,
-    Definition\Template,
-};
+use Formal\ORM\Id;
 
 final class Random
 {
     /** @var Id<self> */
-    #[Template(self::class)]
     private Id $id;
 
     private function __construct()
