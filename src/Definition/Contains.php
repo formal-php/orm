@@ -9,7 +9,7 @@ use Innmind\Type\{
 };
 
 #[\Attribute]
-final class Template
+final class Contains
 {
     /** @var class-string */
     private string $type;

@@ -5,7 +5,7 @@ namespace Fixtures\Formal\ORM;
 
 use Formal\ORM\{
     Id,
-    Definition\Template,
+    Definition\Contains,
 };
 use Innmind\TimeContinuum\PointInTime;
 use Innmind\Immutable\{
@@ -21,14 +21,14 @@ final class User
     private PointInTime $createdAt;
     private ?string $name;
     /** @var Maybe<Str> */
-    #[Template(Str::class)]
+    #[Contains(Str::class)]
     private Maybe $nameStr;
     private User\Address $mainAddress;
     /** @var Maybe<User\Address> */
-    #[Template(User\Address::class)]
+    #[Contains(User\Address::class)]
     private Maybe $billingAddress;
     /** @var Set<User\Address> */
-    #[Template(User\Address::class)]
+    #[Contains(User\Address::class)]
     private Set $addresses;
 
     /**

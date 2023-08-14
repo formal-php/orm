@@ -5,7 +5,7 @@ namespace Formal\ORM\Definition\Aggregate;
 
 use Formal\ORM\{
     Id,
-    Definition\Template,
+    Definition\Contains,
     Definition\Types,
 };
 use Innmind\Reflection\{
@@ -220,11 +220,11 @@ final class Parsing
                 $property->type()->type(),
                 $property
                     ->attributes()
-                    ->find(static fn($attribute) => $attribute->class() === Template::class)
+                    ->find(static fn($attribute) => $attribute->class() === Contains::class)
                     ->map(static fn($attribute) => $attribute->instance())
-                    ->keep(Instance::of(Template::class))
+                    ->keep(Instance::of(Contains::class))
                     ->match(
-                        static fn($template) => $template,
+                        static fn($contains) => $contains,
                         static fn() => null,
                     ),
             ))
@@ -283,13 +283,13 @@ final class Parsing
             ->flatMap(
                 fn($property) => $property
                     ->attributes()
-                    ->find(static fn($attribute) => $attribute->class() === Template::class)
+                    ->find(static fn($attribute) => $attribute->class() === Contains::class)
                     ->map(static fn($attribute) => $attribute->instance())
-                    ->keep(Instance::of(Template::class))
-                    ->map(fn($template) => Optional::of(
-                        $template->type()->toString(),
+                    ->keep(Instance::of(Contains::class))
+                    ->map(fn($contains) => Optional::of(
+                        $contains->type()->toString(),
                         $property->name(),
-                        ReflectionClass::of($template->type()->toString())
+                        ReflectionClass::of($contains->type()->toString())
                             ->properties()
                             ->flatMap(
                                 fn($innerProperty) => $this->parseProperty(
@@ -321,13 +321,13 @@ final class Parsing
             ->flatMap(
                 fn($property) => $property
                     ->attributes()
-                    ->find(static fn($attribute) => $attribute->class() === Template::class)
+                    ->find(static fn($attribute) => $attribute->class() === Contains::class)
                     ->map(static fn($attribute) => $attribute->instance())
-                    ->keep(Instance::of(Template::class))
-                    ->map(fn($template) => Collection::of(
-                        $template->type()->toString(),
+                    ->keep(Instance::of(Contains::class))
+                    ->map(fn($contains) => Collection::of(
+                        $contains->type()->toString(),
                         $property->name(),
-                        ReflectionClass::of($template->type()->toString())
+                        ReflectionClass::of($contains->type()->toString())
                             ->properties()
                             ->flatMap(
                                 fn($innerProperty) => $this->parseProperty(

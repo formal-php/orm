@@ -8,13 +8,13 @@ use Innmind\Immutable\Maybe;
 
 final class Types
 {
-    /** @var list<callable(self, Concrete, ?Template): Maybe<Type>> */
+    /** @var list<callable(self, Concrete, ?Contains): Maybe<Type>> */
     private array $builders;
 
     /**
      * @no-named-arguments
      *
-     * @param callable(self, Concrete, ?Template): Maybe<Type> $builders
+     * @param callable(self, Concrete, ?Contains): Maybe<Type> $builders
      */
     private function __construct(callable ...$builders)
     {
@@ -26,13 +26,13 @@ final class Types
      */
     public function __invoke(
         Concrete $type,
-        Template $template = null,
+        Contains $contains = null,
     ): Maybe {
         /** @var Maybe<Type> */
         $found = Maybe::nothing();
 
         foreach ($this->builders as $build) {
-            $found = $found->otherwise(fn() => $build($this, $type, $template));
+            $found = $found->otherwise(fn() => $build($this, $type, $contains));
         }
 
         return $found;
@@ -41,7 +41,7 @@ final class Types
     /**
      * @no-named-arguments
      *
-     * @param callable(self, Concrete, ?Template): Maybe<Type> $builders
+     * @param callable(self, Concrete, ?Contains): Maybe<Type> $builders
      */
     public static function of(callable ...$builders): self
     {

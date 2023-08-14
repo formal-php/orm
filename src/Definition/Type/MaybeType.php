@@ -6,7 +6,7 @@ namespace Formal\ORM\Definition\Type;
 use Formal\ORM\Definition\{
     Type,
     Types,
-    Template,
+    Contains,
 };
 use Innmind\Type\{
     Type as Concrete,
@@ -34,12 +34,12 @@ final class MaybeType implements Type
     /**
      * @return Maybe<self>
      */
-    public static function of(Types $types, Concrete $type, Template $template = null): Maybe
+    public static function of(Types $types, Concrete $type, Contains $contains = null): Maybe
     {
         return Maybe::just($type)
             ->filter(static fn($type) => $type->accepts(ClassName::of(Maybe::class)))
-            ->flatMap(static fn() => Maybe::of($template))
-            ->flatMap(static fn($template) => $types($template->type()))
+            ->flatMap(static fn() => Maybe::of($contains))
+            ->flatMap(static fn($contains) => $types($contains->type()))
             ->map(static fn($inner) => new self($inner));
     }
 
