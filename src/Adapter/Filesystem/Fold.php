@@ -20,6 +20,7 @@ use Innmind\Specification\{
 
 /**
  * @internal
+ * @psalm-immutable
  * @template T of object
  */
 final class Fold
@@ -95,6 +96,7 @@ final class Fold
     }
 
     /**
+     * @psalm-pure
      * @template A of object
      *
      * @param Definition<A> $definition

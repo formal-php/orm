@@ -3,6 +3,9 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Raw\Aggregate;
 
+/**
+ * @psalm-immutable
+ */
 final class Id
 {
     /** @var non-empty-string */
@@ -21,6 +24,8 @@ final class Id
     }
 
     /**
+     * @psalm-pure
+     *
      * @param non-empty-string $name
      * @param non-empty-string $value
      */

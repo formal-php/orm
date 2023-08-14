@@ -24,6 +24,8 @@ final class Identity
     private string $class;
 
     /**
+     * @psalm-mutation-free
+     *
      * @param non-empty-string $property
      * @param class-string<T> $class
      */
@@ -34,6 +36,7 @@ final class Identity
     }
 
     /**
+     * @psalm-pure
      * @template A
      *
      * @param non-empty-string $property
@@ -47,6 +50,8 @@ final class Identity
     }
 
     /**
+     * @psalm-mutation-free
+     *
      * @return non-empty-string
      */
     public function property(): string
@@ -72,6 +77,8 @@ final class Identity
     }
 
     /**
+     * @psalm-mutation-free
+     *
      * @param Id<T> $id
      */
     public function normalize(Id $id): Raw\Aggregate\Id
@@ -80,6 +87,8 @@ final class Identity
     }
 
     /**
+     * @psalm-mutation-free
+     *
      * @return Id<T>
      */
     public function denormalize(Raw\Aggregate\Id $id): Id

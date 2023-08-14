@@ -8,6 +8,9 @@ use Innmind\Immutable\{
     Maybe,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Optional
 {
     /** @var non-empty-string */
@@ -26,6 +29,8 @@ final class Optional
     }
 
     /**
+     * @psalm-pure
+     *
      * @param non-empty-string $name
      * @param Maybe<Set<Property>> $properties
      */

@@ -15,6 +15,7 @@ use Innmind\Type\{
 use Innmind\Immutable\Maybe;
 
 /**
+ * @psalm-immutable
  * @implements Type<string>
  */
 final class StringType implements Type
@@ -24,6 +25,8 @@ final class StringType implements Type
     }
 
     /**
+     * @psalm-pure
+     *
      * @return Maybe<self>
      */
     public static function of(Types $types, Concrete $type): Maybe

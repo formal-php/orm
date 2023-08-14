@@ -8,6 +8,9 @@ use Innmind\Immutable\{
     Maybe,
 };
 
+/**
+ * @psalm-immutable
+ */
 final class Entity
 {
     /** @var non-empty-string */
@@ -26,6 +29,8 @@ final class Entity
     }
 
     /**
+     * @psalm-pure
+     *
      * @param non-empty-string $name
      * @param Set<Property> $properties
      */

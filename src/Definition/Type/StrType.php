@@ -18,6 +18,7 @@ use Innmind\Immutable\{
 };
 
 /**
+ * @psalm-immutable
  * @implements Type<Str>
  */
 final class StrType implements Type
@@ -27,6 +28,8 @@ final class StrType implements Type
     }
 
     /**
+     * @psalm-pure
+     *
      * @return Maybe<self>
      */
     public static function of(Types $types, Concrete $type): Maybe

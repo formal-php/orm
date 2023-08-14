@@ -5,6 +5,9 @@ namespace Formal\ORM\Raw\Aggregate;
 
 use Innmind\Immutable\Set;
 
+/**
+ * @psalm-immutable
+ */
 final class Collection
 {
     /** @var non-empty-string */
@@ -23,6 +26,8 @@ final class Collection
     }
 
     /**
+     * @psalm-pure
+     *
      * @param non-empty-string $name
      * @param Set<Set<Property>> $properties
      */

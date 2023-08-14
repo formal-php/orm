@@ -25,6 +25,7 @@ use Innmind\Immutable\{
 
 /**
  * @internal
+ * @psalm-immutable
  * @template T of object
  */
 final class Normalize
@@ -122,6 +123,7 @@ final class Normalize
     }
 
     /**
+     * @psalm-pure
      * @template A of object
      *
      * @param Aggregate<A> $definition

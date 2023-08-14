@@ -9,6 +9,9 @@ use Formal\ORM\Raw\{
 };
 use Innmind\Immutable\Set;
 
+/**
+ * @psalm-immutable
+ */
 final class Apply
 {
     private Diff $diff;
@@ -29,6 +32,9 @@ final class Apply
         );
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function of(Diff $diff): self
     {
         return new self($diff);

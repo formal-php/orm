@@ -5,6 +5,9 @@ namespace Formal\ORM\Raw;
 
 use Innmind\Immutable\Set;
 
+/**
+ * @psalm-immutable
+ */
 final class Aggregate
 {
     private Aggregate\Id $id;
@@ -38,6 +41,8 @@ final class Aggregate
     }
 
     /**
+     * @psalm-pure
+     *
      * @param Set<Aggregate\Property> $properties
      * @param Set<Aggregate\Entity> $entities
      * @param Set<Aggregate\Optional> $optionals

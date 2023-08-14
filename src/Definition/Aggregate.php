@@ -12,6 +12,7 @@ use Innmind\Immutable\{
 };
 
 /**
+ * @psalm-immutable
  * @template T of object
  */
 final class Aggregate

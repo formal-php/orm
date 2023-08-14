@@ -8,6 +8,9 @@ use Innmind\Type\{
     ClassName,
 };
 
+/**
+ * @psalm-immutable
+ */
 #[\Attribute]
 final class Contains
 {

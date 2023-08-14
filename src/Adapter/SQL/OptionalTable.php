@@ -30,6 +30,7 @@ use Innmind\Immutable\{
 use Ramsey\Uuid\Uuid;
 
 /**
+ * @psalm-immutable
  * @template T of object
  */
 final class OptionalTable
@@ -76,6 +77,7 @@ final class OptionalTable
     }
 
     /**
+     * @psalm-pure
      * @template A of object
      *
      * @param Definition<A> $definition

@@ -6,6 +6,9 @@ namespace Formal\ORM\Definition;
 use Innmind\Type\Type as Concrete;
 use Innmind\Immutable\Maybe;
 
+/**
+ * @psalm-immutable
+ */
 final class Types
 {
     /** @var list<callable(self, Concrete, ?Contains): Maybe<Type>> */
@@ -40,6 +43,7 @@ final class Types
 
     /**
      * @no-named-arguments
+     * @psalm-pure
      *
      * @param callable(self, Concrete, ?Contains): Maybe<Type> $builders
      */
@@ -57,6 +61,9 @@ final class Types
         );
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function default(): self
     {
         return new self(

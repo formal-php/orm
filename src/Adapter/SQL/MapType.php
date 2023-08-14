@@ -6,6 +6,9 @@ namespace Formal\ORM\Adapter\SQL;
 use Formal\ORM\Definition\Type;
 use Formal\AccessLayer\Table;
 
+/**
+ * @psalm-immutable
+ */
 final class MapType
 {
     private function __construct()
@@ -31,6 +34,9 @@ final class MapType
         };
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function new(): self
     {
         return new self;

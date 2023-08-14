@@ -7,6 +7,7 @@ use Formal\ORM\Id;
 use Innmind\Immutable\Map;
 
 /**
+ * @psalm-immutable
  * @template T of object
  */
 final class Denormalized
@@ -27,6 +28,7 @@ final class Denormalized
     }
 
     /**
+     * @psalm-pure
      * @template A of object
      *
      * @param Id<A> $id

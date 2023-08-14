@@ -8,6 +8,7 @@ use Formal\AccessLayer\Query;
 use Innmind\Immutable\Sequence;
 
 /**
+ * @psalm-immutable
  * @template T of object
  */
 final class Update
@@ -82,6 +83,7 @@ final class Update
     }
 
     /**
+     * @psalm-pure
      * @template A of object
      *
      * @param MainTable<A> $mainTable

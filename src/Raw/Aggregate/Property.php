@@ -3,6 +3,9 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Raw\Aggregate;
 
+/**
+ * @psalm-immutable
+ */
 final class Property
 {
     /** @var non-empty-string */
@@ -19,6 +22,8 @@ final class Property
     }
 
     /**
+     * @psalm-pure
+     *
      * @param non-empty-string $name
      */
     public static function of(string $name, null|string|int|bool $value): self

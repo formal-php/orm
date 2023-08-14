@@ -6,6 +6,7 @@ namespace Formal\ORM\Definition\Aggregate;
 use Innmind\Immutable\Set;
 
 /**
+ * @psalm-immutable
  * @template T of object
  */
 final class Entity
@@ -33,6 +34,7 @@ final class Entity
     }
 
     /**
+     * @psalm-pure
      * @template A of object
      *
      * @param class-string<A> $class

@@ -15,6 +15,8 @@ use Innmind\Immutable\{
 /**
  * This indicates in a Diff that there was previously no value for the
  * corresponding property
+ *
+ * @psalm-immutable
  */
 final class BrandNew
 {
@@ -25,6 +27,9 @@ final class BrandNew
         $this->optional = $optional;
     }
 
+    /**
+     * @psalm-pure
+     */
     public static function of(Optional $optional): self
     {
         return new self($optional);

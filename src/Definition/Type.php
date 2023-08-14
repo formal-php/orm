@@ -5,6 +5,7 @@ namespace Formal\ORM\Definition;
 
 /**
  * @template D
+ * @psalm-immutable
  */
 interface Type
 {

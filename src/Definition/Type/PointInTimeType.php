@@ -20,6 +20,7 @@ use Innmind\Type\{
 use Innmind\Immutable\Maybe;
 
 /**
+ * @psalm-immutable
  * @implements Type<PointInTime>
  */
 final class PointInTimeType implements Type
@@ -32,6 +33,8 @@ final class PointInTimeType implements Type
     }
 
     /**
+     * @psalm-pure
+     *
      * @return callable(Types, Concrete): Maybe<self>
      */
     public static function of(Clock $clock): callable

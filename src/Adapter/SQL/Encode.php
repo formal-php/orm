@@ -16,6 +16,7 @@ use Innmind\Immutable\{
 use Ramsey\Uuid\Uuid;
 
 /**
+ * @psalm-immutable
  * @template T of object
  */
 final class Encode
@@ -59,6 +60,7 @@ final class Encode
     }
 
     /**
+     * @psalm-pure
      * @template A of object
      *
      * @param Definition<A> $definition

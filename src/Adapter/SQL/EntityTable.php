@@ -22,6 +22,7 @@ use Innmind\Immutable\{
 };
 
 /**
+ * @psalm-immutable
  * @template T of object
  */
 final class EntityTable
@@ -53,6 +54,7 @@ final class EntityTable
     }
 
     /**
+     * @psalm-pure
      * @template A of object
      *
      * @param Definition<A> $definition

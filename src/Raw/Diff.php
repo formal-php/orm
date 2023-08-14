@@ -5,6 +5,9 @@ namespace Formal\ORM\Raw;
 
 use Innmind\Immutable\Set;
 
+/**
+ * @psalm-immutable
+ */
 final class Diff
 {
     private Aggregate\Id $id;
@@ -38,6 +41,8 @@ final class Diff
     }
 
     /**
+     * @psalm-pure
+     *
      * @param Set<Aggregate\Property> $properties
      * @param Set<Aggregate\Entity> $entities
      * @param Set<Aggregate\Optional|Aggregate\Optional\BrandNew> $optionals

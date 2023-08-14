@@ -6,6 +6,7 @@ namespace Formal\ORM\Definition\Aggregate;
 use Formal\ORM\Definition\Type;
 
 /**
+ * @psalm-immutable
  * @template T of object
  * @template K
  */
@@ -31,6 +32,8 @@ final class Property
     }
 
     /**
+     * @psalm-pure
+     *
      * @template A of object
      * @template B
      *

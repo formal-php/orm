@@ -35,6 +35,7 @@ use Innmind\Immutable\{
 };
 
 /**
+ * @psalm-immutable
  * @template T of object
  */
 final class MainTable
@@ -146,6 +147,7 @@ final class MainTable
     }
 
     /**
+     * @psalm-pure
      * @template A of object
      *
      * @param Definition<A> $definition

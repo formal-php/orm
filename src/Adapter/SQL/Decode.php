@@ -143,6 +143,8 @@ final class Decode
     }
 
     /**
+     * @psalm-pure
+     *
      * @param Set<Column\Name\Aliased> $columns
      *
      * @return Set<Aggregate\Property>

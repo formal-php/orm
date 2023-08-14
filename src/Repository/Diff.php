@@ -214,6 +214,9 @@ final class Diff
         return new self($definition);
     }
 
+    /**
+     * @psalm-pure
+     */
     private static function diffEntities(
         Raw\Aggregate\Entity $then,
         Raw\Aggregate\Entity $now,
@@ -224,6 +227,9 @@ final class Diff
         );
     }
 
+    /**
+     * @psalm-pure
+     */
     private static function diffOptionals(
         Raw\Aggregate\Optional $then,
         Raw\Aggregate\Optional $now,
@@ -249,6 +255,8 @@ final class Diff
     }
 
     /**
+     * @psalm-pure
+     *
      * @param Set<Raw\Aggregate\Property> $then
      * @param Set<Raw\Aggregate\Property> $now
      *

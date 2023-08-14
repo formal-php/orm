@@ -15,6 +15,7 @@ use Innmind\Type\{
 use Innmind\Immutable\Maybe;
 
 /**
+ * @psalm-immutable
  * @template I
  * @implements Type<Maybe<I>>
  */
@@ -32,6 +33,8 @@ final class MaybeType implements Type
     }
 
     /**
+     * @psalm-pure
+     *
      * @return Maybe<self>
      */
     public static function of(Types $types, Concrete $type, Contains $contains = null): Maybe
