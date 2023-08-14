@@ -14,7 +14,7 @@ use Formal\AccessLayer\{
 };
 use Innmind\Immutable\Sequence;
 
-final class CreateTable
+final class ShowCreateTable
 {
     private Aggregates $aggregates;
     private MapType $mapType;

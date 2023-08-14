@@ -104,7 +104,7 @@ return static function() {
             $connection(DropTable::ifExists(Table\Name::of('user')));
             $connection(DropTable::ifExists(Table\Name::of('user_mainAddress')));
             $connection(DropTable::ifExists(Table\Name::of('user_billingAddress')));
-            $_ = Adapter\SQL\CreateTable::of($aggregates)(User::class)->foreach($connection);
+            $_ = Adapter\SQL\ShowCreateTable::of($aggregates)(User::class)->foreach($connection);
 
             return Manager::of(
                 Adapter\SQL::of($connection),
@@ -124,7 +124,7 @@ return static function() {
                 $connection(DropTable::ifExists(Table\Name::of('user')));
                 $connection(DropTable::ifExists(Table\Name::of('user_mainAddress')));
                 $connection(DropTable::ifExists(Table\Name::of('user_billingAddress')));
-                $_ = Adapter\SQL\CreateTable::of($aggregates)(User::class)->foreach($connection);
+                $_ = Adapter\SQL\ShowCreateTable::of($aggregates)(User::class)->foreach($connection);
 
                 return Manager::of(
                     Adapter\SQL::of($connection),

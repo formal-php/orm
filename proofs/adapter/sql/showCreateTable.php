@@ -3,7 +3,7 @@
 declare(strict_types = 1);
 
 use Formal\ORM\{
-    Adapter\SQL\CreateTable,
+    Adapter\SQL\ShowCreateTable,
     Definition\Aggregates,
     Definition\Type,
     Definition\Types,
@@ -15,13 +15,13 @@ return static function() {
     yield test(
         'Create table for the User fixture',
         static function($assert) {
-            $createTable = CreateTable::of(
+            $show = ShowCreateTable::of(
                 Aggregates::of(Types::of(
                     Type\PointInTimeType::of(new Clock),
                 )),
             );
 
-            $queries = $createTable(User::class)
+            $queries = $show(User::class)
                 ->map(static fn($query) => $query->sql())
                 ->toList();
 
