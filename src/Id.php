@@ -23,6 +23,17 @@ final class Id
         $this->value = $value;
     }
 
+    public function __clone()
+    {
+        // This is not allowed to make sure users always use the same instance
+        // of an id as it is this instance that is used to keep data in memory
+        // as long as the user needs it.
+        // If a user where to duplicate an instance for a same underlying value
+        // it may result in trying to insert the same aggregate twice to the
+        // storage.
+        throw new \LogicException('Cloning is not allowed');
+    }
+
     /**
      * @template A of object
      *
