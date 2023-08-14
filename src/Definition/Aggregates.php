@@ -3,30 +3,22 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition;
 
-use Innmind\Immutable\Map;
-
 final class Aggregates
 {
-    /** @var Map<class-string, Aggregate<object>> */
-    private Map $aggregates;
+    private Types $types;
 
-    private function __construct(Aggregate ...$aggregates)
+    private function __construct(Types $types)
     {
-        /** @var Map<class-string, Aggregate<object>> */
-        $this->aggregates = Map::of('string', Aggregate::class);
-
-        foreach ($aggregates as $aggregate) {
-            $this->aggregates = ($this->aggregates)($aggregate->class(), $aggregate);
-        }
+        $this->types = $types;
     }
 
-    public static function of(Aggregate ...$aggregates): self
+    public static function of(Types $types): self
     {
-        return new self(...$aggregates);
+        return new self($types);
     }
 
     /**
-     * @template T
+     * @template T of object
      *
      * @param class-string<T> $class
      *
@@ -34,11 +26,6 @@ final class Aggregates
      */
     public function get(string $class): Aggregate
     {
-        if ($this->aggregates->contains($class)) {
-            /** @var Aggregate<T> */
-            return $this->aggregates->get($class);
-        }
-
-        return Aggregate::of($class);
+        return Aggregate::of($this->types, $class);
     }
 }

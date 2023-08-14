@@ -3,55 +3,86 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition;
 
-use Innmind\Reflection\{
-    ReflectionClass,
-    ReflectionObject,
-    ExtractionStrategy,
-    InjectionStrategy,
-    Instanciator,
-};
+use Formal\ORM\Definition\Aggregate\Parsing;
+use Innmind\Reflection\ReflectionClass;
 use Innmind\Immutable\{
-    Set,
-    Maybe,
-    Map,
     Str,
-    Exception\NoElementMatchingPredicateFound,
+    Set,
+    Monoid\Concat,
 };
-use function Innmind\Immutable\unwrap;
 
 /**
+ * @psalm-immutable
  * @template T of object
  */
 final class Aggregate
 {
     /** @var class-string<T> */
     private string $class;
-    /** @var Set<string> */
-    private Set $exclude;
-    /** @var Maybe<string> */
-    private Maybe $name;
+    /** @var Aggregate\Identity<T> */
+    private Aggregate\Identity $id;
+    /** @var Set<Aggregate\Property<T, mixed>> */
+    private Set $properties;
+    /** @var Set<Aggregate\Entity> */
+    private Set $entities;
+    /** @var Set<Aggregate\Optional> */
+    private Set $optionals;
+    /** @var Set<Aggregate\Collection> */
+    private Set $collections;
 
     /**
      * @param class-string<T> $class
+     * @param Aggregate\Identity<T> $id
+     * @param Set<Aggregate\Property<T, mixed>> $properties
+     * @param Set<Aggregate\Entity> $entities
+     * @param Set<Aggregate\Optional> $optionals
+     * @param Set<Aggregate\Collection> $collections
      */
-    private function __construct(string $class)
-    {
+    private function __construct(
+        string $class,
+        Aggregate\Identity $id,
+        Set $properties,
+        Set $entities,
+        Set $optionals,
+        Set $collections,
+    ) {
         $this->class = $class;
-        $this->exclude = Set::strings();
-        /** @var Maybe<string> */
-        $this->name = Maybe::nothing();
+        $this->id = $id;
+        $this->properties = $properties;
+        $this->entities = $entities;
+        $this->optionals = $optionals;
+        $this->collections = $collections;
     }
 
     /**
-     * @template V of object
+     * @internal
+     * @template A
      *
-     * @param class-string<V> $class
+     * @param class-string<A> $class
      *
-     * @return self<V>
+     * @return self<A>
      */
-    public static function of(string $class): self
+    public static function of(Types $types, string $class): self
     {
-        return new self($class);
+        /** @var Parsing<A> Type lost due to the reduce */
+        $parsed = ReflectionClass::of($class)
+            ->properties()
+            ->reduce(
+                Parsing::of($class),
+                static fn(Parsing $parsing, $property) => $parsing->with($property, $types),
+            );
+
+        return $parsed->id()->match(
+            static fn($id) => new self(
+                $class,
+                $id,
+                $parsed->properties(),
+                $parsed->entities(),
+                $parsed->optionals(),
+                $parsed->collections(),
+            ),
+            static fn() => throw new \LogicException('A property named "id" must be typed Id<self>'),
+        );
     }
 
     /**
@@ -62,112 +93,57 @@ final class Aggregate
         return $this->class;
     }
 
-    public function exclude(string $property): self
-    {
-        $self = clone $this;
-        $self->exclude = ($this->exclude)($property);
-
-        return $self;
-    }
-
     /**
-     * Name to use for the underlying storage
-     *
-     * @return self<T>
+     * @return non-empty-string
      */
-    public function referenceAs(string $name): self
+    public function name(): string
     {
-        $self = clone $this;
-        $self->name = Maybe::just($name);
-
-        return $self;
+        /** @var non-empty-string */
+        return Str::of($this->class)
+            ->split('\\')
+            ->takeEnd(1)
+            ->fold(new Concat)
+            ->toLower()
+            ->toString();
     }
 
     /**
-     * @throws \LogicException When no id defined in the aggregate
-     *
-     * @return Id<T>
+     * @return Aggregate\Identity<T>
      */
-    public function id(): Id
+    public function id(): Aggregate\Identity
     {
-        try {
-            /** @var Id<T> */
-            return new Id(
-                $this
-                    ->properties()
-                    ->find(static fn($property) => $property->isId())
-                    ->name(),
-            );
-        } catch (NoElementMatchingPredicateFound $e) {
-            throw new \LogicException("No id property defined for '{$this->class}'");
-        }
+        return $this->id;
     }
 
     /**
-     * @return Set<Property>
+     * @return Set<Aggregate\Property<T, mixed>>
      */
     public function properties(): Set
     {
-        return ReflectionClass::of($this->class)
-            ->properties()
-            ->filter(fn($property) => !$this->exclude->contains($property))
-            ->mapTo(
-                Property::class,
-                fn($property) => Property::of($this->class, $property),
-            );
-    }
-
-    public function name(): string
-    {
-        return $this->name->match(
-            static fn($name) => $name,
-            fn() => Str::of($this->class)
-                ->split('\\')
-                ->last()
-                ->toLower()
-                ->toString(),
-        );
+        return $this->properties;
     }
 
     /**
-     * Extract all the values of the object that need to be persisted
-     *
-     * @param T $aggregate
-     *
-     * @return Map<string, mixed>
+     * @return Set<Aggregate\Entity>
      */
-    public function normalize(object $aggregate): Map
+    public function entities(): Set
     {
-        $properties = $this->properties()->mapTo(
-            'string',
-            static fn($property) => $property->name(),
-        );
-
-        return ReflectionObject::of(
-            $aggregate,
-            null,
-            null,
-            new ExtractionStrategy\ReflectionStrategy,
-        )
-            ->extract(...unwrap($properties));
+        return $this->entities;
     }
 
     /**
-     * Create a new object out of the given values
-     *
-     * @param Map<string, mixed> $values
-     *
-     * @return T
+     * @return Set<Aggregate\Optional>
      */
-    public function denormalize(Map $values): object
+    public function optionals(): Set
     {
-        $reflection = ReflectionClass::of(
-            $this->class,
-            $values,
-            new InjectionStrategy\ReflectionStrategy,
-            new Instanciator\ConstructorLessInstanciator,
-        );
+        return $this->optionals;
+    }
 
-        return $reflection->build();
+    /**
+     * @return Set<Aggregate\Collection>
+     */
+    public function collections(): Set
+    {
+        return $this->collections;
     }
 }

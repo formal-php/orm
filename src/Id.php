@@ -6,44 +6,63 @@ namespace Formal\ORM;
 use Ramsey\Uuid\Uuid;
 
 /**
- * @template T of object
  * @psalm-immutable
+ * @template T of object
  */
 final class Id
 {
+    /** @var non-empty-string */
     private string $value;
 
-    private function __construct(string $value)
+    /**
+     * @param class-string<T> $class
+     * @param non-empty-string $value
+     */
+    private function __construct(string $class, string $value)
     {
         $this->value = $value;
     }
 
-    public static function new(): self
+    /**
+     * @template A of object
+     *
+     * @param class-string<A> $class
+     *
+     * @return self<A>
+     */
+    public static function new(string $class): self
     {
-        return new self(Uuid::uuid4()->toString());
+        return new self($class, Uuid::uuid4()->toString());
     }
 
     /**
+     * @template A of object
      * @psalm-pure
      *
-     * @throws \LogicException When not a valid id
+     * @param class-string<A> $class
+     * @param non-empty-string $value
+     *
+     * @return self<A>
      */
-    public static function of(string $value): self
+    public static function of(string $class, string $value): self
     {
         if (!Uuid::isValid($value)) {
-            throw new \LogicException("Invalid id '$value'");
+            throw new \LogicException("Invalid id value '$value'");
         }
 
-        return new self($value);
-    }
-
-    public function equals(self $id): bool
-    {
-        return $this->value === $id->value;
+        return new self($class, $value);
     }
 
     /**
-     * @internal
+     * @param self<T> $other
+     */
+    public function equals(self $other): bool
+    {
+        return $this->value === $other->value;
+    }
+
+    /**
+     * @return non-empty-string
      */
     public function toString(): string
     {
