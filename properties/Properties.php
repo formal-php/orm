@@ -53,6 +53,7 @@ final class Properties
             FailingTransactionDueToLeftSide::class,
             FailingTransactionDueToException::class,
             StreamUpdate::class,
+            DroppingMoreElementsThanWasTakenReturnsNothing::class,
         ];
     }
 
@@ -88,6 +89,7 @@ final class Properties
             SuccessfulTransaction::class,
             FailingTransactionDueToLeftSide::class,
             FailingTransactionDueToException::class,
+            DroppingMoreElementsThanWasTakenReturnsNothing::class,
         ];
     }
 }

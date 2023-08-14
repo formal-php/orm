@@ -39,7 +39,7 @@ final class Matching
     private null|SortedBy\Property|SortedBy\Entity $sorted;
     /** @var ?positive-int */
     private ?int $drop;
-    /** @var ?positive-int */
+    /** @var null|0|positive-int */
     private ?int $take;
 
     /**
@@ -51,7 +51,7 @@ final class Matching
      * @param Loaded<T> $loaded
      * @param Sort<T> $sort
      * @param ?positive-int $drop
-     * @param ?positive-int $take
+     * @param null|0|positive-int $take
      */
     private function __construct(
         Repository $repository,
@@ -161,6 +161,10 @@ final class Matching
      */
     public function take(int $size): self
     {
+        if ($this->take === 0) {
+            return $this;
+        }
+
         return new self(
             $this->repository,
             $this->adapter,
@@ -188,6 +192,10 @@ final class Matching
      */
     public function drop(int $size): self
     {
+        if ($this->take === 0) {
+            return $this;
+        }
+
         return new self(
             $this->repository,
             $this->adapter,
@@ -202,7 +210,10 @@ final class Matching
                 null => $size,
                 default => $this->drop + $size,
             },
-            $this->take,
+            match ($this->take) {
+                null => null,
+                default => \max(0, $this->take - $size),
+            },
         );
     }
 
@@ -215,6 +226,10 @@ final class Matching
      */
     public function sort(string $property, SortedBy $direction): self
     {
+        if ($this->take === 0) {
+            return $this;
+        }
+
         return new self(
             $this->repository,
             $this->adapter,
@@ -248,6 +263,10 @@ final class Matching
      */
     public function fetch(): Sequence
     {
+        if ($this->take === 0) {
+            return Sequence::of();
+        }
+
         $denormalize = ($this->denormalize)();
         $specification = null;
 
