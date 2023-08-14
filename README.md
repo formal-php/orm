@@ -74,6 +74,8 @@ Memory: 40.00 Mo
 php benchmark/load.php  11.06s user 0.08s system 97% cpu 11.388 total
 ```
 
-This was run on a MacbookPro 16" with a M1 Max.
+This means the ORM can load 1 aggregate in 0.1 millisecond.
+
+This was run on a MacbookPro 16" with a M1 Max with the mariadb running inside Docker.
 
 **Note**: If all the aggregates were to be stored in memory it would take around 2Go of RAM and 15 seconds to complete.
