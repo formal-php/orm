@@ -73,9 +73,12 @@ final class UpdateOptional implements Property
         $manager->transactional(
             static fn() => Either::right($repository->put($user)),
         );
+        // free memory to make sure we reload from the database and not the cache
+        unset($user);
+        unset($loaded);
 
         $reloaded = $repository
-            ->get($user->id())
+            ->get(Id::of(User::class, $id))
             ->match(
                 static fn($user) => $user,
                 static fn() => null,
@@ -110,9 +113,12 @@ final class UpdateOptional implements Property
         $manager->transactional(
             static fn() => Either::right($repository->put($user)),
         );
+        // free memory to make sure we reload from the database and not the cache
+        unset($user);
+        unset($reloaded);
 
         $reloaded = $repository
-            ->get($user->id())
+            ->get(Id::of(User::class, $id))
             ->match(
                 static fn($user) => $user,
                 static fn() => null,
