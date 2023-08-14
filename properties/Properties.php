@@ -54,6 +54,9 @@ final class Properties
             FailingTransactionDueToException::class,
             StreamUpdate::class,
             DroppingMoreElementsThanWasTakenReturnsNothing::class,
+            AddingOutsideOfTransactionIsNotAllowed::class,
+            UpdatingOutsideOfTransactionIsNotAllowed::class,
+            RemovingOutsideOfTransactionIsNotAllowed::class,
         ];
     }
 
@@ -90,6 +93,7 @@ final class Properties
             FailingTransactionDueToLeftSide::class,
             FailingTransactionDueToException::class,
             DroppingMoreElementsThanWasTakenReturnsNothing::class,
+            AddingOutsideOfTransactionIsNotAllowed::class,
         ];
     }
 }
