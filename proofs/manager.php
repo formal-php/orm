@@ -16,6 +16,7 @@ use Properties\Formal\ORM\Properties;
 use Formal\AccessLayer\{
     Connection\PDO,
     Query\DropTable,
+    Query\SQL,
     Table,
 };
 use Innmind\Filesystem\Adapter\InMemory;
@@ -92,19 +93,23 @@ return static function() {
 
     $port = \getenv('DB_PORT') ?: '3306';
     $connection = PDO::of(Url::of("mysql://root:root@127.0.0.1:$port/example"));
+    $aggregates = Aggregates::of(Types::of(
+        Type\PointInTimeType::of(new Clock),
+    ));
+    $connection(DropTable::ifExists(Table\Name::of('user_addresses')));
+    $connection(DropTable::ifExists(Table\Name::of('user')));
+    $connection(DropTable::ifExists(Table\Name::of('user_mainAddress')));
+    $connection(DropTable::ifExists(Table\Name::of('user_billingAddress')));
+    $_ = Adapter\SQL\ShowCreateTable::of($aggregates)(User::class)->foreach($connection);
 
     yield properties(
         'SQL properties',
         Properties::any(),
-        Set\Call::of(static function() use ($connection) {
-            $aggregates = Aggregates::of(Types::of(
-                Type\PointInTimeType::of(new Clock),
-            ));
-            $connection(DropTable::ifExists(Table\Name::of('user_addresses')));
-            $connection(DropTable::ifExists(Table\Name::of('user')));
-            $connection(DropTable::ifExists(Table\Name::of('user_mainAddress')));
-            $connection(DropTable::ifExists(Table\Name::of('user_billingAddress')));
-            $_ = Adapter\SQL\ShowCreateTable::of($aggregates)(User::class)->foreach($connection);
+        Set\Call::of(static function() use ($connection, $aggregates) {
+            $connection(SQL::of('DELETE FROM user_addresses'));
+            $connection(SQL::of('DELETE FROM user'));
+            $connection(SQL::of('DELETE FROM user_mainAddress'));
+            $connection(SQL::of('DELETE FROM user_billingAddress'));
 
             return Manager::of(
                 Adapter\SQL::of($connection),
@@ -116,15 +121,11 @@ return static function() {
     foreach (Properties::alwaysApplicable() as $property) {
         yield property(
             $property,
-            Set\Call::of(static function() use ($connection) {
-                $aggregates = Aggregates::of(Types::of(
-                    Type\PointInTimeType::of(new Clock),
-                ));
-                $connection(DropTable::ifExists(Table\Name::of('user_addresses')));
-                $connection(DropTable::ifExists(Table\Name::of('user')));
-                $connection(DropTable::ifExists(Table\Name::of('user_mainAddress')));
-                $connection(DropTable::ifExists(Table\Name::of('user_billingAddress')));
-                $_ = Adapter\SQL\ShowCreateTable::of($aggregates)(User::class)->foreach($connection);
+            Set\Call::of(static function() use ($connection, $aggregates) {
+                $connection(SQL::of('DELETE FROM user_addresses'));
+                $connection(SQL::of('DELETE FROM user'));
+                $connection(SQL::of('DELETE FROM user_mainAddress'));
+                $connection(SQL::of('DELETE FROM user_billingAddress'));
 
                 return Manager::of(
                     Adapter\SQL::of($connection),
