@@ -10,6 +10,9 @@ use Innmind\Filesystem\File\{
 };
 use Innmind\Json\Json;
 
+/**
+ * @internal
+ */
 final class Encode
 {
     private function __construct()
@@ -82,6 +85,9 @@ final class Encode
         );
     }
 
+    /**
+     * @internal
+     */
     public static function new(): self
     {
         return new self;

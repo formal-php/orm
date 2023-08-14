@@ -9,6 +9,9 @@ use Formal\ORM\{
 };
 use Innmind\Immutable\Maybe;
 
+/**
+ * @internal
+ */
 final class Active
 {
     /** @var \WeakMap<Repository, class-string> */
@@ -24,6 +27,9 @@ final class Active
         $this->active = new \WeakMap;
     }
 
+    /**
+     * @internal
+     */
     public static function new(): self
     {
         return new self;

@@ -24,6 +24,7 @@ final class Property
     }
 
     /**
+     * @internal
      * @psalm-pure
      *
      * @param non-empty-string $name

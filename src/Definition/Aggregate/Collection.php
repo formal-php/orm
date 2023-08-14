@@ -34,6 +34,7 @@ final class Collection
     }
 
     /**
+     * @internal
      * @psalm-pure
      * @template A of object
      *

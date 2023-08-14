@@ -71,6 +71,7 @@ final class Repository
     }
 
     /**
+     * @internal
      * @template A of object
      *
      * @param Adapter\Repository<A> $adapter

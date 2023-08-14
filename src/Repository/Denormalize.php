@@ -18,6 +18,7 @@ use Innmind\Immutable\{
 };
 
 /**
+ * @internal
  * @template T of object
  */
 final class Denormalize
@@ -99,6 +100,7 @@ final class Denormalize
     }
 
     /**
+     * @internal
      * @template A of object
      *
      * @param Definition<A> $definition

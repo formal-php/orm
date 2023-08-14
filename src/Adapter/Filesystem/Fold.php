@@ -96,6 +96,7 @@ final class Fold
     }
 
     /**
+     * @internal
      * @psalm-pure
      * @template A of object
      *

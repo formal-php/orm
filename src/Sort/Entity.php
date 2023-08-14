@@ -24,6 +24,7 @@ final class Entity
     }
 
     /**
+     * @internal
      * @psalm-pure
      *
      * @param non-empty-string $name

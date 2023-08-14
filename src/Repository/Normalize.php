@@ -14,6 +14,7 @@ use Innmind\Immutable\{
 };
 
 /**
+ * @internal
  * @template T of object
  */
 final class Normalize
@@ -135,6 +136,7 @@ final class Normalize
     }
 
     /**
+     * @internal
      * @template A of object
      *
      * @param Definition<A> $definition

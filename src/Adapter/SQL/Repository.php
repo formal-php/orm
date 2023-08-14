@@ -65,6 +65,7 @@ final class Repository implements RepositoryInterface
     }
 
     /**
+     * @internal
      * @template A of object
      *
      * @param Definition<A> $definition

@@ -20,6 +20,7 @@ use Innmind\Immutable\{
  * This allows to not unwrap monadic types and accidently loading unncessary
  * data
  *
+ * @internal
  * @template T of object
  */
 final class Diff
@@ -203,6 +204,7 @@ final class Diff
     }
 
     /**
+     * @internal
      * @template A of object
      *
      * @param Definition<A> $definition

@@ -55,6 +55,7 @@ final class Aggregate
     }
 
     /**
+     * @internal
      * @template A
      *
      * @param class-string<A> $class

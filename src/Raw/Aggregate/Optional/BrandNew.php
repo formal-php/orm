@@ -28,6 +28,7 @@ final class BrandNew
     }
 
     /**
+     * @internal
      * @psalm-pure
      */
     public static function of(Optional $optional): self

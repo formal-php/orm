@@ -80,6 +80,7 @@ final class Matching
     }
 
     /**
+     * @internal
      * @template A of object
      *
      * @param Repository<A> $repository
@@ -118,6 +119,7 @@ final class Matching
     }
 
     /**
+     * @internal
      * @template A of object
      *
      * @param Repository<A> $repository

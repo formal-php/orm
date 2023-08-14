@@ -12,6 +12,7 @@ use Innmind\Reflection\Instanciate;
 use Innmind\Immutable\Map;
 
 /**
+ * @internal
  * @template T of object
  */
 final class Entity
@@ -66,6 +67,7 @@ final class Entity
     }
 
     /**
+     * @internal
      * @template A of object
      *
      * @param Definition<A> $definition

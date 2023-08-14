@@ -20,8 +20,8 @@ use Innmind\Immutable\{
 };
 
 /**
- * @template T of object
  * @internal
+ * @template T of object
  */
 final class Parsing
 {
@@ -63,6 +63,7 @@ final class Parsing
     }
 
     /**
+     * @internal
      * @template A of object
      *
      * @param class-string<A> $class

@@ -41,6 +41,7 @@ final class Diff
     }
 
     /**
+     * @internal
      * @psalm-pure
      *
      * @param Set<Aggregate\Property> $properties

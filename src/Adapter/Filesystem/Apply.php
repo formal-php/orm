@@ -10,6 +10,7 @@ use Formal\ORM\Raw\{
 use Innmind\Immutable\Set;
 
 /**
+ * @internal
  * @psalm-immutable
  */
 final class Apply
@@ -33,6 +34,7 @@ final class Apply
     }
 
     /**
+     * @internal
      * @psalm-pure
      */
     public static function of(Diff $diff): self

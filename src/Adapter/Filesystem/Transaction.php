@@ -11,6 +11,9 @@ use Innmind\Filesystem\{
 };
 use Innmind\Immutable\Predicate\Instance;
 
+/**
+ * @internal
+ */
 final class Transaction implements TransactionInterface
 {
     private Adapter $committed;
@@ -22,6 +25,9 @@ final class Transaction implements TransactionInterface
         $this->notCommitted = $this->reset();
     }
 
+    /**
+     * @internal
+     */
     public static function of(Adapter $committed): self
     {
         return new self($committed);

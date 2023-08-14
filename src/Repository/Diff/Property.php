@@ -3,6 +3,9 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Repository\Diff;
 
+/**
+ * @internal
+ */
 final class Property
 {
     /** @var non-empty-string */
@@ -21,6 +24,8 @@ final class Property
     }
 
     /**
+     * @internal
+     *
      * @param non-empty-string $name
      */
     public static function of(string $name, mixed $then, mixed $now): self

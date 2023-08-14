@@ -34,6 +34,7 @@ final class Optional
     }
 
     /**
+     * @internal
      * @psalm-pure
      * @template A of object
      *

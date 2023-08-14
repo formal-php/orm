@@ -123,6 +123,7 @@ final class Normalize
     }
 
     /**
+     * @internal
      * @psalm-pure
      * @template A of object
      *

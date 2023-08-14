@@ -54,6 +54,7 @@ final class EntityTable
     }
 
     /**
+     * @internal
      * @psalm-pure
      * @template A of object
      *
@@ -112,6 +113,8 @@ final class EntityTable
     }
 
     /**
+     * @internal
+     *
      * @param non-empty-string $uuid
      * @param Set<Property> $properties
      */
@@ -137,6 +140,8 @@ final class EntityTable
     }
 
     /**
+     * @internal
+     *
      * @param Set<Property> $properties
      *
      * @return Maybe<Query>

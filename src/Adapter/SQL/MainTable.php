@@ -188,22 +188,33 @@ final class MainTable
         return $this->name;
     }
 
+    /**
+     * @internal
+     */
     public function select(): Select
     {
         return $this->select;
     }
 
+    /**
+     * @internal
+     */
     public function contains(): Select
     {
         return $this->contains;
     }
 
+    /**
+     * @internal
+     */
     public function count(): Select
     {
         return $this->count;
     }
 
     /**
+     * @internal
+     *
      * @param non-empty-string $uuid
      * @param Set<Aggregate\Property> $properties
      * @param Map<non-empty-string, non-empty-string> $entities
@@ -249,6 +260,8 @@ final class MainTable
     }
 
     /**
+     * @internal
+     *
      * @return Maybe<Query>
      */
     public function update(Diff $data): Maybe
@@ -276,11 +289,17 @@ final class MainTable
             );
     }
 
+    /**
+     * @internal
+     */
     public function delete(): Delete
     {
         return $this->delete;
     }
 
+    /**
+     * @internal
+     */
     public function where(Specification $specification): Specification
     {
         if ($specification instanceof Not) {

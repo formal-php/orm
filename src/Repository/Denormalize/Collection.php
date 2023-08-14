@@ -15,6 +15,7 @@ use Innmind\Immutable\{
 };
 
 /**
+ * @internal
  * @template T of object
  */
 final class Collection
@@ -73,6 +74,7 @@ final class Collection
     }
 
     /**
+     * @internal
      * @template A of object
      *
      * @param Definition<A> $definition

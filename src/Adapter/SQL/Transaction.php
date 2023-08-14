@@ -11,6 +11,9 @@ use Formal\AccessLayer\{
     Query\Rollback,
 };
 
+/**
+ * @internal
+ */
 final class Transaction implements TransactionInterface
 {
     private Connection $connection;
@@ -20,6 +23,9 @@ final class Transaction implements TransactionInterface
         $this->connection = $connection;
     }
 
+    /**
+     * @internal
+     */
     public static function of(Connection $connection): self
     {
         return new self($connection);

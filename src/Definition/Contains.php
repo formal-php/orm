@@ -25,6 +25,9 @@ final class Contains
         $this->type = $type;
     }
 
+    /**
+     * @internal
+     */
     public function type(): Type
     {
         return ClassName::of($this->type);

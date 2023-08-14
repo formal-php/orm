@@ -15,6 +15,7 @@ use Innmind\Immutable\{
 };
 
 /**
+ * @internal
  * @template T of object
  */
 final class Extract
@@ -78,6 +79,7 @@ final class Extract
     }
 
     /**
+     * @internal
      * @template A of object
      *
      * @param Definition<A> $definition

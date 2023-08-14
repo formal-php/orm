@@ -19,6 +19,7 @@ use Innmind\Immutable\{
 };
 
 /**
+ * @internal
  * @template T of object
  */
 final class Decode
@@ -127,6 +128,7 @@ final class Decode
     }
 
     /**
+     * @internal
      * @template A of object
      *
      * @param Definition<A> $definition

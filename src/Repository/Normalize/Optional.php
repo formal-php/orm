@@ -15,6 +15,7 @@ use Innmind\Immutable\{
 };
 
 /**
+ * @internal
  * @template T of object
  */
 final class Optional
@@ -71,6 +72,7 @@ final class Optional
     }
 
     /**
+     * @internal
      * @template A of object
      *
      * @param Definition<A> $definition

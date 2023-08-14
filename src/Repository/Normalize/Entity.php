@@ -12,6 +12,7 @@ use Innmind\Reflection\Extract;
 use Innmind\Immutable\Set;
 
 /**
+ * @internal
  * @template T of object
  */
 final class Entity
@@ -64,6 +65,7 @@ final class Entity
     }
 
     /**
+     * @internal
      * @template A of object
      *
      * @param Definition<A> $definition

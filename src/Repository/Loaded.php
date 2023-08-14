@@ -39,6 +39,7 @@ final class Loaded
     }
 
     /**
+     * @internal
      * @template A of object
      *
      * @param Aggregate<A> $definition

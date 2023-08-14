@@ -7,6 +7,7 @@ use Formal\ORM\Definition\Aggregate as Definition;
 use Innmind\Reflection;
 
 /**
+ * @internal
  * @template T of object
  */
 final class Instanciate
@@ -49,6 +50,7 @@ final class Instanciate
     }
 
     /**
+     * @internal
      * @template A of object
      *
      * @param Definition<A> $definition

@@ -36,6 +36,7 @@ final class Identity
     }
 
     /**
+     * @internal
      * @psalm-pure
      * @template A
      *

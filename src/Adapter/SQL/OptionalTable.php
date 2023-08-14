@@ -77,6 +77,7 @@ final class OptionalTable
     }
 
     /**
+     * @internal
      * @psalm-pure
      * @template A of object
      *
@@ -135,6 +136,9 @@ final class OptionalTable
         return $this->columns;
     }
 
+    /**
+     * @internal
+     */
     public function select(Id $id): Select
     {
         return $this->select->where(PropertySpecification::of(
@@ -149,6 +153,8 @@ final class OptionalTable
     }
 
     /**
+     * @internal
+     *
      * @param non-empty-string $uuid
      * @param Set<Property> $properties
      */
@@ -174,6 +180,8 @@ final class OptionalTable
     }
 
     /**
+     * @internal
+     *
      * @return Sequence<Query>
      */
     public function update(Id $id, Optional|Optional\BrandNew $optional): Sequence

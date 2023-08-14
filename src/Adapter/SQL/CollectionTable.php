@@ -65,6 +65,7 @@ final class CollectionTable
     }
 
     /**
+     * @internal
      * @psalm-pure
      * @template A of object
      *
@@ -114,6 +115,9 @@ final class CollectionTable
         return $this->columns;
     }
 
+    /**
+     * @internal
+     */
     public function select(Id $id): Query
     {
         return $this->select->where(PropertySpecification::of(
@@ -128,6 +132,8 @@ final class CollectionTable
     }
 
     /**
+     * @internal
+     *
      * @param Set<Set<Property>> $collection
      *
      * @return Maybe<Query>
@@ -163,6 +169,8 @@ final class CollectionTable
     }
 
     /**
+     * @internal
+     *
      * @param Set<Set<Property>> $collection
      *
      * @return Sequence<Query>

@@ -15,6 +15,7 @@ use Innmind\Immutable\{
 };
 
 /**
+ * @internal
  * @psalm-immutable
  * @template T of object
  */
@@ -71,6 +72,7 @@ final class Sort
     }
 
     /**
+     * @internal
      * @psalm-pure
      * @template A of object
      *

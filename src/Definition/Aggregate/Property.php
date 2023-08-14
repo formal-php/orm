@@ -32,6 +32,7 @@ final class Property
     }
 
     /**
+     * @internal
      * @psalm-pure
      *
      * @template A of object
