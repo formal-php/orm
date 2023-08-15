@@ -8,7 +8,6 @@ All the operations you'll see in this section are done lazily, this means that w
 $_ = $manager
     ->repository(User::class)
     ->all()
-    ->fetch()
     ->foreach(static fn($user) => doStuff($user));
 ```
 
@@ -24,7 +23,7 @@ $users = $manager
     ->all()
     ->drop(100)
     ->take(50)
-    ->fetch();
+    ->sequence();
 ```
 
 This example retrieves the third page of your users and if you want to retrieve the fourth one replace `->drop(100)` by `->drop(150)`.
@@ -76,7 +75,7 @@ And then to filter you would do:
 $users = $manager
     ->repository(User::class)
     ->matching(Username::of('alice')->or(Username::of('bob')))
-    ->fetch();
+    ->sequence();
 ```
 
 `$repository->matching()` returns the same kind of object as `$repository->all()` meaning you can as easily build a pagination system on filtered data.

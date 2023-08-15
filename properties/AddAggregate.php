@@ -53,8 +53,6 @@ final class AddAggregate implements Property
     {
         $current = $manager
             ->repository(User::class)
-            ->all()
-            ->fetch()
             ->size();
         $user = User::new($this->createdAt, $this->name);
         $manager->transactional(
@@ -72,8 +70,6 @@ final class AddAggregate implements Property
             ->same(
                 $manager
                     ->repository(User::class)
-                    ->all()
-                    ->fetch()
                     ->size(),
             );
         $assert
@@ -82,7 +78,6 @@ final class AddAggregate implements Property
                 $manager
                     ->repository(User::class)
                     ->all()
-                    ->fetch()
                     ->filter(static fn($user) => $user->id()->toString() === $id)
                     ->size(),
             );

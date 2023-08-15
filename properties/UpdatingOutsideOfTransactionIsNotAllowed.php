@@ -36,7 +36,6 @@ final class UpdatingOutsideOfTransactionIsNotAllowed implements Property
             ->repository(User::class)
             ->all()
             ->take(1)
-            ->fetch()
             ->first()
             ->match(
                 static fn($user) => $user,

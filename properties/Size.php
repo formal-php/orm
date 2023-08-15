@@ -38,7 +38,7 @@ final class Size implements Property
         $repository = $manager->repository(User::class);
 
         $assert
-            ->expected($repository->all()->fetch()->size())
+            ->expected($repository->all()->sequence()->size())
             ->same($repository->size());
 
         return $manager;

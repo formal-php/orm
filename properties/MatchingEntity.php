@@ -84,7 +84,6 @@ final class MatchingEntity implements Property
                 Sign::equality,
                 $this->name1,
             ))
-            ->fetch()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
@@ -105,7 +104,6 @@ final class MatchingEntity implements Property
                 Sign::equality,
                 $this->name2,
             ))
-            ->fetch()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
@@ -126,7 +124,6 @@ final class MatchingEntity implements Property
                 Sign::startsWith,
                 $this->prefix,
             ))
-            ->fetch()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
@@ -147,7 +144,6 @@ final class MatchingEntity implements Property
                 Sign::endsWith,
                 $this->name1,
             ))
-            ->fetch()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 

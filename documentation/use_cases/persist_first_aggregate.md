@@ -44,16 +44,13 @@ The `id` property is a required one for a class to be considered an aggregate an
 Then to persist a new instance of this aggregate:
 
 ```php
-use Formal\ORM\{
-    Manager,
-    Adapter,
-};
+use Formal\ORM\Manager;
 use Innmind\OperatingSystem\Factory;
 use Innmind\Immutable\Either;
 
 $os = Factory::build();
 $tmp = $os->filesystem()->mount($os->status()->tmp());
-$manager = Manager::of(Adapter\Filesystem::of($tmp));
+$manager = Manager::filesystem($tmp);
 
 $either = $manager->transactional(
     static fn() => Either::right(

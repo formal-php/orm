@@ -28,10 +28,7 @@ $aggregates = Aggregates::of(Types::of(
 
 $_ = Adapter\SQL\ShowCreateTable::of($aggregates)(User::class)->foreach($connection);
 
-$manager = Manager::of(
-    Adapter\SQL::of($connection),
-    $aggregates,
-);
+$manager = Manager::sql($connection, $aggregates);
 $repository = $manager->repository(User::class);
 
 $users = Set\Composite::immutable(

@@ -75,7 +75,7 @@ final class MatchingDropAndTake implements Property
             ))
             ->drop(1)
             ->take(1)
-            ->fetch();
+            ->sequence();
 
         $assert
             ->expected(1)

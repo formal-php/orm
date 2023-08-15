@@ -41,7 +41,6 @@ final class StreamUpdate implements Property
                 $manager
                     ->repository(User::class)
                     ->all()
-                    ->fetch()
                     ->map(fn($user) => $user->rename($this->name))
                     ->foreach(
                         $manager
@@ -54,7 +53,6 @@ final class StreamUpdate implements Property
         $_ = $manager
             ->repository(User::class)
             ->all()
-            ->fetch()
             ->foreach(
                 fn($user) => $assert
                     ->expected($this->name)

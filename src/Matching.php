@@ -14,7 +14,11 @@ use Formal\ORM\{
     Specification\Normalize,
 };
 use Innmind\Specification\Specification;
-use Innmind\Immutable\Sequence;
+use Innmind\Immutable\{
+    Sequence,
+    Maybe,
+    SideEffect,
+};
 
 /**
  * @template T of object
@@ -254,7 +258,7 @@ final class Matching
      *
      * @return self<T>
      */
-    public function map(callable $map): self
+    public function apply(callable $map): self
     {
         /** @psalm-suppress ImpureFunctionCall */
         return $map($this);
@@ -263,7 +267,7 @@ final class Matching
     /**
      * @return Sequence<T>
      */
-    public function fetch(): Sequence
+    public function sequence(): Sequence
     {
         if ($this->take === 0) {
             return Sequence::of();
@@ -290,5 +294,115 @@ final class Matching
                 $denormalized,
             ))
             ->map($this->instanciate);
+    }
+
+    /**
+     * This method is a shortcut to ->sequence()->filter()
+     *
+     * @param callable(T): bool $predicate
+     *
+     * @return Sequence<T>
+     */
+    public function filter(callable $predicate): Sequence
+    {
+        return $this->sequence()->filter($predicate);
+    }
+
+    /**
+     * This method is a shortcut to ->sequence()->exclude()
+     *
+     * @param callable(T): bool $predicate
+     *
+     * @return Sequence<T>
+     */
+    public function exclude(callable $predicate): Sequence
+    {
+        return $this->sequence()->exclude($predicate);
+    }
+
+    /**
+     * This method is a shortcut to ->sequence()->foreach()
+     *
+     * @param callable(T): void $function
+     */
+    public function foreach(callable $function): SideEffect
+    {
+        return $this->sequence()->foreach($function);
+    }
+
+    /**
+     * This method is a shortcut to ->sequence()->first()
+     *
+     * @return Maybe<T>
+     */
+    public function first(): Maybe
+    {
+        return $this->sequence()->first();
+    }
+
+    /**
+     * This method is a shortcut to ->sequence()->map()
+     *
+     * @template S
+     *
+     * @param callable(T): S $function
+     *
+     * @return Sequence<S>
+     */
+    public function map(callable $function): Sequence
+    {
+        return $this->sequence()->map($function);
+    }
+
+    /**
+     * This method is a shortcut to ->sequence()->flatMap()
+     *
+     * @template S
+     *
+     * @param callable(T): Sequence<S> $map
+     *
+     * @return Sequence<S>
+     */
+    public function flatMap(callable $map): Sequence
+    {
+        return $this->sequence()->flatMap($map);
+    }
+
+    /**
+     * This method is a shortcut to ->sequence()->reduce()
+     *
+     * @template I
+     * @template R
+     *
+     * @param I $carry
+     * @param callable(I|R, T): R $reducer
+     *
+     * @return I|R
+     */
+    public function reduce(mixed $carry, callable $reducer): mixed
+    {
+        return $this->sequence()->reduce($carry, $reducer);
+    }
+
+    /**
+     * This method is a shortcut to ->sequence()->toList()
+     *
+     * @return list<T>
+     */
+    public function toList(): array
+    {
+        return $this->sequence()->toList();
+    }
+
+    /**
+     * This method is a shortcut to ->sequence()->find()
+     *
+     * @param callable(T): bool $predicate
+     *
+     * @return Maybe<T>
+     */
+    public function find(callable $predicate): Maybe
+    {
+        return $this->sequence()->find($predicate);
     }
 }

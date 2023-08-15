@@ -7,6 +7,8 @@ use Formal\ORM\Definition\{
     Aggregates,
     Types,
 };
+use Formal\AccessLayer\Connection;
+use Innmind\Filesystem\Adapter as Storage;
 use Innmind\Immutable\Either;
 
 final class Manager
@@ -29,6 +31,20 @@ final class Manager
         Aggregates $aggregates = null,
     ): self {
         return new self($adapter, $aggregates ?? Aggregates::of(Types::default()));
+    }
+
+    public static function sql(
+        Connection $connection,
+        Aggregates $aggregates = null,
+    ): self {
+        return self::of(Adapter\SQL::of($connection), $aggregates);
+    }
+
+    public static function filesystem(
+        Storage $storage,
+        Aggregates $aggregates = null,
+    ): self {
+        return self::of(Adapter\Filesystem::of($storage), $aggregates);
     }
 
     /**

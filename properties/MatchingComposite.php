@@ -82,7 +82,6 @@ final class MatchingComposite implements Property
                     Username::of(Sign::startsWith, Str::of($this->prefix)),
                 ),
             )
-            ->fetch()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
@@ -104,7 +103,6 @@ final class MatchingComposite implements Property
                     Username::of(Sign::equality, Str::of($this->name2)),
                 ),
             )
-            ->fetch()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
