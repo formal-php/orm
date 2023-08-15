@@ -263,7 +263,7 @@ final class Matching
     /**
      * @return Sequence<T>
      */
-    public function fetch(): Sequence
+    public function sequence(): Sequence
     {
         if ($this->take === 0) {
             return Sequence::of();

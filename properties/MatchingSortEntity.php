@@ -79,7 +79,7 @@ final class MatchingSortEntity implements Property
                 $this->prefix,
             ))
             ->sort('mainAddress.value', Sort::asc)
-            ->fetch()
+            ->sequence()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
@@ -96,7 +96,7 @@ final class MatchingSortEntity implements Property
                 $this->prefix,
             ))
             ->sort('mainAddress.value', Sort::desc)
-            ->fetch()
+            ->sequence()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 

@@ -71,7 +71,7 @@ final class DroppingMoreElementsThanWasTakenReturnsNothing implements Property
             ->all()
             ->take($this->take)
             ->drop($this->take + $this->drop)
-            ->fetch();
+            ->sequence();
 
         $assert
             ->expected(0)

@@ -84,7 +84,7 @@ final class Matching implements Property
                 Sign::equality,
                 Str::of($this->name1),
             ))
-            ->fetch()
+            ->sequence()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
@@ -105,7 +105,7 @@ final class Matching implements Property
                 Sign::equality,
                 Str::of($this->name2),
             ))
-            ->fetch()
+            ->sequence()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
@@ -126,7 +126,7 @@ final class Matching implements Property
                 Sign::startsWith,
                 Str::of($this->prefix),
             ))
-            ->fetch()
+            ->sequence()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
@@ -147,7 +147,7 @@ final class Matching implements Property
                 Sign::endsWith,
                 Str::of($this->name1),
             ))
-            ->fetch()
+            ->sequence()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
@@ -167,7 +167,7 @@ final class Matching implements Property
                 Sign::in,
                 Sequence::of(Str::of($this->name1), Str::of($this->name2)),
             ))
-            ->fetch()
+            ->sequence()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 

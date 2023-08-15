@@ -43,7 +43,7 @@ final class RemoveAggregate implements Property
         $current = $manager
             ->repository(User::class)
             ->all()
-            ->fetch()
+            ->sequence()
             ->size();
 
         $user = User::new($this->createdAt);
@@ -83,7 +83,7 @@ final class RemoveAggregate implements Property
                 $manager
                     ->repository(User::class)
                     ->all()
-                    ->fetch()
+                    ->sequence()
                     ->size(),
                 $user->id()->toString(),
             );

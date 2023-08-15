@@ -58,7 +58,7 @@ final class MatchingIds implements Property
 
         $found = $repository
             ->matching(Ids::in(Sequence::of($user1->id())))
-            ->fetch()
+            ->sequence()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
@@ -76,7 +76,7 @@ final class MatchingIds implements Property
 
         $found = $repository
             ->matching(Ids::in(Sequence::of($user2->id(), $user3->id())))
-            ->fetch()
+            ->sequence()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 

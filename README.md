@@ -39,7 +39,7 @@ $_ = $manager
     ->sort('someProperty', Sort::asc)
     ->drop(150)
     ->take(50)
-    ->fetch()
+    ->sequence()
     ->foreach(static fn($aggregate) => doStuff($aggregate));
 ```
 
@@ -47,7 +47,7 @@ This simple example will retrieve from the database `50` elements (from index `1
 
 **Note**: The elements are streamed meaning only one aggregate is in memory at a time allowing you to deal with long lists of elements in a memory safe way.
 
-**Note 2**: Since the aggregates are streamed this also means that iterating a second time on the `Sequence` returned by `fetch()` will re-call your storage.
+**Note 2**: Since the aggregates are streamed this also means that iterating a second time on the `Sequence` returned by `sequence()` will re-call your storage.
 
 ## Documentation
 

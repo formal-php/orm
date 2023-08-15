@@ -74,7 +74,7 @@ final class MatchingDrop implements Property
                 Str::of($this->name),
             ))
             ->drop(4)
-            ->fetch();
+            ->sequence();
 
         $assert
             ->expected(0)
@@ -86,7 +86,7 @@ final class MatchingDrop implements Property
                 Str::of($this->name),
             ))
             ->drop(2)
-            ->fetch();
+            ->sequence();
 
         $assert
             ->expected(1)
@@ -99,7 +99,7 @@ final class MatchingDrop implements Property
             ))
             ->drop(1)
             ->drop(1)
-            ->fetch();
+            ->sequence();
 
         $assert
             ->expected(1)

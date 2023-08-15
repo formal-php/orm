@@ -74,7 +74,7 @@ final class MatchingTake implements Property
                 Str::of($this->name),
             ))
             ->take(10)
-            ->fetch();
+            ->sequence();
 
         $assert
             ->expected(3)
@@ -86,7 +86,7 @@ final class MatchingTake implements Property
                 Str::of($this->name),
             ))
             ->take(1)
-            ->fetch();
+            ->sequence();
 
         $assert
             ->expected(1)

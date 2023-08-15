@@ -80,7 +80,7 @@ final class MatchingSort implements Property
                 Str::of($this->prefix),
             ))
             ->sort('nameStr', Sort::asc)
-            ->fetch()
+            ->sequence()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
@@ -97,7 +97,7 @@ final class MatchingSort implements Property
                 Str::of($this->prefix),
             ))
             ->sort('nameStr', Sort::desc)
-            ->fetch()
+            ->sequence()
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
