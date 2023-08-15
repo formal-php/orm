@@ -254,7 +254,7 @@ final class Matching
      *
      * @return self<T>
      */
-    public function map(callable $map): self
+    public function apply(callable $map): self
     {
         /** @psalm-suppress ImpureFunctionCall */
         return $map($this);
