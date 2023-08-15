@@ -8,7 +8,6 @@ use Formal\ORM\{
     Definition\Types,
     Definition\Type,
     Manager,
-    Adapter,
 };
 use Innmind\OperatingSystem\Factory;
 use Innmind\Url\Url;
@@ -20,10 +19,7 @@ $aggregates = Aggregates::of(Types::of(
     Type\PointInTimeType::of($os->clock()),
 ));
 
-$manager = Manager::of(
-    Adapter\SQL::of($connection),
-    $aggregates,
-);
+$manager = Manager::sql($connection, $aggregates);
 
 $_ = $manager
     ->repository(User::class)
