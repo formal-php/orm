@@ -14,6 +14,7 @@ Before diving into use cases you should read more about these subjects:
 - [Philosophy](philosophy.md)
 - [Terminology](terminology.md)
 - [Adapters](adapters.md)
+- [Limitations](limitations.md)
 
 ## Use cases
 
