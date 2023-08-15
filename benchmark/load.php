@@ -28,7 +28,6 @@ $manager = Manager::of(
 $_ = $manager
     ->repository(User::class)
     ->all()
-    ->sequence()
     ->foreach(static fn() => null);
 
 printf(

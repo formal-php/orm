@@ -8,7 +8,6 @@ All the operations you'll see in this section are done lazily, this means that w
 $_ = $manager
     ->repository(User::class)
     ->all()
-    ->sequence()
     ->foreach(static fn($user) => doStuff($user));
 ```
 

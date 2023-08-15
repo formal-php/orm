@@ -85,7 +85,6 @@ final class SuccessfulTransaction implements Property
                 $manager
                     ->repository(User::class)
                     ->all()
-                    ->sequence()
                     ->map(static fn($user) => $user->id()->toString())
                     ->toList(),
             );

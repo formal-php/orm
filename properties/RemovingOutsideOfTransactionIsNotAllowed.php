@@ -36,7 +36,6 @@ final class RemovingOutsideOfTransactionIsNotAllowed implements Property
             ->repository(User::class)
             ->all()
             ->take(1)
-            ->sequence()
             ->first()
             ->match(
                 static fn($user) => $user,
