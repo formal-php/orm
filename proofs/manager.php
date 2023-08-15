@@ -102,30 +102,25 @@ return static function() {
     $connection(DropTable::ifExists(Table\Name::of('user_billingAddress')));
     $_ = Adapter\SQL\ShowCreateTable::of($aggregates)(User::class)->foreach($connection);
 
+    $setup = static function() use ($connection, $aggregates) {
+        $connection(SQL::of('DELETE FROM user_addresses'));
+        $connection(SQL::of('DELETE FROM user'));
+        $connection(SQL::of('DELETE FROM user_mainAddress'));
+        $connection(SQL::of('DELETE FROM user_billingAddress'));
+
+        return Manager::sql($connection, $aggregates);
+    };
+
     yield properties(
         'SQL properties',
         Properties::any(),
-        Set\Call::of(static function() use ($connection, $aggregates) {
-            $connection(SQL::of('DELETE FROM user_addresses'));
-            $connection(SQL::of('DELETE FROM user'));
-            $connection(SQL::of('DELETE FROM user_mainAddress'));
-            $connection(SQL::of('DELETE FROM user_billingAddress'));
-
-            return Manager::sql($connection, $aggregates);
-        }),
+        Set\Call::of($setup),
     );
 
     foreach (Properties::alwaysApplicable() as $property) {
         yield property(
             $property,
-            Set\Call::of(static function() use ($connection, $aggregates) {
-                $connection(SQL::of('DELETE FROM user_addresses'));
-                $connection(SQL::of('DELETE FROM user'));
-                $connection(SQL::of('DELETE FROM user_mainAddress'));
-                $connection(SQL::of('DELETE FROM user_billingAddress'));
-
-                return Manager::sql($connection, $aggregates);
-            }),
+            Set\Call::of($setup),
         )->named('SQL');
     }
 };
