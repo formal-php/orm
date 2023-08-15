@@ -20,25 +20,18 @@ composer require formal/orm
 ## Usage
 
 ```php
-use Innmind\OperatingSystem\Factory;
-use Innmind\Url\Url;
 use Formal\ORM\{
     Manager,
     Adapter,
     Sort,
-    Definition\Aggregates,
-    Definition\Types,
-    Definition\Type,
 };
+use Formal\AccessLayer\Connection\PDO;
+use Innmind\Url\Url;
 
-$os = Factory::build();
 $manager = Manager::of(
-    Adapter\SQL::lazy(
-        static fn() => $os->remote()->sql(Url::of('mysql://user:pwd@host:3306/database?charset=utf8mb4')),
+    Adapter\SQL::of(
+        PDO::of(Url::of('mysql://user:pwd@host:3306/database?charset=utf8mb4')),
     ),
-    Aggregates::of(Types::of(
-        Type\PointInTimeType::of($os->clock()),
-    )),
 );
 $_ = $manager
     ->repository(YourAggregate::class)
@@ -55,8 +48,6 @@ This simple example will retrieve from the database `50` elements (from index `1
 **Note**: The elements are streamed meaning only one aggregate is in memory at a time allowing you to deal with long lists of elements in a memory safe way.
 
 **Note 2**: Since the aggregates are streamed this also means that iterating a second time on the `Sequence` returned by `fetch()` will re-call your storage.
-
-**Note 3**: This example uses [`innmind/operating-system`](https://packagist.org/packages/innmind/operating-system) but is not directly required by this package.
 
 ## Documentation
 
