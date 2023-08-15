@@ -171,14 +171,8 @@ final class Repository implements RepositoryInterface
 
     public function size(Specification $specification = null): int
     {
-        $filter = match ($specification) {
-            null => static fn(Aggregate $aggregate) => true,
-            default => ($this->fold)($specification),
-        };
-
         return $this
-            ->all()
-            ->filter($filter)
+            ->fetch($specification, null, null, null)
             ->size();
     }
 
