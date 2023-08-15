@@ -29,7 +29,7 @@ return static function() {
     yield test(
         'Manager::repository() returns a single instance as long as it is used',
         static function($assert) {
-            $manager = Manager::of(Adapter\Filesystem::of(InMemory::emulateFilesystem()));
+            $manager = Manager::filesystem(InMemory::emulateFilesystem());
 
             $repository1 = $manager->repository(User::class);
             $repository2 = $manager->repository(User::class);
@@ -40,7 +40,7 @@ return static function() {
     yield test(
         'Manager::repository() returns an instance per class',
         static function($assert) {
-            $manager = Manager::of(Adapter\Filesystem::of(InMemory::emulateFilesystem()));
+            $manager = Manager::filesystem(InMemory::emulateFilesystem());
             $repositoryA = $manager->repository(User::class);
             $repositoryB = $manager->repository(Random::class);
 
@@ -54,7 +54,7 @@ return static function() {
     yield test(
         'Nested transactions are forbidden',
         static function($assert) {
-            $manager = Manager::of(Adapter\Filesystem::of(InMemory::emulateFilesystem()));
+            $manager = Manager::filesystem(InMemory::emulateFilesystem());
 
             $assert->throws(
                 static fn() => $manager->transactional(
@@ -71,8 +71,8 @@ return static function() {
     yield properties(
         'Filesystem properties',
         Properties::any(),
-        Set\Call::of(static fn() => Manager::of(
-            Adapter\Filesystem::of(InMemory::emulateFilesystem()),
+        Set\Call::of(static fn() => Manager::filesystem(
+            InMemory::emulateFilesystem(),
             Aggregates::of(Types::of(
                 Type\PointInTimeType::of(new Clock),
             )),
@@ -82,8 +82,8 @@ return static function() {
     foreach (Properties::alwaysApplicable() as $property) {
         yield property(
             $property,
-            Set\Call::of(static fn() => Manager::of(
-                Adapter\Filesystem::of(InMemory::emulateFilesystem()),
+            Set\Call::of(static fn() => Manager::filesystem(
+                InMemory::emulateFilesystem(),
                 Aggregates::of(Types::of(
                     Type\PointInTimeType::of(new Clock),
                 )),
@@ -111,10 +111,7 @@ return static function() {
             $connection(SQL::of('DELETE FROM user_mainAddress'));
             $connection(SQL::of('DELETE FROM user_billingAddress'));
 
-            return Manager::of(
-                Adapter\SQL::of($connection),
-                $aggregates,
-            );
+            return Manager::sql($connection, $aggregates);
         }),
     );
 
@@ -127,10 +124,7 @@ return static function() {
                 $connection(SQL::of('DELETE FROM user_mainAddress'));
                 $connection(SQL::of('DELETE FROM user_billingAddress'));
 
-                return Manager::of(
-                    Adapter\SQL::of($connection),
-                    $aggregates,
-                );
+                return Manager::sql($connection, $aggregates);
             }),
         )->named('SQL');
     }

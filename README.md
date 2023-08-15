@@ -22,16 +22,13 @@ composer require formal/orm
 ```php
 use Formal\ORM\{
     Manager,
-    Adapter,
     Sort,
 };
 use Formal\AccessLayer\Connection\PDO;
 use Innmind\Url\Url;
 
-$manager = Manager::of(
-    Adapter\SQL::of(
-        PDO::of(Url::of('mysql://user:pwd@host:3306/database?charset=utf8mb4')),
-    ),
+$manager = Manager::sql(
+    PDO::of(Url::of('mysql://user:pwd@host:3306/database?charset=utf8mb4')),
 );
 $_ = $manager
     ->repository(YourAggregate::class)
