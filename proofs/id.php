@@ -9,9 +9,9 @@ return static function() {
         'Two new Ids create different values',
         static function($assert) {
             $assert
-                ->expected(Id::new(\stdClass::class)->toString())
+                ->expected(Id::new(stdClass::class)->toString())
                 ->not()
-                ->same(Id::new(\stdClass::class)->toString());
+                ->same(Id::new(stdClass::class)->toString());
         },
     );
 
@@ -22,9 +22,9 @@ return static function() {
             Set\Uuid::any(),
         ),
         static function($assert, $a, $b) {
-            $idA = Id::of(\stdClass::class, $a);
-            $idABis = Id::of(\stdClass::class, $a);
-            $idB = Id::of(\stdClass::class, $b);
+            $idA = Id::of(stdClass::class, $a);
+            $idABis = Id::of(stdClass::class, $a);
+            $idB = Id::of(stdClass::class, $b);
 
             $assert->true($idA->equals($idA));
             $assert->true($idA->equals($idABis));
@@ -36,7 +36,7 @@ return static function() {
         'Id::of() throws on invalid values',
         given(Set\Strings::madeOf(Set\Unicode::any())),
         static function($assert, $value) {
-            $assert->throws(static fn() => Id::of(\stdClass::class, $value));
+            $assert->throws(static fn() => Id::of(stdClass::class, $value));
         },
     );
 };
