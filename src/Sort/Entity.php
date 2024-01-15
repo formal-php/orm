@@ -3,7 +3,10 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Sort;
 
-use Formal\ORM\Sort as Direction;
+use Formal\ORM\{
+    Sort,
+    Sort\Property,
+};
 
 /**
  * @psalm-immutable
@@ -47,7 +50,7 @@ final class Entity
         return $this->property;
     }
 
-    public function direction(): Direction
+    public function direction(): Sort
     {
         return $this->property->direction();
     }
