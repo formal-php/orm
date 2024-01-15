@@ -14,6 +14,7 @@ use Innmind\Filesystem\{
     Adapter as Storage,
     Name,
     Directory,
+    File,
 };
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{
@@ -68,6 +69,7 @@ final class Repository implements RepositoryInterface
         return $this
             ->directory()
             ->get(Name::of($id->value()))
+            ->keep(Instance::of(File::class))
             ->flatMap(($this->decode)($id));
     }
 
@@ -82,7 +84,7 @@ final class Repository implements RepositoryInterface
     {
         $this->transaction->mutate(
             fn($adapter) => $adapter->add(
-                Directory\Directory::named($this->definition->name())->add(
+                Directory::named($this->definition->name())->add(
                     ($this->encode)($data),
                 ),
             ),
@@ -104,7 +106,7 @@ final class Repository implements RepositoryInterface
     {
         $this->transaction->mutate(
             fn($adapter) => $adapter->add(
-                Directory\Directory::named($this->definition->name())->remove(
+                Directory::named($this->definition->name())->remove(
                     Name::of($id->value()),
                 ),
             ),
@@ -185,7 +187,8 @@ final class Repository implements RepositoryInterface
 
         return $this
             ->directory()
-            ->files()
+            ->all()
+            ->keep(Instance::of(File::class))
             ->flatMap(static fn($file) => $decode($file)->toSequence());
     }
 

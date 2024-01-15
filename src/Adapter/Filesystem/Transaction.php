@@ -46,7 +46,7 @@ final class Transaction implements TransactionInterface
     public function commit(): callable
     {
         return function(mixed $value) {
-            $this->notCommitted->root()->files()->foreach(
+            $this->notCommitted->root()->all()->foreach(
                 fn($file) => $this->committed->add($file),
             );
             $this->notCommitted = $this->reset();
@@ -85,7 +85,7 @@ final class Transaction implements TransactionInterface
             ->keep(Instance::of(Directory::class))
             ->match(
                 static fn($directory) => $directory,
-                static fn() => Directory\Directory::of($directory),
+                static fn() => Directory::of($directory),
             );
         $committed = $this
             ->committed
@@ -93,7 +93,7 @@ final class Transaction implements TransactionInterface
             ->keep(Instance::of(Directory::class))
             ->match(
                 static fn($directory) => $directory,
-                static fn() => Directory\Directory::of($directory),
+                static fn() => Directory::of($directory),
             );
 
         $merged = $notCommitted->removed()->reduce(
@@ -101,7 +101,7 @@ final class Transaction implements TransactionInterface
             static fn(Directory $committed, $name) => $committed->remove($name),
         );
 
-        return $notCommitted->files()->reduce(
+        return $notCommitted->all()->reduce(
             $merged,
             static fn(Directory $merged, $file) => $merged->add($file),
         );

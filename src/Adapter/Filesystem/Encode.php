@@ -4,9 +4,9 @@ declare(strict_types = 1);
 namespace Formal\ORM\Adapter\Filesystem;
 
 use Formal\ORM\Raw\Aggregate;
-use Innmind\Filesystem\File\{
+use Innmind\Filesystem\{
     File,
-    Content,
+    File\Content,
 };
 use Innmind\Json\Json;
 
@@ -23,7 +23,7 @@ final class Encode
     {
         return File::named(
             $data->id()->value(),
-            Content\Lines::ofContent(Json::encode([
+            Content::ofString(Json::encode([
                 'properties' => $data
                     ->properties()
                     ->map(static fn($property) => [$property->name(), $property->value()])
