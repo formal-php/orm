@@ -62,7 +62,7 @@ return static function() {
                         static fn() => Either::right(null),
                     ),
                 ),
-                \LogicException::class,
+                LogicException::class,
                 'Nested transactions not allowed',
             );
         },
