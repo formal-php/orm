@@ -3,10 +3,15 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Adapter\Filesystem;
 
-use Formal\ORM\Raw\Aggregate;
+use Formal\ORM\Raw\{
+    Aggregate,
+    Diff,
+};
 use Innmind\Filesystem\{
+    Directory,
     File,
     File\Content,
+    Name,
 };
 use Innmind\Json\Json;
 
@@ -19,70 +24,100 @@ final class Encode
     {
     }
 
-    public function __invoke(Aggregate $data): File
+    public function __invoke(Aggregate|Diff $data): Directory
     {
-        return File::named(
-            $data->id()->value(),
-            Content::ofString(Json::encode([
-                'properties' => $data
+        return Directory::named($data->id()->value())
+            ->add(
+                $data
                     ->properties()
-                    ->map(static fn($property) => [$property->name(), $property->value()])
-                    ->toList(),
-                'entities' => $data
+                    ->map(static fn($property) => File::named(
+                        $property->name(),
+                        Content::ofString(Json::encode($property->value())),
+                    ))
+                    ->reduce(
+                        Directory::named('properties'),
+                        static fn(Directory $properties, $property) => $properties->add($property),
+                    ),
+            )
+            ->add(
+                $data
                     ->entities()
                     ->map(
-                        static fn($entity) => [
-                            $entity->name(),
-                            $entity
-                                ->properties()
-                                ->map(static fn($property) => [$property->name(), $property->value()])
-                                ->toList(),
-                        ],
+                        static fn($entity) => $entity
+                            ->properties()
+                            ->map(static fn($property) => File::named(
+                                $property->name(),
+                                Content::ofString(Json::encode($property->value())),
+                            ))
+                            ->reduce(
+                                Directory::named($entity->name()),
+                                static fn(Directory $entity, $property) => $entity->add($property),
+                            ),
                     )
-                    ->toList(),
-                'optionals' => $data
+                    ->reduce(
+                        Directory::named('entities'),
+                        static fn(Directory $entities, $entity) => $entities->add($entity),
+                    ),
+            )
+            ->add(
+                $data
                     ->optionals()
                     ->map(
-                        static fn($optional) => [
-                            $optional->name(),
-                            $optional
-                                ->properties()
-                                ->map(
-                                    static fn($properties) => $properties
-                                        ->map(static fn($property) => [
-                                            $property->name(),
-                                            $property->value(),
-                                        ])
-                                        ->toList(),
-                                )
-                                ->match(
-                                    static fn($properties) => $properties,
-                                    static fn() => null,
-                                ),
-                        ],
+                        static fn($optional) => $optional
+                            ->properties()
+                            ->map(
+                                static fn($properties) => $properties
+                                    ->map(static fn($property) => File::named(
+                                        $property->name(),
+                                        Content::ofString(Json::encode($property->value())),
+                                    ))
+                                    ->reduce(
+                                        Directory::named('just'),
+                                        static fn(Directory $properties, $property) => $properties->add($property),
+                                    ),
+                            )
+                            ->match(
+                                static fn($properties) => Directory::named($optional->name())->add($properties),
+                                static fn() => Directory::named($optional->name())->remove(Name::of('just')), // erase previous data
+                            ),
                     )
-                    ->toList(),
-                'collections' => $data
+                    ->reduce(
+                        Directory::named('optionals'),
+                        static fn(Directory $optionals, $optional) => $optionals->add($optional),
+                    ),
+            )
+            ->add(
+                // Each collection is stored in a signle file to make sure no
+                // previous stored data is kept on the filesystem. Another
+                // solution would be to store each entity of the collection to a
+                // dedicated directory/file but there is currently no way to
+                // tell the filesystem to erase all files in a directory before
+                // persisting the new version.
+                $data
                     ->collections()
                     ->map(
-                        static fn($collection) => [
+                        static fn($collection) => File::named(
                             $collection->name(),
-                            $collection
-                                ->properties()
-                                ->map(
-                                    static fn($properties) => $properties
-                                        ->map(static fn($property) => [
-                                            $property->name(),
-                                            $property->value(),
-                                        ])
-                                        ->toList(),
-                                )
-                                ->toList(),
-                        ],
+                            Content::ofString(Json::encode(
+                                $collection
+                                    ->properties()
+                                    ->map(
+                                        static fn($properties) => $properties
+                                            ->map(static fn($property) => [
+                                                $property->name(),
+                                                $property->value(),
+                                            ])
+                                            ->toList(),
+                                    )
+                                    ->toList(),
+                            )),
+                        ),
                     )
-                    ->toList(),
-            ])),
-        );
+                    ->reduce(
+                        Directory::named('collections'),
+                        static fn(Directory $collections, $collection) => $collections->add($collection),
+                    ),
+            );
     }
 
     /**

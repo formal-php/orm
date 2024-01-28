@@ -7,11 +7,16 @@ use Formal\ORM\{
     Definition\Aggregate as Definition,
     Raw\Aggregate,
 };
-use Innmind\Filesystem\File;
+use Innmind\Filesystem\{
+    File,
+    Directory,
+    Name,
+};
 use Innmind\Json\Json;
 use Innmind\Immutable\{
     Maybe,
     Set,
+    Predicate\Instance,
 };
 
 /**
@@ -32,58 +37,116 @@ final class Decode
     }
 
     /**
-     * @return callable(File): Maybe<Aggregate>
+     * @return callable(Directory): Maybe<Aggregate>
      */
     public function __invoke(Aggregate\Id $id = null): callable
     {
         /** @psalm-suppress ArgumentTypeCoercion */
         $id = match ($id) {
-            null => fn(File $file) => Aggregate\Id::of(
+            null => fn(Directory $directory) => Aggregate\Id::of(
                 $this->definition->id()->property(),
-                $file->name()->toString(),
+                $directory->name()->toString(),
             ),
-            default => static fn(File $file) => $id,
+            default => static fn(Directory $directory) => $id,
         };
 
         /**
          * @psalm-suppress MixedArgument
          * @psalm-suppress MixedArrayAccess
+         * @psalm-suppress MixedArgumentTypeCoercion
          */
-        return static fn(File $file) => Maybe::just($file->content()->toString())
-            ->map(Json::decode(...))
-            ->filter(\is_array(...))
-            ->map(static fn($raw) => Aggregate::of(
-                $id($file),
-                Set::of(...$raw['properties'])->map(static fn($property) => Aggregate\Property::of(
-                    $property[0],
-                    $property[1],
-                )),
-                Set::of(...$raw['entities'])->map(static fn($entity) => Aggregate\Entity::of(
-                    $entity[0],
-                    Set::of(...$entity[1])->map(static fn($property) => Aggregate\Property::of(
-                        $property[0],
-                        $property[1],
-                    )),
-                )),
-                Set::of(...$raw['optionals'])->map(static fn($optional) => Aggregate\Optional::of(
-                    $optional[0],
-                    Maybe::of($optional[1])->map(static fn($properties) => Set::of(...$properties)->map(
-                        static fn($property) => Aggregate\Property::of(
-                            $property[0],
-                            $property[1],
-                        ),
-                    )),
-                )),
-                Set::of(...$raw['collections'])->map(static fn($collection) => Aggregate\Collection::of(
-                    $collection[0],
-                    Set::of(...$collection[1])->map(static fn($properties) => Set::of(...$properties)->map(
-                        static fn($property) => Aggregate\Property::of(
-                            $property[0],
-                            $property[1],
-                        ),
-                    )),
-                )),
-            ));
+        return static fn(Directory $directory) => Maybe::all(
+            $directory
+                ->get(Name::of('properties'))
+                ->keep(Instance::of(Directory::class))
+                ->map(
+                    static fn($properties) => $properties
+                        ->all()
+                        ->keep(Instance::of(File::class))
+                        ->map(static fn($file) => Aggregate\Property::of(
+                            $file->name()->toString(),
+                            Json::decode($file->content()->toString()),
+                        ))
+                        ->toSet(),
+                ),
+            $directory
+                ->get(Name::of('entities'))
+                ->keep(Instance::of(Directory::class))
+                ->map(
+                    static fn($entities) => $entities
+                        ->all()
+                        ->keep(Instance::of(Directory::class))
+                        ->map(
+                            static fn($entity) => Aggregate\Entity::of(
+                                $entity->name()->toString(),
+                                $entity
+                                    ->all()
+                                    ->keep(Instance::of(File::class))
+                                    ->map(static fn($property) => Aggregate\Property::of(
+                                        $property->name()->toString(),
+                                        Json::decode($property->content()->toString()),
+                                    ))
+                                    ->toSet(),
+                            ),
+                        )
+                        ->toSet(),
+                ),
+            $directory
+                ->get(Name::of('optionals'))
+                ->keep(Instance::of(Directory::class))
+                ->map(
+                    static fn($optionals) => $optionals
+                        ->all()
+                        ->keep(Instance::of(Directory::class))
+                        ->map(
+                            static fn($optional) => Aggregate\Optional::of(
+                                $optional->name()->toString(),
+                                $optional
+                                    ->get(Name::of('just'))
+                                    ->keep(Instance::of(Directory::class))
+                                    ->map(
+                                        static fn($just) => $just
+                                            ->all()
+                                            ->keep(Instance::of(File::class))
+                                            ->map(static fn($property) => Aggregate\Property::of(
+                                                $property->name()->toString(),
+                                                Json::decode($property->content()->toString()),
+                                            ))
+                                            ->toSet(),
+                                    ),
+                            ),
+                        )
+                        ->toSet(),
+                ),
+            $directory
+                ->get(Name::of('collections'))
+                ->keep(Instance::of(Directory::class))
+                ->map(
+                    static fn($collections) => $collections
+                        ->all()
+                        ->keep(Instance::of(File::class))
+                        ->map(
+                            static fn($collection) => Aggregate\Collection::of(
+                                $collection->name()->toString(),
+                                Set::of(...Json::decode($collection->content()->toString()))->map(
+                                    static fn($entity) => Set::of(...$entity)->map(
+                                        static fn($property) => Aggregate\Property::of(
+                                            $property[0],
+                                            $property[1],
+                                        ),
+                                    ),
+                                ),
+                            ),
+                        )
+                        ->toSet(),
+                ),
+        )->map(static fn(Set $properties, Set $entities, Set $optionals, Set $collections) => Aggregate::of(
+            $id($directory),
+            $properties,
+            $entities,
+            $optionals,
+            $collections,
+        ));
     }
 
     /**
