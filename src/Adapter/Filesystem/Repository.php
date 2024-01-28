@@ -69,7 +69,7 @@ final class Repository implements RepositoryInterface
         return $this
             ->directory()
             ->get(Name::of($id->value()))
-            ->keep(Instance::of(File::class))
+            ->keep(Instance::of(Directory::class))
             ->flatMap(($this->decode)($id));
     }
 
@@ -188,7 +188,7 @@ final class Repository implements RepositoryInterface
         return $this
             ->directory()
             ->all()
-            ->keep(Instance::of(File::class))
+            ->keep(Instance::of(Directory::class))
             ->flatMap(static fn($file) => $decode($file)->toSequence());
     }
 
