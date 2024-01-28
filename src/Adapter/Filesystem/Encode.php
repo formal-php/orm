@@ -3,7 +3,10 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Adapter\Filesystem;
 
-use Formal\ORM\Raw\Aggregate;
+use Formal\ORM\Raw\{
+    Aggregate,
+    Diff,
+};
 use Innmind\Filesystem\{
     Directory,
     File,
@@ -21,7 +24,7 @@ final class Encode
     {
     }
 
-    public function __invoke(Aggregate $data): Directory
+    public function __invoke(Aggregate|Diff $data): Directory
     {
         return Directory::named($data->id()->value())
             ->add(

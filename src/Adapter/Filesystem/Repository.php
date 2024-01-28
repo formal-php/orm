@@ -93,13 +93,13 @@ final class Repository implements RepositoryInterface
 
     public function update(Diff $data): void
     {
-        $_ = $this
-            ->get($data->id())
-            ->map(Apply::of($data))
-            ->match(
-                $this->add(...),
-                static fn() => null,
-            );
+        $this->transaction->mutate(
+            fn($adapter) => $adapter->add(
+                Directory::named($this->definition->name())->add(
+                    ($this->encode)($data),
+                ),
+            ),
+        );
     }
 
     public function remove(Aggregate\Id $id): void
