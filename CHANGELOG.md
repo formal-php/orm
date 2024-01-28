@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Aggregates are now stored on multiple files with the `Filesystem` adapter
+
 ## 1.2.0 - 2024-01-15
 
 ### Changed
