@@ -122,7 +122,15 @@ final class MainTable
             ->columns(Column\Name::of($definition->id()->property())->in($this->name));
         // No need for this query to be lazy as the result is directly collapsed
         // to an int
-        $this->count = Select::from($this->name)->count('count');
+        $this->count = $entities->reduce(
+            Select::from($this->name)->count('count'),
+            fn(Select $select, $name, $table) => $select->join(
+                Join::left($table->name())->on(
+                    Column\Name::of($name)->in($this->name),
+                    Column\Name::of('id')->in($table->name()),
+                ),
+            ),
+        );
         $delete = $entities->reduce(
             Delete::from($this->name),
             fn(Delete $delete, $name, $table) => $delete->join(
