@@ -121,7 +121,7 @@ final class MainTable
         $this->contains = Select::from($this->name)
             ->columns(Column\Name::of($definition->id()->property())->in($this->name));
         // No need for this query to be lazy as the result is directly collapsed
-        // to a boolean
+        // to an int
         $this->count = Select::from($this->name)->count('count');
         $delete = $entities->reduce(
             Delete::from($this->name),
