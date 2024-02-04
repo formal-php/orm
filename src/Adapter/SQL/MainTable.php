@@ -9,6 +9,8 @@ use Formal\ORM\{
     Raw\Diff,
     Specification\Property,
     Specification\Entity,
+    Specification\Child,
+    Specification\SubQuery,
 };
 use Formal\AccessLayer\{
     Table,
@@ -23,7 +25,6 @@ use Formal\AccessLayer\{
 use Innmind\Specification\{
     Specification,
     Not,
-    Comparator,
     Composite,
     Operator,
     Sign,
@@ -121,8 +122,16 @@ final class MainTable
         $this->contains = Select::from($this->name)
             ->columns(Column\Name::of($definition->id()->property())->in($this->name));
         // No need for this query to be lazy as the result is directly collapsed
-        // to a boolean
-        $this->count = Select::from($this->name)->count('count');
+        // to an int
+        $this->count = $entities->reduce(
+            Select::from($this->name)->count('count'),
+            fn(Select $select, $name, $table) => $select->join(
+                Join::left($table->name())->on(
+                    Column\Name::of($name)->in($this->name),
+                    Column\Name::of('id')->in($table->name()),
+                ),
+            ),
+        );
         $delete = $entities->reduce(
             Delete::from($this->name),
             fn(Delete $delete, $name, $table) => $delete->join(
@@ -191,9 +200,12 @@ final class MainTable
     /**
      * @internal
      */
-    public function select(): Select
+    public function select(Specification $specification = null): Select
     {
-        return $this->select;
+        return match ($specification) {
+            null => $this->select,
+            default => $this->select->where($this->where($specification)),
+        };
     }
 
     /**
@@ -207,9 +219,12 @@ final class MainTable
     /**
      * @internal
      */
-    public function count(): Select
+    public function count(Specification $specification = null): Select
     {
-        return $this->count;
+        return match ($specification) {
+            null => $this->count,
+            default => $this->count->where($this->where($specification)),
+        };
     }
 
     /**
@@ -298,50 +313,6 @@ final class MainTable
     }
 
     /**
-     * @internal
-     */
-    public function where(Specification $specification): Specification
-    {
-        if ($specification instanceof Not) {
-            return $this->where($specification->specification())->not();
-        }
-
-        if ($specification instanceof Composite) {
-            $left = $this->where($specification->left());
-            $right = $this->where($specification->right());
-
-            return match ($specification->operator()) {
-                Operator::and => $left->and($right),
-                Operator::or => $left->or($right),
-            };
-        }
-
-        if ($specification instanceof Entity) {
-            return Property::of(
-                \sprintf(
-                    '%s.%s',
-                    $specification->entity(),
-                    $specification->property(),
-                ),
-                $specification->sign(),
-                $specification->value(),
-            );
-        }
-
-        if (!($specification instanceof Property)) {
-            $class = $specification::class;
-
-            throw new \LogicException("Unsupported specification '$class'");
-        }
-
-        return Property::of(
-            'entity.'.$specification->property(),
-            $specification->sign(),
-            $specification->value(),
-        );
-    }
-
-    /**
      * @return Set<EntityTable>
      */
     public function entities(): Set
@@ -393,5 +364,58 @@ final class MainTable
     public function collection(string $name): Maybe
     {
         return $this->collections->get($name);
+    }
+
+    private function where(Specification $specification): Specification
+    {
+        if ($specification instanceof Not) {
+            return $this->where($specification->specification())->not();
+        }
+
+        if ($specification instanceof Composite) {
+            $left = $this->where($specification->left());
+            $right = $this->where($specification->right());
+
+            return match ($specification->operator()) {
+                Operator::and => $left->and($right),
+                Operator::or => $left->or($right),
+            };
+        }
+
+        if ($specification instanceof Entity) {
+            return Property::of(
+                \sprintf(
+                    '%s.%s',
+                    $specification->entity(),
+                    $specification->property(),
+                ),
+                $specification->sign(),
+                $specification->value(),
+            );
+        }
+
+        if ($specification instanceof Child) {
+            return SubQuery::of(
+                \sprintf('entity.%s', $this->definition->id()->property()),
+                $this
+                    ->collection($specification->collection())
+                    ->match(
+                        static fn($collection) => $collection->where($specification->specification()),
+                        static fn() => throw new \LogicException("Unkown collection '{$specification->collection()}'"),
+                    ),
+            );
+        }
+
+        if (!($specification instanceof Property)) {
+            $class = $specification::class;
+
+            throw new \LogicException("Unsupported specification '$class'");
+        }
+
+        return Property::of(
+            'entity.'.$specification->property(),
+            $specification->sign(),
+            $specification->value(),
+        );
     }
 }

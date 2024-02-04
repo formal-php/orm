@@ -36,6 +36,8 @@ final class Normalize
     private Map $properties;
     /** @var Map<non-empty-string, Map<non-empty-string, Aggregate\Property>> */
     private Map $entities;
+    /** @var Map<non-empty-string, Map<non-empty-string, Aggregate\Property>> */
+    private Map $collections;
 
     /**
      * @param Aggregate<T> $definition
@@ -65,6 +67,22 @@ final class Normalize
                 )
                 ->toList(),
         );
+        $this->collections = Map::of(
+            ...$definition
+                ->collections()
+                ->map(
+                    static fn($collection) => [
+                        $collection->name(),
+                        Map::of(
+                            ...$collection
+                                ->properties()
+                                ->map(static fn($property) => [$property->name(), $property])
+                                ->toList(),
+                        ),
+                    ],
+                )
+                ->toList(),
+        );
     }
 
     public function __invoke(Specification $specification): Specification
@@ -81,6 +99,23 @@ final class Normalize
                 Operator::and => $left->and($right),
                 Operator::or => $left->or($right),
             };
+        }
+
+        if ($specification instanceof Child) {
+            return $this
+                ->collections
+                ->get($specification->collection())
+                ->map(fn($collection) => $this->child(
+                    $collection,
+                    $specification->specification(),
+                ))
+                ->match(
+                    static fn($normalized) => Child::of(
+                        $specification->collection(),
+                        $normalized,
+                    ),
+                    static fn() => throw new \LogicException("Unknown collection '{$specification->collection()}'"),
+                );
         }
 
         if (!($specification instanceof Comparator)) {
@@ -199,5 +234,45 @@ final class Normalize
                 static fn($value) => $value,
                 static fn() => throw new \LogicException("Unknown property '$property'"),
             );
+    }
+
+    /**
+     * @param Map<non-empty-string, Aggregate\Property> $properties
+     */
+    private function child(
+        Map $properties,
+        Specification $specification,
+    ): Specification {
+        if ($specification instanceof Not) {
+            return $this
+                ->child($properties, $specification->specification())
+                ->not();
+        }
+
+        if ($specification instanceof Composite) {
+            $left = $this->child($properties, $specification->left());
+            $right = $this->child($properties, $specification->right());
+
+            return match ($specification->operator()) {
+                Operator::and => $left->and($right),
+                Operator::or => $left->or($right),
+            };
+        }
+
+        if (!($specification instanceof Comparator)) {
+            $class = $specification::class;
+
+            throw new \LogicException("Unsupported specification '$class'");
+        }
+
+        return Property::of(
+            $specification->property(),
+            $specification->sign(),
+            $this->normalizeProperty(
+                $properties,
+                $specification->property(),
+                $specification->value(),
+            ),
+        );
     }
 }

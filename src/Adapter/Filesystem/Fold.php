@@ -8,6 +8,7 @@ use Formal\ORM\{
     Raw\Aggregate,
     Specification\Property as PropertySpecification,
     Specification\Entity as EntitySpecification,
+    Specification\Child as ChildSpecification,
 };
 use Innmind\Specification\{
     Specification,
@@ -17,6 +18,7 @@ use Innmind\Specification\{
     Operator,
     Sign,
 };
+use Innmind\Immutable\Set;
 
 /**
  * @internal
@@ -70,6 +72,23 @@ final class Fold
                 )
                 ->match(
                     static fn($property) => $filter($property->value()),
+                    static fn() => false,
+                );
+        }
+
+        if ($specification instanceof ChildSpecification) {
+            $filter = $this->child($specification->specification());
+
+            return static fn(Aggregate $aggregate) => $aggregate
+                ->collections()
+                ->find(static fn($collection) => $collection->name() === $specification->collection())
+                ->flatMap(
+                    static fn($collection) => $collection
+                        ->properties()
+                        ->find($filter),
+                )
+                ->match(
+                    static fn() => true,
                     static fn() => false,
                 );
         }
@@ -129,5 +148,43 @@ final class Fold
             Sign::contains => static fn(null|string|int|bool $value): bool => \is_string($value) && \str_contains($value, $specification->value()),
             Sign::in => static fn(null|string|int|bool $value): bool => \in_array($value, $specification->value(), true),
         };
+    }
+
+    /**
+     * @return callable(Set<Aggregate\Property>): bool
+     */
+    private function child(Specification $specification): callable
+    {
+        if ($specification instanceof Not) {
+            $filter = $this->child($specification->specification());
+
+            return static fn(Set $properties) => !$filter($properties);
+        }
+
+        if ($specification instanceof Composite) {
+            $left = $this->child($specification->left());
+            $right = $this->child($specification->right());
+
+            /** @psalm-suppress MixedArgumentTypeCoercion */
+            return match ($specification->operator()) {
+                Operator::and => static fn(Set $properties) => $left($properties) && $right($properties),
+                Operator::or => static fn(Set $properties) => $left($properties) || $right($properties),
+            };
+        }
+
+        if (!($specification instanceof PropertySpecification)) {
+            $class = $specification::class;
+
+            throw new \LogicException("Unsupported specification '$class'");
+        }
+
+        $filter = $this->filter($specification);
+
+        return static fn(Set $properties) => $properties
+            ->find(static fn($property) => $property->name() === $specification->property())
+            ->match(
+                static fn($property) => $filter($property->value()),
+                static fn() => false,
+            );
     }
 }
