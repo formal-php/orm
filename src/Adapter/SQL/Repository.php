@@ -130,11 +130,7 @@ final class Repository implements RepositoryInterface
         ?int $drop,
         ?int $take,
     ): Sequence {
-        $select = $this->mainTable->select();
-
-        if ($specification) {
-            $select = $select->where($this->mainTable->where($specification));
-        }
+        $select = $this->mainTable->select($specification);
 
         if ($sort) {
             $column = match (true) {
@@ -175,13 +171,7 @@ final class Repository implements RepositoryInterface
 
     public function size(Specification $specification = null): int
     {
-        $count = $this->mainTable->count();
-        $count = match ($specification) {
-            null => $count,
-            default => $count->where(
-                $this->mainTable->where($specification),
-            ),
-        };
+        $count = $this->mainTable->count($specification);
 
         /** @var 0|positive-int SQL count() should never return a negative value */
         return ($this->connection)($count)

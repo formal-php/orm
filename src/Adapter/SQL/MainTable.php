@@ -199,9 +199,12 @@ final class MainTable
     /**
      * @internal
      */
-    public function select(): Select
+    public function select(Specification $specification = null): Select
     {
-        return $this->select;
+        return match ($specification) {
+            null => $this->select,
+            default => $this->select->where($this->where($specification)),
+        };
     }
 
     /**
@@ -215,9 +218,12 @@ final class MainTable
     /**
      * @internal
      */
-    public function count(): Select
+    public function count(Specification $specification = null): Select
     {
-        return $this->count;
+        return match ($specification) {
+            null => $this->count,
+            default => $this->count->where($this->where($specification)),
+        };
     }
 
     /**
@@ -306,50 +312,6 @@ final class MainTable
     }
 
     /**
-     * @internal
-     */
-    public function where(Specification $specification): Specification
-    {
-        if ($specification instanceof Not) {
-            return $this->where($specification->specification())->not();
-        }
-
-        if ($specification instanceof Composite) {
-            $left = $this->where($specification->left());
-            $right = $this->where($specification->right());
-
-            return match ($specification->operator()) {
-                Operator::and => $left->and($right),
-                Operator::or => $left->or($right),
-            };
-        }
-
-        if ($specification instanceof Entity) {
-            return Property::of(
-                \sprintf(
-                    '%s.%s',
-                    $specification->entity(),
-                    $specification->property(),
-                ),
-                $specification->sign(),
-                $specification->value(),
-            );
-        }
-
-        if (!($specification instanceof Property)) {
-            $class = $specification::class;
-
-            throw new \LogicException("Unsupported specification '$class'");
-        }
-
-        return Property::of(
-            'entity.'.$specification->property(),
-            $specification->sign(),
-            $specification->value(),
-        );
-    }
-
-    /**
      * @return Set<EntityTable>
      */
     public function entities(): Set
@@ -401,5 +363,46 @@ final class MainTable
     public function collection(string $name): Maybe
     {
         return $this->collections->get($name);
+    }
+
+    private function where(Specification $specification): Specification
+    {
+        if ($specification instanceof Not) {
+            return $this->where($specification->specification())->not();
+        }
+
+        if ($specification instanceof Composite) {
+            $left = $this->where($specification->left());
+            $right = $this->where($specification->right());
+
+            return match ($specification->operator()) {
+                Operator::and => $left->and($right),
+                Operator::or => $left->or($right),
+            };
+        }
+
+        if ($specification instanceof Entity) {
+            return Property::of(
+                \sprintf(
+                    '%s.%s',
+                    $specification->entity(),
+                    $specification->property(),
+                ),
+                $specification->sign(),
+                $specification->value(),
+            );
+        }
+
+        if (!($specification instanceof Property)) {
+            $class = $specification::class;
+
+            throw new \LogicException("Unsupported specification '$class'");
+        }
+
+        return Property::of(
+            'entity.'.$specification->property(),
+            $specification->sign(),
+            $specification->value(),
+        );
     }
 }
