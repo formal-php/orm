@@ -19,6 +19,7 @@ use Formal\AccessLayer\{
     Row,
 };
 use Innmind\Specification\Sign;
+use Innmind\Specification\Specification;
 use Innmind\Immutable\{
     Set,
     Maybe,
@@ -192,5 +193,12 @@ final class CollectionTable
                 ->toSequence()
                 ->toList(),
         );
+    }
+
+    public function where(Specification $specification): Query
+    {
+        return Select::from($this->name)
+            ->columns($this->id)
+            ->where($specification);
     }
 }

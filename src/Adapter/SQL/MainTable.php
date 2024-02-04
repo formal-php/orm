@@ -9,6 +9,8 @@ use Formal\ORM\{
     Raw\Diff,
     Specification\Property,
     Specification\Entity,
+    Specification\Child,
+    Specification\SubQuery,
 };
 use Formal\AccessLayer\{
     Table,
@@ -23,7 +25,6 @@ use Formal\AccessLayer\{
 use Innmind\Specification\{
     Specification,
     Not,
-    Comparator,
     Composite,
     Operator,
     Sign,
@@ -390,6 +391,18 @@ final class MainTable
                 ),
                 $specification->sign(),
                 $specification->value(),
+            );
+        }
+
+        if ($specification instanceof Child) {
+            return SubQuery::of(
+                \sprintf('entity.%s', $this->definition->id()->property()),
+                $this
+                    ->collection($specification->collection())
+                    ->match(
+                        static fn($collection) => $collection->where($specification->specification()),
+                        static fn() => throw new \LogicException("Unkown collection '{$specification->collection()}'"),
+                    ),
             );
         }
 
