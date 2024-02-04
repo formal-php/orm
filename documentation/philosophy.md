@@ -19,7 +19,8 @@ The `Maybe` monad is also used to wrap optional entities in your aggregates mean
 
 Collections of entities in an aggregate is achieved using the `Set` monad and works the same way as `Maybe`, no data fetched by default but once it is loaded it stays in memory.
 
-**Note**: the monads mentionned above come from [`innmind/immutable`](https://packagist.org/packages/innmind/immutable).
+> [!NOTE]
+> the monads mentionned above come from [`innmind/immutable`](https://packagist.org/packages/innmind/immutable).
 
 ## Trees, not a Graph
 

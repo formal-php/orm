@@ -39,7 +39,8 @@ The annotations in this example are not necessary but allows the static analyzer
 
 The `id` property is a required one for a class to be considered an aggregate and must be typed with `Formal\ORM\Id`.
 
-**Warning**: this example doesn't hash the password for simplicity's sake. You shouldn't store password in clear text!
+> [!WARNING]
+> this example doesn't hash the password for simplicity's sake. You shouldn't store password in clear text!
 
 Then to persist a new instance of this aggregate:
 

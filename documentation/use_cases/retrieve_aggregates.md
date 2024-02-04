@@ -87,7 +87,8 @@ You can filter on an aggregate:
 
 When filtering on collections an aggregate will be returned as long as at least one child of the collection matches the specification.
 
-**Important**: You can't filter on optional properties as it may rely on implicit behaviours (ie: checking if a property in an optional entity is null).
+> [!IMPORTANT]
+> You can't filter on optional properties as it may rely on implicit behaviours (ie: checking if a property in an optional entity is null).
 
 
 ## Counting the number of aggregates inside a repository
