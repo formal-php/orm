@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- You can match aggregates on collections via `Formal\ORM\Specification\Child`
+
 ### Changed
 
 - Aggregates are now stored on multiple files with the `Filesystem` adapter
