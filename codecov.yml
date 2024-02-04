@@ -1,2 +1,3 @@
 ignore:
     - fixtures
+github_checks: false
