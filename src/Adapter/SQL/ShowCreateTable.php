@@ -43,15 +43,18 @@ final class ShowCreateTable
                 ...$entity
                     ->columnsDefinition($this->mapType)
                     ->toList(),
-            )->constraint(
-                ForeignKey::of(
-                    $entity->primaryKey()->name(),
-                    $mainTable->name()->name(),
-                    $mainTable->primaryKey()->name(),
+            )
+                ->constraint(
+                    ForeignKey::of(
+                        $entity->primaryKey()->name(),
+                        $mainTable->name()->name(),
+                        $mainTable->primaryKey()->name(),
+                    )
+                        ->onDeleteCascade()
+                        ->named($entity->name()->name()->toString()),
                 )
-                    ->onDeleteCascade()
-                    ->named($entity->name()->name()->toString()),
-            ))
+                ->unique($entity->primaryKey()->name()),
+            )
             ->toList();
         $optionals = $mainTable
             ->optionals()
@@ -61,15 +64,18 @@ final class ShowCreateTable
                 ...$optional
                     ->columnsDefinition($this->mapType)
                     ->toList(),
-            )->constraint(
-                ForeignKey::of(
-                    $optional->primaryKey()->name(),
-                    $mainTable->name()->name(),
-                    $mainTable->primaryKey()->name(),
+            )
+                ->constraint(
+                    ForeignKey::of(
+                        $optional->primaryKey()->name(),
+                        $mainTable->name()->name(),
+                        $mainTable->primaryKey()->name(),
+                    )
+                        ->onDeleteCascade()
+                        ->named($optional->name()->name()->toString()),
                 )
-                    ->onDeleteCascade()
-                    ->named($optional->name()->name()->toString()),
-            ))
+                ->unique($optional->primaryKey()->name()),
+            )
             ->toList();
 
         $collections = $mainTable
