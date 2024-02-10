@@ -190,12 +190,18 @@ final class Repository
 
     public function any(Specification $specification = null): bool
     {
-        return $this->size($specification) !== 0;
+        return $this->adapter->any(match ($specification) {
+            null => null,
+            default => ($this->normalizeSpecification)($specification),
+        });
     }
 
     public function none(Specification $specification = null): bool
     {
-        return $this->size($specification) === 0;
+        return $this->adapter->none(match ($specification) {
+            null => null,
+            default => ($this->normalizeSpecification)($specification),
+        });
     }
 
     /**
