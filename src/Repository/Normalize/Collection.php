@@ -9,10 +9,7 @@ use Formal\ORM\{
     Raw\Aggregate\Property,
 };
 use Innmind\Reflection\Extract;
-use Innmind\Immutable\{
-    Set,
-    Maybe,
-};
+use Innmind\Immutable\Set;
 
 /**
  * @internal
