@@ -189,11 +189,6 @@ final class Repository implements RepositoryInterface
             );
     }
 
-    public function none(Specification $specification = null): bool
-    {
-        return !$this->any($specification);
-    }
-
     /**
      * @return Sequence<Aggregate>
      */

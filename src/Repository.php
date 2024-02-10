@@ -198,10 +198,7 @@ final class Repository
 
     public function none(Specification $specification = null): bool
     {
-        return $this->adapter->none(match ($specification) {
-            null => null,
-            default => ($this->normalizeSpecification)($specification),
-        });
+        return !$this->any($specification);
     }
 
     /**

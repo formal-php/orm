@@ -47,5 +47,4 @@ interface Repository
     public function size(Specification $specification = null): int;
 
     public function any(Specification $specification = null): bool;
-    public function none(Specification $specification = null): bool;
 }

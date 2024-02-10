@@ -202,9 +202,4 @@ final class Repository implements RepositoryInterface
                 static fn() => false,
             );
     }
-
-    public function none(Specification $specification = null): bool
-    {
-        return !$this->any($specification);
-    }
 }
