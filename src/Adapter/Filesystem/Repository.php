@@ -180,12 +180,18 @@ final class Repository implements RepositoryInterface
 
     public function any(Specification $specification = null): bool
     {
-        return $this->size($specification) !== 0;
+        return $this
+            ->fetch($specification, null, null, 1)
+            ->first()
+            ->match(
+                static fn() => true,
+                static fn() => false,
+            );
     }
 
     public function none(Specification $specification = null): bool
     {
-        return $this->size($specification) === 0;
+        return !$this->any($specification);
     }
 
     /**
