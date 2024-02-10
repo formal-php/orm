@@ -14,7 +14,6 @@ use Formal\AccessLayer\{
     Table\Column,
     Query,
     Query\Select,
-    Query\Update,
     Query\Delete,
     Row,
 };
@@ -149,12 +148,12 @@ final class CollectionTable
                     $table,
                     ...$collection
                         ->map(
-                            static fn($properties) => new Row(
+                            static fn($entity) => new Row(
                                 new Row\Value(
                                     Column\Name::of('id')->in($table),
                                     $id->value(),
                                 ),
-                                ...$properties
+                                ...$entity
                                     ->map(static fn($property) => new Row\Value(
                                         Column\Name::of($property->name())->in($table),
                                         $property->value(),

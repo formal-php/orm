@@ -49,10 +49,10 @@ final class Collection
         $class = $this->definition->class();
 
         return $collection
-            ->properties()
-            ->map(function($properties) use ($class) {
-                $properties = Map::of(
-                    ...$properties
+            ->entities()
+            ->map(function($entity) use ($class) {
+                $entity = Map::of(
+                    ...$entity
                         ->flatMap(
                             fn($property) => $this
                                 ->properties
@@ -66,7 +66,7 @@ final class Collection
                 );
 
                 /** @var T */
-                return ($this->instanciate)($class, $properties)->match(
+                return ($this->instanciate)($class, $entity)->match(
                     static fn($collection) => $collection,
                     static fn() => throw new \RuntimeException("Unable to denormalize collection of type '$class'"),
                 );

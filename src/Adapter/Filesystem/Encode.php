@@ -100,9 +100,9 @@ final class Encode
                             $collection->name(),
                             Content::ofString(Json::encode(
                                 $collection
-                                    ->properties()
+                                    ->entities()
                                     ->map(
-                                        static fn($properties) => $properties
+                                        static fn($entity) => $entity
                                             ->map(static fn($property) => [
                                                 $property->name(),
                                                 $property->value(),

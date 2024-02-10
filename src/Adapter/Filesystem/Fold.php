@@ -84,7 +84,7 @@ final class Fold
                 ->find(static fn($collection) => $collection->name() === $specification->collection())
                 ->flatMap(
                     static fn($collection) => $collection
-                        ->properties()
+                        ->entities()
                         ->find($filter),
                 )
                 ->match(
@@ -180,7 +180,7 @@ final class Fold
 
         $filter = $this->filter($specification);
 
-        return static fn(Set $properties) => $properties
+        return static fn(Set $entity) => $entity
             ->find(static fn($property) => $property->name() === $specification->property())
             ->match(
                 static fn($property) => $filter($property->value()),
