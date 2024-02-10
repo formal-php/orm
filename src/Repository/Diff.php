@@ -28,8 +28,6 @@ final class Diff
     /** @var Definition<T> */
     private Definition $definition;
     private Extract $extract;
-    /** @var Set<non-empty-string> */
-    private Set $properties;
     /** @var Map<non-empty-string, Normalize\Entity> */
     private Map $normalizeEntity;
     /** @var Map<non-empty-string, Normalize\Optional> */
@@ -44,24 +42,6 @@ final class Diff
     {
         $this->definition = $definition;
         $this->extract = new Extract;
-        $this->properties = $definition
-            ->properties()
-            ->map(static fn($property) => $property->name())
-            ->merge(
-                $definition
-                    ->entities()
-                    ->map(static fn($entity) => $entity->name()),
-            )
-            ->merge(
-                $definition
-                    ->optionals()
-                    ->map(static fn($optional) => $optional->name()),
-            )
-            ->merge(
-                $definition
-                    ->collections()
-                    ->map(static fn($collection) => $collection->name()),
-            );
         $this->normalizeEntity = Map::of(
             ...$definition
                 ->entities()
