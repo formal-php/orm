@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Raw\Aggregate;
 
+use Formal\ORM\Raw\Aggregate\Collection\Entity;
 use Innmind\Immutable\Set;
 
 /**
@@ -12,12 +13,12 @@ final class Collection
 {
     /** @var non-empty-string */
     private string $name;
-    /** @var Set<Set<Property>> */
+    /** @var Set<Entity> */
     private Set $entities;
 
     /**
      * @param non-empty-string $name
-     * @param Set<Set<Property>> $entities
+     * @param Set<Entity> $entities
      */
     private function __construct(string $name, Set $entities)
     {
@@ -29,7 +30,7 @@ final class Collection
      * @psalm-pure
      *
      * @param non-empty-string $name
-     * @param Set<Set<Property>> $entities
+     * @param Set<Entity> $entities
      */
     public static function of(string $name, Set $entities): self
     {
@@ -45,7 +46,7 @@ final class Collection
     }
 
     /**
-     * @return Set<Set<Property>>
+     * @return Set<Entity>
      */
     public function entities(): Set
     {

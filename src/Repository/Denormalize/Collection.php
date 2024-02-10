@@ -53,6 +53,7 @@ final class Collection
             ->map(function($entity) use ($class) {
                 $entity = Map::of(
                     ...$entity
+                        ->properties()
                         ->flatMap(
                             fn($property) => $this
                                 ->properties

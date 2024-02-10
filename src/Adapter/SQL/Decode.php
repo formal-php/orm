@@ -119,6 +119,7 @@ final class Decode
                                     $row,
                                     $collection->columns(),
                                 ))
+                                ->map(Aggregate\Collection\Entity::of(...))
                                 ->toSet()
                                 ->memoize();
                         })(),

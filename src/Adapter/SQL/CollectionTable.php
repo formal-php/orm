@@ -6,7 +6,7 @@ namespace Formal\ORM\Adapter\SQL;
 use Formal\ORM\{
     Definition\Aggregate\Collection as Definition,
     Raw\Aggregate\Id,
-    Raw\Aggregate\Property,
+    Raw\Aggregate\Collection\Entity,
     Specification\Property as PropertySpecification,
 };
 use Formal\AccessLayer\{
@@ -132,7 +132,7 @@ final class CollectionTable
     /**
      * @internal
      *
-     * @param Set<Set<Property>> $collection
+     * @param Set<Entity> $collection
      *
      * @return Maybe<Query>
      */
@@ -154,6 +154,7 @@ final class CollectionTable
                                     $id->value(),
                                 ),
                                 ...$entity
+                                    ->properties()
                                     ->map(static fn($property) => new Row\Value(
                                         Column\Name::of($property->name())->in($table),
                                         $property->value(),
@@ -169,7 +170,7 @@ final class CollectionTable
     /**
      * @internal
      *
-     * @param Set<Set<Property>> $collection
+     * @param Set<Entity> $collection
      *
      * @return Sequence<Query>
      */

@@ -129,10 +129,12 @@ final class Decode
                             static fn($collection) => Aggregate\Collection::of(
                                 $collection->name()->toString(),
                                 Set::of(...Json::decode($collection->content()->toString()))->map(
-                                    static fn($entity) => Set::of(...$entity)->map(
-                                        static fn($property) => Aggregate\Property::of(
-                                            $property[0],
-                                            $property[1],
+                                    static fn($entity) => Aggregate\Collection\Entity::of(
+                                        Set::of(...$entity)->map(
+                                            static fn($property) => Aggregate\Property::of(
+                                                $property[0],
+                                                $property[1],
+                                            ),
                                         ),
                                     ),
                                 ),

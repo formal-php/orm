@@ -103,6 +103,7 @@ final class Encode
                                     ->entities()
                                     ->map(
                                         static fn($entity) => $entity
+                                            ->properties()
                                             ->map(static fn($property) => [
                                                 $property->name(),
                                                 $property->value(),

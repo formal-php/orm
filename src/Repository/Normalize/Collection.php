@@ -41,30 +41,32 @@ final class Collection
     public function __invoke(Set $collection): Raw
     {
         $class = $this->definition->class();
-        $properties = $collection->map(
+        $entities = $collection->map(
             fn($object) => ($this->extract)($object, $this->properties)->match(
-                static fn($properties) => $properties,
+                static fn($entities) => $entities,
                 static fn() => throw new \LogicException("Failed to extract properties from '$class'"),
             ),
         );
 
         return Raw::of(
             $this->definition->name(),
-            $properties->map(
-                fn($properties) => $this
-                    ->definition
-                    ->properties()
-                    ->flatMap(
-                        static fn($property) => $properties
-                            ->get($property->name())
-                            ->map(static fn($value) => Property::of(
-                                $property->name(),
-                                $property->type()->normalize($value),
-                            ))
-                            ->toSequence()
-                            ->toSet(),
-                    ),
-            ),
+            $entities
+                ->map(
+                    fn($entity) => $this
+                        ->definition
+                        ->properties()
+                        ->flatMap(
+                            static fn($property) => $entity
+                                ->get($property->name())
+                                ->map(static fn($value) => Property::of(
+                                    $property->name(),
+                                    $property->type()->normalize($value),
+                                ))
+                                ->toSequence()
+                                ->toSet(),
+                        ),
+                )
+                ->map(Raw\Entity::of(...)),
         );
     }
 
