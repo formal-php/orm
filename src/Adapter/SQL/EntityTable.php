@@ -30,7 +30,6 @@ final class EntityTable
 {
     /** @var Definition<T> */
     private Definition $definition;
-    private Table\Name\Aliased $main;
     private Table\Name\Aliased $name;
     /** @var Set<Column\Name\Aliased> */
     private Set $columns;
@@ -43,7 +42,6 @@ final class EntityTable
         Table\Name\Aliased $main,
     ) {
         $this->definition = $definition;
-        $this->main = $main;
         $this->name = Table\Name::of($main->name()->toString().'_'.$definition->name())->as($definition->name());
         $this->columns = $definition
             ->properties()
@@ -74,14 +72,6 @@ final class EntityTable
     {
         return Table\Column::of(
             Table\Column\Name::of('id'),
-            Table\Column\Type::varchar(36)->comment('UUID'),
-        );
-    }
-
-    public function foreignKey(): Table\Column
-    {
-        return Table\Column::of(
-            Table\Column\Name::of($this->definition->name()),
             Table\Column\Type::varchar(36)->comment('UUID'),
         );
     }

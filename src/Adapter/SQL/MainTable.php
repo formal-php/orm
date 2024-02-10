@@ -77,7 +77,7 @@ final class MainTable
                 ->optionals()
                 ->map(fn($entity) => [
                     $entity->name(),
-                    OptionalTable::of($entity, $this->name, $definition->id()),
+                    OptionalTable::of($entity, $this->name),
                 ])
                 ->toList(),
         );

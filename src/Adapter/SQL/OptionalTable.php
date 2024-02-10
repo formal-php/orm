@@ -4,7 +4,6 @@ declare(strict_types = 1);
 namespace Formal\ORM\Adapter\SQL;
 
 use Formal\ORM\{
-    Definition\Aggregate\Identity,
     Definition\Aggregate\Optional as Definition,
     Raw\Aggregate\Id,
     Raw\Aggregate\Property,
@@ -34,8 +33,6 @@ final class OptionalTable
 {
     /** @var Definition<T> */
     private Definition $definition;
-    private Table\Name\Aliased $main;
-    private Identity $identity;
     private Table\Name\Aliased $name;
     /** @var Set<Column\Name\Aliased> */
     private Set $columns;
@@ -47,11 +44,8 @@ final class OptionalTable
     private function __construct(
         Definition $definition,
         Table\Name\Aliased $main,
-        Identity $identity,
     ) {
         $this->definition = $definition;
-        $this->main = $main;
-        $this->identity = $identity;
         $this->name = Table\Name::of($main->name()->toString().'_'.$definition->name())->as($definition->name());
         $this->columns = $definition
             ->properties()
@@ -78,9 +72,8 @@ final class OptionalTable
     public static function of(
         Definition $definition,
         Table\Name\Aliased $main,
-        Identity $identity,
     ): self {
-        return new self($definition, $main, $identity);
+        return new self($definition, $main);
     }
 
     public function primaryKey(): Table\Column
@@ -88,14 +81,6 @@ final class OptionalTable
         return Table\Column::of(
             Table\Column\Name::of('id'),
             Table\Column\Type::varchar(36)->comment('UUID'),
-        );
-    }
-
-    public function foreignKey(): Table\Column
-    {
-        return Table\Column::of(
-            Table\Column\Name::of($this->definition->name()),
-            Table\Column\Type::varchar(36)->nullable()->comment('UUID'),
         );
     }
 
