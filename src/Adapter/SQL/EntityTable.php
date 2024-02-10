@@ -7,15 +7,16 @@ use Formal\ORM\{
     Definition\Aggregate\Entity as Definition,
     Raw\Aggregate\Id,
     Raw\Aggregate\Property,
+    Specification,
 };
 use Formal\AccessLayer\{
     Table,
     Table\Column,
     Query,
     Query\Update,
-    Query\Select\Join,
     Row,
 };
+use Innmind\Specification\Sign;
 use Innmind\Immutable\{
     Set,
     Maybe,
@@ -29,7 +30,6 @@ final class EntityTable
 {
     /** @var Definition<T> */
     private Definition $definition;
-    private Table\Name\Aliased $main;
     private Table\Name\Aliased $name;
     /** @var Set<Column\Name\Aliased> */
     private Set $columns;
@@ -42,7 +42,6 @@ final class EntityTable
         Table\Name\Aliased $main,
     ) {
         $this->definition = $definition;
-        $this->main = $main;
         $this->name = Table\Name::of($main->name()->toString().'_'.$definition->name())->as($definition->name());
         $this->columns = $definition
             ->properties()
@@ -77,14 +76,6 @@ final class EntityTable
         );
     }
 
-    public function foreignKey(): Table\Column
-    {
-        return Table\Column::of(
-            Table\Column\Name::of($this->definition->name()),
-            Table\Column\Type::varchar(36)->comment('UUID'),
-        );
-    }
-
     /**
      * @return Set<Column>
      */
@@ -115,10 +106,9 @@ final class EntityTable
     /**
      * @internal
      *
-     * @param non-empty-string $uuid
      * @param Set<Property> $properties
      */
-    public function insert(string $uuid, Set $properties): Query
+    public function insert(Id $id, Set $properties): Query
     {
         $table = $this->name->name();
 
@@ -127,7 +117,7 @@ final class EntityTable
             new Row(
                 new Row\Value(
                     Column\Name::of('id')->in($table),
-                    $uuid,
+                    $id->value(),
                 ),
                 ...$properties
                     ->map(static fn($property) => new Row\Value(
@@ -161,9 +151,10 @@ final class EntityTable
                             ))
                             ->toList(),
                     ),
-                )->join(Join::left($this->main)->on(
-                    Column\Name::of('id')->in($this->name),
-                    Column\Name::of($this->definition->name())->in($this->main),
+                )->where(Specification\Property::of(
+                    'id',
+                    Sign::equality,
+                    $id->value(),
                 )),
             );
     }

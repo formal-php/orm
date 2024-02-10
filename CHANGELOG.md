@@ -10,6 +10,7 @@
 ### Changed
 
 - Aggregates are now stored on multiple files with the `Filesystem` adapter
+- (Optional) Entities id column with the `SQL` adapter now use the Aggregate id as a value, the columns in the Aggregate column referencing these columns have been removed
 
 ## 1.2.0 - 2024-01-15
 
