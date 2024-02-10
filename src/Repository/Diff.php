@@ -36,8 +36,6 @@ final class Diff
     private Map $normalizeOptional;
     /** @var Map<non-empty-string, Normalize\Collection> */
     private Map $normalizeCollection;
-    /** @var \Closure(T): Raw\Aggregate\Id */
-    private \Closure $extractId;
 
     /**
      * @param Definition<T> $definition
@@ -92,11 +90,6 @@ final class Diff
                 ->toList(),
         );
         $id = $definition->id();
-        /**
-         * @psalm-suppress InvalidArgument
-         * @var \Closure(T): Raw\Aggregate\Id
-         */
-        $this->extractId = static fn(object $aggregate): Raw\Aggregate\Id => $id->normalize($id->extract($aggregate));
     }
 
     /**
