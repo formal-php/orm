@@ -5,6 +5,7 @@
 ### Added
 
 - You can match aggregates on collections via `Formal\ORM\Specification\Child`
+- `Formal\ORM\Adapter\Repository::any()`
 
 ### Changed
 

@@ -45,4 +45,6 @@ interface Repository
      * @return 0|positive-int
      */
     public function size(Specification $specification = null): int;
+
+    public function any(Specification $specification = null): bool;
 }

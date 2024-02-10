@@ -184,4 +184,22 @@ final class Repository implements RepositoryInterface
                 static fn() => 0,
             );
     }
+
+    public function any(Specification $specification = null): bool
+    {
+        $count = $this
+            ->mainTable
+            ->count($specification)
+            ->limit(1);
+
+        return ($this->connection)($count)
+            ->first()
+            ->flatMap(static fn($row) => $row->column('count'))
+            ->filter(\is_numeric(...))
+            ->map(static fn($count) => (int) $count)
+            ->match(
+                static fn($count) => $count !== 0,
+                static fn() => false,
+            );
+    }
 }

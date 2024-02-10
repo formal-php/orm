@@ -178,6 +178,17 @@ final class Repository implements RepositoryInterface
             ->size();
     }
 
+    public function any(Specification $specification = null): bool
+    {
+        return $this
+            ->fetch($specification, null, null, 1)
+            ->first()
+            ->match(
+                static fn() => true,
+                static fn() => false,
+            );
+    }
+
     /**
      * @return Sequence<Aggregate>
      */
