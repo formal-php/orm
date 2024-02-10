@@ -134,7 +134,6 @@ final class Repository
 
         $this->loaded->add($this, $now);
 
-        /** @psalm-suppress InvalidArgument For some reason Psalm lose track of $then type */
         $_ = $then->match(
             fn($then) => $this->adapter->update(
                 ($this->diff)($then, $now),
