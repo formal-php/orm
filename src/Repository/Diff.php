@@ -69,7 +69,6 @@ final class Diff
                 )])
                 ->toList(),
         );
-        $id = $definition->id();
     }
 
     /**
