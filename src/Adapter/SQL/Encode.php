@@ -11,9 +11,7 @@ use Formal\AccessLayer\Query;
 use Innmind\Immutable\{
     Set,
     Sequence,
-    Map,
 };
-use Ramsey\Uuid\Uuid;
 
 /**
  * @internal
@@ -44,20 +42,17 @@ final class Encode
      */
     public function __invoke(Aggregate $data): Sequence
     {
+        $main = $this->main($data);
         $entities = $this->entities($data);
         $optionals = $this->optionals($data);
-        $main = $this->main(
-            $data,
-            $entities->keys(),
-            $optionals->keys(),
-        );
         $collections = $this->collections($data);
 
-        return $entities
-            ->values()
-            ->append($optionals->values())
-            ->add($main)
-            ->append($collections);
+        return Sequence::of(
+            $main,
+            ...$entities->toList(),
+            ...$optionals->toList(),
+            ...$collections->toList(),
+        );
     }
 
     /**
@@ -78,35 +73,30 @@ final class Encode
     }
 
     /**
-     * @return Map<array{non-empty-string, non-empty-string}, Query>
+     * @return Set<Query>
      */
-    private function entities(Aggregate $data): Map
+    private function entities(Aggregate $data): Set
     {
-        $inserts = $data
+        return $data
             ->entities()
             ->flatMap(
                 fn($entity) => $this
                     ->mainTable
                     ->entity($entity->name())
                     ->map(
-                        static fn($table) => [
-                            [$entity->name(), $uuid = Uuid::uuid4()->toString()],
-                            $table->insert($uuid, $entity->properties()),
-                        ],
+                        static fn($table) => $table->insert($data->id(), $entity->properties()),
                     )
                     ->toSequence()
                     ->toSet(),
             );
-
-        return Map::of(...$inserts->toList());
     }
 
     /**
-     * @return Map<array{non-empty-string, non-empty-string}, Query>
+     * @return Set<Query>
      */
-    private function optionals(Aggregate $data): Map
+    private function optionals(Aggregate $data): Set
     {
-        $inserts = $data
+        return $data
             ->optionals()
             ->flatMap(
                 fn($optional) => $this
@@ -114,44 +104,28 @@ final class Encode
                     ->optional($optional->name())
                     ->flatMap(
                         static fn($table) => $optional->properties()->map(
-                            static fn($properties) => [
-                                [$optional->name(), $uuid = Uuid::uuid4()->toString()],
-                                $table->insert($uuid, $properties),
-                            ],
+                            static fn($properties) => $table->insert($data->id(), $properties),
                         ),
                     )
                     ->toSequence()
                     ->toSet(),
             );
-
-        return Map::of(...$inserts->toList());
     }
 
-    /**
-     * @param Set<array{non-empty-string, non-empty-string}> $entities
-     * @param Set<array{non-empty-string, non-empty-string}> $optionals
-     */
-    private function main(
-        Aggregate $data,
-        Set $entities,
-        Set $optionals,
-    ): Query {
-        return $this
-            ->mainTable
-            ->insert(
-                $data->id()->value(),
-                $data->properties(),
-                Map::of(...$entities->toList()),
-                Map::of(...$optionals->toList()),
-            );
-    }
-
-    /**
-     * @return Sequence<Query>
-     */
-    private function collections(Aggregate $data): Sequence
+    private function main(Aggregate $data): Query
     {
-        $inserts = $data
+        return $this->mainTable->insert(
+            $data->id(),
+            $data->properties(),
+        );
+    }
+
+    /**
+     * @return Set<Query>
+     */
+    private function collections(Aggregate $data): Set
+    {
+        return $data
             ->collections()
             ->flatMap(
                 fn($collection) => $this
@@ -166,7 +140,5 @@ final class Encode
                     ->toSequence()
                     ->toSet(),
             );
-
-        return Sequence::of(...$inserts->toList());
     }
 }

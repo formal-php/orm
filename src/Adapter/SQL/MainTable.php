@@ -6,6 +6,7 @@ namespace Formal\ORM\Adapter\SQL;
 use Formal\ORM\{
     Definition\Aggregate as Definition,
     Raw\Aggregate,
+    Raw\Aggregate\Id,
     Raw\Diff,
     Specification\Property,
     Specification\Entity,
@@ -91,9 +92,9 @@ final class MainTable
         );
         $select = $entities->reduce(
             Select::onDemand($this->name),
-            fn(Select $select, $name, $table) => $select->join(
+            fn(Select $select, $_, $table) => $select->join(
                 Join::left($table->name())->on(
-                    Column\Name::of($name)->in($this->name),
+                    Column\Name::of($this->definition->id()->property())->in($this->name),
                     Column\Name::of('id')->in($table->name()),
                 ),
             ),
@@ -125,31 +126,14 @@ final class MainTable
         // to an int
         $this->count = $entities->reduce(
             Select::from($this->name)->count('count'),
-            fn(Select $select, $name, $table) => $select->join(
+            fn(Select $select, $_, $table) => $select->join(
                 Join::left($table->name())->on(
-                    Column\Name::of($name)->in($this->name),
+                    Column\Name::of($this->definition->id()->property())->in($this->name),
                     Column\Name::of('id')->in($table->name()),
                 ),
             ),
         );
-        $delete = $entities->reduce(
-            Delete::from($this->name),
-            fn(Delete $delete, $name, $table) => $delete->join(
-                Join::left($table->name())->on(
-                    Column\Name::of($name)->in($this->name),
-                    Column\Name::of('id')->in($table->name()),
-                ),
-            ),
-        );
-        $this->delete = $optionals->reduce(
-            $delete,
-            fn(Delete $delete, $name, $table) => $delete->join(
-                Join::left($table->name())->on(
-                    Column\Name::of($name)->in($this->name),
-                    Column\Name::of('id')->in($table->name()),
-                ),
-            ),
-        );
+        $this->delete = Delete::from($this->name);
         $this->entities = $entities;
         $this->optionals = $optionals;
         $this->collections = $collections;
@@ -187,9 +171,7 @@ final class MainTable
             ->map(static fn($property) => Table\Column::of(
                 Table\Column\Name::of($property->name()),
                 $mapType($property->type()),
-            ))
-            ->merge($this->entities()->map(static fn($entity) => $entity->foreignKey()))
-            ->merge($this->optionals()->map(static fn($optional) => $optional->foreignKey()));
+            ));
     }
 
     public function name(): Table\Name\Aliased
@@ -230,16 +212,11 @@ final class MainTable
     /**
      * @internal
      *
-     * @param non-empty-string $uuid
      * @param Set<Aggregate\Property> $properties
-     * @param Map<non-empty-string, non-empty-string> $entities
-     * @param Map<non-empty-string, non-empty-string> $optionals
      */
     public function insert(
-        string $uuid,
+        Id $id,
         Set $properties,
-        Map $entities,
-        Map $optionals,
     ): Query {
         $table = $this->name->name();
 
@@ -248,27 +225,13 @@ final class MainTable
             new Row(
                 new Row\Value(
                     Column\Name::of($this->definition->id()->property())->in($table),
-                    $uuid,
+                    $id->value(),
                 ),
                 ...$properties
                     ->map(static fn($property) => new Row\Value(
                         Column\Name::of($property->name())->in($table),
                         $property->value(),
                     ))
-                    ->toList(),
-                ...$entities
-                    ->map(static fn($name, $value) => new Row\Value(
-                        Column\Name::of($name)->in($table),
-                        $value,
-                    ))
-                    ->values()
-                    ->toList(),
-                ...$optionals
-                    ->map(static fn($name, $value) => new Row\Value(
-                        Column\Name::of($name)->in($table),
-                        $value,
-                    ))
-                    ->values()
                     ->toList(),
             ),
         );

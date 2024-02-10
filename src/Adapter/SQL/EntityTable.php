@@ -7,15 +7,16 @@ use Formal\ORM\{
     Definition\Aggregate\Entity as Definition,
     Raw\Aggregate\Id,
     Raw\Aggregate\Property,
+    Specification,
 };
 use Formal\AccessLayer\{
     Table,
     Table\Column,
     Query,
     Query\Update,
-    Query\Select\Join,
     Row,
 };
+use Innmind\Specification\Sign;
 use Innmind\Immutable\{
     Set,
     Maybe,
@@ -115,10 +116,9 @@ final class EntityTable
     /**
      * @internal
      *
-     * @param non-empty-string $uuid
      * @param Set<Property> $properties
      */
-    public function insert(string $uuid, Set $properties): Query
+    public function insert(Id $id, Set $properties): Query
     {
         $table = $this->name->name();
 
@@ -127,7 +127,7 @@ final class EntityTable
             new Row(
                 new Row\Value(
                     Column\Name::of('id')->in($table),
-                    $uuid,
+                    $id->value(),
                 ),
                 ...$properties
                     ->map(static fn($property) => new Row\Value(
@@ -161,9 +161,10 @@ final class EntityTable
                             ))
                             ->toList(),
                     ),
-                )->join(Join::left($this->main)->on(
-                    Column\Name::of('id')->in($this->name),
-                    Column\Name::of($this->definition->name())->in($this->main),
+                )->where(Specification\Property::of(
+                    'id',
+                    Sign::equality,
+                    $id->value(),
                 )),
             );
     }

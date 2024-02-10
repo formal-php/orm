@@ -43,7 +43,15 @@ final class ShowCreateTable
                 ...$entity
                     ->columnsDefinition($this->mapType)
                     ->toList(),
-            )->primaryKey($entity->primaryKey()->name()))
+            )->constraint(
+                ForeignKey::of(
+                    $entity->primaryKey()->name(),
+                    $mainTable->name()->name(),
+                    $mainTable->primaryKey()->name(),
+                )
+                    ->onDeleteCascade()
+                    ->named($entity->name()->name()->toString()),
+            ))
             ->toList();
         $optionals = $mainTable
             ->optionals()
@@ -53,7 +61,15 @@ final class ShowCreateTable
                 ...$optional
                     ->columnsDefinition($this->mapType)
                     ->toList(),
-            )->primaryKey($optional->primaryKey()->name()))
+            )->constraint(
+                ForeignKey::of(
+                    $optional->primaryKey()->name(),
+                    $mainTable->name()->name(),
+                    $mainTable->primaryKey()->name(),
+                )
+                    ->onDeleteCascade()
+                    ->named($optional->name()->name()->toString()),
+            ))
             ->toList();
 
         $collections = $mainTable
@@ -69,7 +85,9 @@ final class ShowCreateTable
                     $collection->primaryKey()->name(),
                     $mainTable->name()->name(),
                     $mainTable->primaryKey()->name(),
-                )->onDeleteCascade(),
+                )
+                    ->onDeleteCascade()
+                    ->named($collection->name()->name()->toString()),
             ))
             ->toList();
 
@@ -81,33 +99,10 @@ final class ShowCreateTable
                 ->toList(),
         )->primaryKey($mainTable->primaryKey()->name());
 
-        $main = $mainTable
-            ->entities()
-            ->reduce(
-                $main,
-                static fn(Query\CreateTable $main, $entity) => $main->foreignKey(
-                    $entity->foreignKey()->name(),
-                    $entity->name()->name(),
-                    $entity->primaryKey()->name(),
-                ),
-            );
-        $main = $mainTable
-            ->optionals()
-            ->reduce(
-                $main,
-                static fn(Query\CreateTable $main, $optional) => $main->constraint(
-                    ForeignKey::of(
-                        $optional->foreignKey()->name(),
-                        $optional->name()->name(),
-                        $optional->primaryKey()->name(),
-                    )->onDeleteSetNull(),
-                ),
-            );
-
         return Sequence::of(...[
+            $main,
             ...$entities,
             ...$optionals,
-            $main,
             ...$collections,
         ]);
     }

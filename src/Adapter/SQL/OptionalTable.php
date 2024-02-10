@@ -18,16 +18,13 @@ use Formal\AccessLayer\{
     Query\Update,
     Query\Delete,
     Query\Select,
-    Query\Select\Join,
     Row,
 };
 use Innmind\Specification\Sign;
 use Innmind\Immutable\{
     Set,
-    Maybe,
     Sequence,
 };
-use Ramsey\Uuid\Uuid;
 
 /**
  * @psalm-immutable
@@ -63,17 +60,10 @@ final class OptionalTable
                     ->in($this->name)
                     ->as($definition->name().'_'.$property->name()),
             );
-        $this->select = Select::onDemand($this->name)
-            ->join(
-                Join::left($this->main)->on(
-                    Column\Name::of($definition->name())->in($this->main),
-                    Column\Name::of('id')->in($this->name),
-                ),
-            )
-            ->columns(
-                Column\Name::of('id')->in($this->name),
-                ...$this->columns->toList(),
-            );
+        $this->select = Select::onDemand($this->name)->columns(
+            Column\Name::of('id')->in($this->name),
+            ...$this->columns->toList(),
+        );
     }
 
     /**
@@ -142,11 +132,7 @@ final class OptionalTable
     public function select(Id $id): Select
     {
         return $this->select->where(PropertySpecification::of(
-            \sprintf(
-                '%s.%s',
-                $this->main->alias(),
-                $this->identity->property(),
-            ),
+            'id',
             Sign::equality,
             $id->value(),
         ));
@@ -155,10 +141,9 @@ final class OptionalTable
     /**
      * @internal
      *
-     * @param non-empty-string $uuid
      * @param Set<Property> $properties
      */
-    public function insert(string $uuid, Set $properties): Query
+    public function insert(Id $id, Set $properties): Query
     {
         $table = $this->name->name();
 
@@ -167,7 +152,7 @@ final class OptionalTable
             new Row(
                 new Row\Value(
                     Column\Name::of('id')->in($table),
-                    $uuid,
+                    $id->value(),
                 ),
                 ...$properties
                     ->map(static fn($property) => new Row\Value(
@@ -193,14 +178,7 @@ final class OptionalTable
                 ->properties()
                 ->match(
                     fn($properties) => Sequence::of(
-                        $this->insert($uuid = Uuid::uuid4()->toString(), $properties),
-                        Update::set(
-                            $this->main,
-                            new Row(new Row\Value(
-                                Column\Name::of($this->definition->name()),
-                                $uuid,
-                            )),
-                        ),
+                        $this->insert($id, $properties),
                     ),
                     static fn() => Sequence::of(),
                 );
@@ -219,39 +197,18 @@ final class OptionalTable
                             ->toList(),
                     ),
                 )
-                    ->join(
-                        Join::left($this->main)->on(
-                            Column\Name::of('id')->in($this->name),
-                            Column\Name::of($this->definition->name())->in($this->main),
-                        ),
-                    )
                     ->where(PropertySpecification::of(
-                        \sprintf(
-                            '%s.%s',
-                            $this->main->alias(),
-                            $this->identity->property(),
-                        ),
+                        'id',
                         Sign::equality,
                         $id->value(),
                     )),
             ),
             fn() => Sequence::of(
-                Delete::from($this->name)
-                    ->join(
-                        Join::left($this->main)->on(
-                            Column\Name::of($this->definition->name())->in($this->main),
-                            Column\Name::of('id')->in($this->name),
-                        ),
-                    )
-                    ->where(PropertySpecification::of(
-                        \sprintf(
-                            '%s.%s',
-                            $this->main->alias(),
-                            $this->identity->property(),
-                        ),
-                        Sign::equality,
-                        $id->value(),
-                    )),
+                Delete::from($this->name)->where(PropertySpecification::of(
+                    'id',
+                    Sign::equality,
+                    $id->value(),
+                )),
             ),
         );
     }
