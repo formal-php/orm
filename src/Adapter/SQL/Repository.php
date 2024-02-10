@@ -187,11 +187,24 @@ final class Repository implements RepositoryInterface
 
     public function any(Specification $specification = null): bool
     {
-        return $this->size($specification) !== 0;
+        $count = $this
+            ->mainTable
+            ->count($specification)
+            ->limit(1);
+
+        return ($this->connection)($count)
+            ->first()
+            ->flatMap(static fn($row) => $row->column('count'))
+            ->filter(\is_numeric(...))
+            ->map(static fn($count) => (int) $count)
+            ->match(
+                static fn($count) => $count !== 0,
+                static fn() => false,
+            );
     }
 
     public function none(Specification $specification = null): bool
     {
-        return $this->size($specification) === 0;
+        return !$this->any($specification);
     }
 }
