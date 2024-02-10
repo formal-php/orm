@@ -7,9 +7,14 @@ use Formal\ORM\{
     Definition\Aggregate\Collection as Definition,
     Raw\Aggregate\Collection as Raw,
     Raw\Aggregate\Property,
+    Raw\Aggregate\Id,
+    Repository\KnownCollectionEntity,
 };
 use Innmind\Reflection\Extract;
-use Innmind\Immutable\Set;
+use Innmind\Immutable\{
+    Set,
+    Map,
+};
 
 /**
  * @internal
@@ -20,16 +25,21 @@ final class Collection
     /** @var Definition<T> */
     private Definition $definition;
     private Extract $extract;
+    private KnownCollectionEntity $knowCollectionEntity;
     /** @var Set<non-empty-string> */
     private Set $properties;
 
     /**
      * @param Definition<T> $definition
      */
-    private function __construct(Definition $definition, Extract $extract)
-    {
+    private function __construct(
+        Definition $definition,
+        Extract $extract,
+        KnownCollectionEntity $knownCollectionEntity,
+    ) {
         $this->definition = $definition;
         $this->extract = $extract;
+        $this->knowCollectionEntity = $knownCollectionEntity;
         $this->properties = $definition
             ->properties()
             ->map(static fn($property) => $property->name());
@@ -38,12 +48,24 @@ final class Collection
     /**
      * @param Set<T> $collection
      */
-    public function __invoke(Set $collection): Raw
+    public function __invoke(Id $id, Set $collection): Raw
     {
         $class = $this->definition->class();
-        $entities = $collection->map(
-            fn($object) => ($this->extract)($object, $this->properties)->match(
-                static fn($entities) => $entities,
+        $entities = Map::of(
+            ...$collection
+                ->map(fn($object) => [
+                    $this->knowCollectionEntity->reference(
+                        $id,
+                        $this->definition->name(),
+                        $object,
+                    ),
+                    $object,
+                ])
+                ->toList(),
+        );
+        $entities = $entities->map(
+            fn($_, $object) => ($this->extract)($object, $this->properties)->match(
+                static fn($entity) => $entity,
                 static fn() => throw new \LogicException("Failed to extract properties from '$class'"),
             ),
         );
@@ -52,7 +74,7 @@ final class Collection
             $this->definition->name(),
             $entities
                 ->map(
-                    fn($entity) => $this
+                    fn($_, $entity) => $this
                         ->definition
                         ->properties()
                         ->flatMap(
@@ -66,7 +88,9 @@ final class Collection
                                 ->toSet(),
                         ),
                 )
-                ->map(Raw\Entity::of(...)),
+                ->values()
+                ->map(Raw\Entity::of(...)) // TODO inject the reference
+                ->toSet(),
         );
     }
 
@@ -78,8 +102,11 @@ final class Collection
      *
      * @return self<A>
      */
-    public static function of(Definition $definition, Extract $extract): self
-    {
-        return new self($definition, $extract);
+    public static function of(
+        Definition $definition,
+        Extract $extract,
+        KnownCollectionEntity $knownCollectionEntity,
+    ): self {
+        return new self($definition, $extract, $knownCollectionEntity);
     }
 }

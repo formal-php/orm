@@ -38,8 +38,10 @@ final class Diff
     /**
      * @param Definition<T> $definition
      */
-    private function __construct(Definition $definition)
-    {
+    private function __construct(
+        Definition $definition,
+        KnownCollectionEntity $knownCollectionEntity,
+    ) {
         $this->definition = $definition;
         $this->extract = new Extract;
         $this->normalizeEntity = Map::of(
@@ -66,6 +68,7 @@ final class Diff
                 ->map(fn($collection) => [$collection->name(), Normalize\Collection::of(
                     $collection,
                     $this->extract,
+                    $knownCollectionEntity,
                 )])
                 ->toList(),
         );
@@ -157,7 +160,10 @@ final class Diff
                 fn($name, $value) => $this
                     ->normalizeCollection
                     ->get($name)
-                    ->map(static fn($normalize) => $normalize($value->now())) // TODO diff inside the collection
+                    ->map(static fn($normalize) => self::diffCollections(
+                        $normalize($id, $value->then()),
+                        $normalize($id, $value->now()),
+                    ))
                     ->match(
                         static fn($value) => Map::of([$name, $value]),
                         static fn() => Map::of(),
@@ -183,9 +189,11 @@ final class Diff
      *
      * @return self<A>
      */
-    public static function of(Definition $definition): self
-    {
-        return new self($definition);
+    public static function of(
+        Definition $definition,
+        KnownCollectionEntity $knownCollectionEntity,
+    ): self {
+        return new self($definition, $knownCollectionEntity);
     }
 
     /**
@@ -226,6 +234,17 @@ final class Diff
             static fn() => $diff,
             static fn() => Raw\Aggregate\Optional\BrandNew::of($diff),
         );
+    }
+
+    /**
+     * @psalm-pure
+     */
+    private static function diffCollections(
+        Raw\Aggregate\Collection $then,
+        Raw\Aggregate\Collection $now,
+    ): Raw\Aggregate\Collection {
+        // TODO diff inside the collection
+        return $now;
     }
 
     /**

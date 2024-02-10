@@ -15,6 +15,7 @@ use Formal\ORM\{
     Repository\Sort,
     Specification\Normalize as NormalizeSpecification,
 };
+use Formal\ORM\Repository\KnownCollectionEntity;
 use Innmind\Specification\Specification;
 use Innmind\Immutable\Maybe;
 
@@ -57,16 +58,17 @@ final class Repository
         Aggregate $definition,
         \Closure $inTransaction,
     ) {
+        $knownCollectionEntity = KnownCollectionEntity::new();
         $this->adapter = $adapter;
         $this->id = $definition->id();
         $this->inTransaction = $inTransaction;
         $this->normalizeSpecification = NormalizeSpecification::of($definition);
         $this->loaded = Loaded::of($repositories, $definition);
-        $this->normalize = Normalize::of($definition);
-        $this->denormalize = Denormalize::of($definition);
+        $this->normalize = Normalize::of($definition, $knownCollectionEntity);
+        $this->denormalize = Denormalize::of($definition, $knownCollectionEntity);
         $this->instanciate = Instanciate::of($definition);
         $this->extract = Extract::of($definition);
-        $this->diff = Diff::of($definition);
+        $this->diff = Diff::of($definition, $knownCollectionEntity);
         $this->sort = Sort::of($definition);
     }
 

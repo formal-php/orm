@@ -6,8 +6,11 @@ namespace Formal\ORM\Repository\Denormalize;
 use Formal\ORM\{
     Definition\Aggregate\Collection as Definition,
     Definition\Aggregate\Property,
+    Raw\Aggregate\Id,
     Raw\Aggregate\Collection as Raw,
+    Repository\KnownCollectionEntity,
 };
+use Formal\ORM\Raw\Aggregate\Collection\Entity\Reference;
 use Innmind\Reflection\Instanciate;
 use Innmind\Immutable\{
     Map,
@@ -23,16 +26,21 @@ final class Collection
     /** @var Definition<T> */
     private Definition $definition;
     private Instanciate $instanciate;
+    private KnownCollectionEntity $knownCollectionEntity;
     /** @var Map<non-empty-string, Property<T, mixed>> */
     private Map $properties;
 
     /**
      * @param Definition<T> $definition
      */
-    private function __construct(Definition $definition, Instanciate $instanciate)
-    {
+    private function __construct(
+        Definition $definition,
+        Instanciate $instanciate,
+        KnownCollectionEntity $knownCollectionEntity,
+    ) {
         $this->definition = $definition;
         $this->instanciate = $instanciate;
+        $this->knownCollectionEntity = $knownCollectionEntity;
         $this->properties = Map::of(
             ...$definition
                 ->properties()
@@ -44,13 +52,13 @@ final class Collection
     /**
      * @return Set<T>
      */
-    public function __invoke(Raw $collection): Set
+    public function __invoke(Id $id, Raw $collection): Set
     {
         $class = $this->definition->class();
 
         return $collection
             ->entities()
-            ->map(function($entity) use ($class) {
+            ->map(function($entity) use ($class, $id, $collection) {
                 $entity = Map::of(
                     ...$entity
                         ->properties()
@@ -67,10 +75,17 @@ final class Collection
                 );
 
                 /** @var T */
-                return ($this->instanciate)($class, $entity)->match(
-                    static fn($collection) => $collection,
-                    static fn() => throw new \RuntimeException("Unable to denormalize collection of type '$class'"),
-                );
+                return ($this->instanciate)($class, $entity)
+                    ->map(fn($entity) => $this->knownCollectionEntity->add(
+                        $id,
+                        $collection->name(),
+                        $entity,
+                        Reference::new(), // TODO get the reference stored by the adapter
+                    ))
+                    ->match(
+                        static fn($entity) => $entity,
+                        static fn() => throw new \RuntimeException("Unable to denormalize collection of type '$class'"),
+                    );
             });
     }
 
@@ -82,8 +97,11 @@ final class Collection
      *
      * @return self<A>
      */
-    public static function of(Definition $definition, Instanciate $instanciate): self
-    {
-        return new self($definition, $instanciate);
+    public static function of(
+        Definition $definition,
+        Instanciate $instanciate,
+        KnownCollectionEntity $knownCollectionEntity,
+    ): self {
+        return new self($definition, $instanciate, $knownCollectionEntity);
     }
 }

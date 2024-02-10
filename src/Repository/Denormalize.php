@@ -40,8 +40,10 @@ final class Denormalize
     /**
      * @param Definition<T> $definition
      */
-    private function __construct(Definition $definition)
-    {
+    private function __construct(
+        Definition $definition,
+        KnownCollectionEntity $knownCollectionEntity,
+    ) {
         $this->definition = $definition;
         $this->instanciate = new Instanciate;
         /** @var \Closure(Aggregate\Id): Id<T> */
@@ -76,6 +78,7 @@ final class Denormalize
                 ->map(fn($collection) => [$collection->name(), Denormalize\Collection::of(
                     $collection,
                     $this->instanciate,
+                    $knownCollectionEntity,
                 )])
                 ->toList(),
         );
@@ -107,9 +110,11 @@ final class Denormalize
      *
      * @return self<A>
      */
-    public static function of(Definition $definition): self
-    {
-        return new self($definition);
+    public static function of(
+        Definition $definition,
+        KnownCollectionEntity $knownCollectionEntity,
+    ): self {
+        return new self($definition, $knownCollectionEntity);
     }
 
     /**
@@ -160,7 +165,7 @@ final class Denormalize
                     fn($collection) => $this
                         ->collections
                         ->get($collection->name())
-                        ->map(static fn($denormalize): Set => $denormalize($collection))
+                        ->map(static fn($denormalize): Set => $denormalize($data->id(), $collection))
                         ->map(static fn($value) => [$collection->name(), $value])
                         ->toSequence()
                         ->toSet(),

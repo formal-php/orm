@@ -32,8 +32,10 @@ final class Normalize
     /**
      * @param Definition<T> $definition
      */
-    private function __construct(Definition $definition)
-    {
+    private function __construct(
+        Definition $definition,
+        KnownCollectionEntity $knownCollectionEntity,
+    ) {
         $this->definition = $definition;
         $this->extract = new Extract;
         $this->normalizeEntity = Map::of(
@@ -60,6 +62,7 @@ final class Normalize
                 ->map(fn($collection) => [$collection, Normalize\Collection::of(
                     $collection,
                     $this->extract,
+                    $knownCollectionEntity,
                 )])
                 ->toList(),
         );
@@ -71,9 +74,11 @@ final class Normalize
     public function __invoke(Denormalized $denormalized): Aggregate
     {
         $properties = $denormalized->properties();
+        $id = $this->definition->id()->normalize($denormalized->id());
 
+        /** @psalm-suppress MixedArgument Due to the collection normalization */
         return Aggregate::of(
-            $this->definition->id()->normalize($denormalized->id()),
+            $id,
             $this
                 ->definition
                 ->properties()
@@ -127,7 +132,7 @@ final class Normalize
                         ->flatMap(
                             static fn($normalize) => $properties
                                 ->get($collection->name())
-                                ->map($normalize),
+                                ->map(static fn($object) => $normalize($id, $object)),
                         )
                         ->toSequence()
                         ->toSet(),
@@ -143,8 +148,10 @@ final class Normalize
      *
      * @return self<A>
      */
-    public static function of(Definition $definition): self
-    {
-        return new self($definition);
+    public static function of(
+        Definition $definition,
+        KnownCollectionEntity $knownCollectionEntity,
+    ): self {
+        return new self($definition, $knownCollectionEntity);
     }
 }
