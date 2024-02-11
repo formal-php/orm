@@ -31,13 +31,13 @@ return static function() {
                     CREATE TABLE  `user` (`id` varchar(36) NOT NULL  COMMENT 'UUID', `createdAt` varchar(32) NOT NULL  COMMENT 'Date with timezone down to the microsecond', `name` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', `nameStr` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', PRIMARY KEY (`id`))
                     SQL,
                     <<<SQL
-                    CREATE TABLE  `user_mainAddress` (`id` varchar(36) NOT NULL  COMMENT 'UUID', `value` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', CONSTRAINT `FK_user_mainAddress` FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE, UNIQUE (`id`))
+                    CREATE TABLE  `user_mainAddress` (`aggregateId` varchar(36) NOT NULL  COMMENT 'UUID', `value` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', CONSTRAINT `FK_user_mainAddress` FOREIGN KEY (`aggregateId`) REFERENCES `user`(`id`) ON DELETE CASCADE, UNIQUE (`aggregateId`))
                     SQL,
                     <<<SQL
-                    CREATE TABLE  `user_billingAddress` (`id` varchar(36) NOT NULL  COMMENT 'UUID', `value` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', CONSTRAINT `FK_user_billingAddress` FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE, UNIQUE (`id`))
+                    CREATE TABLE  `user_billingAddress` (`aggregateId` varchar(36) NOT NULL  COMMENT 'UUID', `value` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', CONSTRAINT `FK_user_billingAddress` FOREIGN KEY (`aggregateId`) REFERENCES `user`(`id`) ON DELETE CASCADE, UNIQUE (`aggregateId`))
                     SQL,
                     <<<SQL
-                    CREATE TABLE  `user_addresses` (`entityReference` varchar(36) NOT NULL  COMMENT 'UUID', `id` varchar(36) NOT NULL  COMMENT 'UUID', `value` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', PRIMARY KEY (`entityReference`), CONSTRAINT `FK_user_addresses` FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE)
+                    CREATE TABLE  `user_addresses` (`entityReference` varchar(36) NOT NULL  COMMENT 'UUID', `aggregateId` varchar(36) NOT NULL  COMMENT 'UUID', `value` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', PRIMARY KEY (`entityReference`), CONSTRAINT `FK_user_addresses` FOREIGN KEY (`aggregateId`) REFERENCES `user`(`id`) ON DELETE CASCADE)
                     SQL,
                 ])
                 ->same($queries);

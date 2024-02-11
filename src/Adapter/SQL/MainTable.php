@@ -95,7 +95,7 @@ final class MainTable
             fn(Select $select, $_, $table) => $select->join(
                 Join::left($table->name())->on(
                     Column\Name::of($this->definition->id()->property())->in($this->name),
-                    Column\Name::of('id')->in($table->name()),
+                    $table->primaryKey()->name()->in($table->name()),
                 ),
             ),
         );
@@ -129,7 +129,7 @@ final class MainTable
             fn(Select $select, $_, $table) => $select->join(
                 Join::left($table->name())->on(
                     Column\Name::of($this->definition->id()->property())->in($this->name),
-                    Column\Name::of('id')->in($table->name()),
+                    $table->primaryKey()->name()->in($table->name()),
                 ),
             ),
         );

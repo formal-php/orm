@@ -71,7 +71,7 @@ final class EntityTable
     public function primaryKey(): Table\Column
     {
         return Table\Column::of(
-            Table\Column\Name::of('id'),
+            Table\Column\Name::of('aggregateId'),
             Table\Column\Type::varchar(36)->comment('UUID'),
         );
     }
@@ -116,7 +116,7 @@ final class EntityTable
             $table,
             new Row(
                 new Row\Value(
-                    Column\Name::of('id')->in($table),
+                    Column\Name::of('aggregateId')->in($table),
                     $id->value(),
                 ),
                 ...$properties
@@ -152,7 +152,7 @@ final class EntityTable
                             ->toList(),
                     ),
                 )->where(Specification\Property::of(
-                    'id',
+                    'aggregateId',
                     Sign::equality,
                     $id->value(),
                 )),
