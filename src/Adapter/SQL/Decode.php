@@ -113,13 +113,18 @@ final class Decode
                             // The memoize is here to make sure the user can't
                             // work with a partially loaded collection
                             yield ($this->connection)($collection->select($id))
-                                ->map(static fn($row) => self::properties(
-                                    $row,
-                                    $collection->columns(),
-                                ))
-                                ->map(static fn($entity) => Aggregate\Collection\Entity::of(
-                                    Reference::new(),
-                                    $entity,
+                                ->map(static fn($row) => Aggregate\Collection\Entity::of(
+                                    $row
+                                        ->column($collection->referenceColumn()->name()->toString())
+                                        ->filter(\is_string(...))
+                                        ->match(
+                                            Reference::of(...),
+                                            static fn() => throw new \RuntimeException('Invalid entity reference'),
+                                        ),
+                                    self::properties(
+                                        $row,
+                                        $collection->columns(),
+                                    ),
                                 ))
                                 ->toSet()
                                 ->memoize();

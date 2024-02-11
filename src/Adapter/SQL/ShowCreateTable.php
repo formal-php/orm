@@ -83,6 +83,7 @@ final class ShowCreateTable
             ->map(fn($collection) => Query\CreateTable::named(
                 $collection->name()->name(),
                 $collection->primaryKey(),
+                $collection->referenceColumn(),
                 ...$collection
                     ->columnsDefinition($this->mapType)
                     ->toList(),

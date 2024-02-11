@@ -37,7 +37,7 @@ return static function() {
                     CREATE TABLE  `user_billingAddress` (`id` varchar(36) NOT NULL  COMMENT 'UUID', `value` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', CONSTRAINT `FK_user_billingAddress` FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE, UNIQUE (`id`))
                     SQL,
                     <<<SQL
-                    CREATE TABLE  `user_addresses` (`id` varchar(36) NOT NULL  COMMENT 'UUID', `value` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', CONSTRAINT `FK_user_addresses` FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE)
+                    CREATE TABLE  `user_addresses` (`id` varchar(36) NOT NULL  COMMENT 'UUID', `entityReference` varchar(36) NOT NULL  COMMENT 'UUID', `value` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', CONSTRAINT `FK_user_addresses` FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE)
                     SQL,
                 ])
                 ->same($queries);
