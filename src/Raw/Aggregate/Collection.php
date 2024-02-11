@@ -52,7 +52,7 @@ final class Collection
         return new self(
             $this->name,
             $this->newEntities,
-            $unmodified->entities(),
+            $unmodified->newEntities(),
         );
     }
 
