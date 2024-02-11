@@ -246,6 +246,11 @@ final class Diff
         Set $then,
         Set $now,
     ): Raw\Aggregate\Collection {
+        // We memoize to make sure we won't iterate multiple times over a
+        // lazy Set leading to unwanted amount of persisted entities.
+        $then = $then->memoize();
+        $now = $now->memoize();
+
         $diff = $now->partition(static fn($entity) => $then->contains($entity));
         /** @var Set<object> */
         $unmodified = $diff
