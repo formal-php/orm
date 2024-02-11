@@ -56,7 +56,7 @@ final class Collection
         $class = $this->definition->class();
 
         return $collection
-            ->entities()
+            ->newEntities()
             ->map(function($entity) use ($class, $id, $collection) {
                 $reference = $entity->reference();
                 $entity = Map::of(

@@ -100,7 +100,7 @@ final class Encode
                             $collection->name(),
                             Content::ofString(Json::encode(
                                 $collection
-                                    ->entities()
+                                    ->newEntities()
                                     ->map(
                                         static fn($entity) => $entity
                                             ->properties()

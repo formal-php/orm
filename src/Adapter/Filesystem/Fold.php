@@ -83,7 +83,7 @@ final class Fold
                 ->find(static fn($collection) => $collection->name() === $specification->collection())
                 ->flatMap(
                     static fn($collection) => $collection
-                        ->entities()
+                        ->newEntities()
                         ->find($filter),
                 )
                 ->match(

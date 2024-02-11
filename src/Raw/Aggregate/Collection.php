@@ -14,27 +14,27 @@ final class Collection
     /** @var non-empty-string */
     private string $name;
     /** @var Set<Entity> */
-    private Set $entities;
+    private Set $newEntities;
 
     /**
      * @param non-empty-string $name
-     * @param Set<Entity> $entities
+     * @param Set<Entity> $newEntities
      */
-    private function __construct(string $name, Set $entities)
+    private function __construct(string $name, Set $newEntities)
     {
         $this->name = $name;
-        $this->entities = $entities;
+        $this->newEntities = $newEntities;
     }
 
     /**
      * @psalm-pure
      *
      * @param non-empty-string $name
-     * @param Set<Entity> $entities
+     * @param Set<Entity> $newEntities
      */
-    public static function of(string $name, Set $entities): self
+    public static function of(string $name, Set $newEntities): self
     {
-        return new self($name, $entities);
+        return new self($name, $newEntities);
     }
 
     /**
@@ -48,9 +48,9 @@ final class Collection
     /**
      * @return Set<Entity>
      */
-    public function entities(): Set
+    public function newEntities(): Set
     {
-        return $this->entities;
+        return $this->newEntities;
     }
 
     public function referenceSame(self $collection): bool
