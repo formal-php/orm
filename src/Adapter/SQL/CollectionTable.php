@@ -60,6 +60,7 @@ final class CollectionTable
         $this->reference = Column\Name::of('entityReference')->in($this->name);
         $this->select = Select::from($this->name)->columns(
             $this->id,
+            $this->reference,
             ...$this->columns->toList(),
         );
     }
