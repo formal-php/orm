@@ -24,8 +24,6 @@ use Innmind\Immutable\{
  */
 final class Decode
 {
-    /** @var Definition<T> */
-    private Definition $definition;
     /** @var MainTable<T> */
     private MainTable $mainTable;
     private Connection $connection;
@@ -43,7 +41,6 @@ final class Decode
         MainTable $mainTable,
         Connection $connection,
     ) {
-        $this->definition = $definition;
         $this->mainTable = $mainTable;
         $this->connection = $connection;
         $this->entityPrefix = $mainTable->name()->alias().'_';
