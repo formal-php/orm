@@ -37,6 +37,6 @@ final class Entity
      */
     public function properties(): Set
     {
-        return $this->properties();
+        return $this->properties;
     }
 }
