@@ -58,6 +58,7 @@ final class Properties
             AddingOutsideOfTransactionIsNotAllowed::class,
             UpdatingOutsideOfTransactionIsNotAllowed::class,
             RemovingOutsideOfTransactionIsNotAllowed::class,
+            IncrementallyAddElementsToACollection::class,
         ];
     }
 
@@ -96,6 +97,7 @@ final class Properties
             FailingTransactionDueToException::class,
             DroppingMoreElementsThanWasTakenReturnsNothing::class,
             AddingOutsideOfTransactionIsNotAllowed::class,
+            IncrementallyAddElementsToACollection::class,
         ];
     }
 }
