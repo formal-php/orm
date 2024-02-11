@@ -58,6 +58,9 @@ final class Properties
             AddingOutsideOfTransactionIsNotAllowed::class,
             UpdatingOutsideOfTransactionIsNotAllowed::class,
             RemovingOutsideOfTransactionIsNotAllowed::class,
+            IncrementallyAddElementsToACollection::class,
+            AddElementToCollections::class,
+            ListingAggregatesUseConstantMemory::class,
         ];
     }
 
@@ -96,6 +99,7 @@ final class Properties
             FailingTransactionDueToException::class,
             DroppingMoreElementsThanWasTakenReturnsNothing::class,
             AddingOutsideOfTransactionIsNotAllowed::class,
+            IncrementallyAddElementsToACollection::class,
         ];
     }
 }

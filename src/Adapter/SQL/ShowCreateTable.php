@@ -80,21 +80,26 @@ final class ShowCreateTable
 
         $collections = $mainTable
             ->collections()
-            ->map(fn($collection) => Query\CreateTable::named(
-                $collection->name()->name(),
-                $collection->primaryKey(),
-                ...$collection
-                    ->columnsDefinition($this->mapType)
-                    ->toList(),
-            )->constraint(
-                ForeignKey::of(
-                    $collection->primaryKey()->name(),
-                    $mainTable->name()->name(),
-                    $mainTable->primaryKey()->name(),
+            ->map(
+                fn($collection) => Query\CreateTable::named(
+                    $collection->name()->name(),
+                    $collection->primaryKey(),
+                    $collection->foreignKey(),
+                    ...$collection
+                        ->columnsDefinition($this->mapType)
+                        ->toList(),
                 )
-                    ->onDeleteCascade()
-                    ->named($collection->name()->name()->toString()),
-            ))
+                    ->primaryKey($collection->primaryKey()->name())
+                    ->constraint(
+                        ForeignKey::of(
+                            $collection->foreignKey()->name(),
+                            $mainTable->name()->name(),
+                            $mainTable->primaryKey()->name(),
+                        )
+                            ->onDeleteCascade()
+                            ->named($collection->name()->name()->toString()),
+                    ),
+            )
             ->toList();
 
         $main = Query\CreateTable::named(

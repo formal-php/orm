@@ -100,14 +100,18 @@ final class Encode
                             $collection->name(),
                             Content::ofString(Json::encode(
                                 $collection
-                                    ->properties()
+                                    ->entities()
                                     ->map(
-                                        static fn($properties) => $properties
-                                            ->map(static fn($property) => [
-                                                $property->name(),
-                                                $property->value(),
-                                            ])
-                                            ->toList(),
+                                        static fn($entity) => [
+                                            'reference' => $entity->reference()->toString(),
+                                            'properties' => $entity
+                                                ->properties()
+                                                ->map(static fn($property) => [
+                                                    $property->name(),
+                                                    $property->value(),
+                                                ])
+                                                ->toList(),
+                                        ],
                                     )
                                     ->toList(),
                             )),

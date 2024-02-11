@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Raw\Aggregate;
 
+use Formal\ORM\Raw\Aggregate\Collection\Entity;
 use Innmind\Immutable\Set;
 
 /**
@@ -12,28 +13,47 @@ final class Collection
 {
     /** @var non-empty-string */
     private string $name;
-    /** @var Set<Set<Property>> */
-    private Set $properties;
+    /** @var Set<Entity> */
+    private Set $newEntities;
+    /** @var Set<Entity> */
+    private Set $unmodifiedEntities;
 
     /**
      * @param non-empty-string $name
-     * @param Set<Set<Property>> $properties
+     * @param Set<Entity> $newEntities
+     * @param Set<Entity> $unmodifiedEntities
      */
-    private function __construct(string $name, Set $properties)
-    {
+    private function __construct(
+        string $name,
+        Set $newEntities,
+        Set $unmodifiedEntities,
+    ) {
         $this->name = $name;
-        $this->properties = $properties;
+        $this->newEntities = $newEntities;
+        $this->unmodifiedEntities = $unmodifiedEntities;
     }
 
     /**
      * @psalm-pure
      *
      * @param non-empty-string $name
-     * @param Set<Set<Property>> $properties
+     * @param Set<Entity> $newEntities
      */
-    public static function of(string $name, Set $properties): self
+    public static function of(string $name, Set $newEntities): self
     {
-        return new self($name, $properties);
+        return new self($name, $newEntities, Set::of());
+    }
+
+    /**
+     * @internal
+     */
+    public function with(self $unmodified): self
+    {
+        return new self(
+            $this->name,
+            $this->newEntities,
+            $unmodified->newEntities(),
+        );
     }
 
     /**
@@ -45,11 +65,27 @@ final class Collection
     }
 
     /**
-     * @return Set<Set<Property>>
+     * @return Set<Entity>
      */
-    public function properties(): Set
+    public function newEntities(): Set
     {
-        return $this->properties;
+        return $this->newEntities;
+    }
+
+    /**
+     * @return Set<Entity>
+     */
+    public function unmodifiedEntities(): Set
+    {
+        return $this->unmodifiedEntities;
+    }
+
+    /**
+     * @return Set<Entity>
+     */
+    public function entities(): Set
+    {
+        return $this->unmodifiedEntities->merge($this->newEntities);
     }
 
     public function referenceSame(self $collection): bool

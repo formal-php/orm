@@ -6,7 +6,7 @@ namespace Formal\ORM\Adapter\SQL;
 use Formal\ORM\{
     Definition\Aggregate\Collection as Definition,
     Raw\Aggregate\Id,
-    Raw\Aggregate\Property,
+    Raw\Aggregate\Collection\Entity,
     Specification\Property as PropertySpecification,
 };
 use Formal\AccessLayer\{
@@ -14,7 +14,6 @@ use Formal\AccessLayer\{
     Table\Column,
     Query,
     Query\Select,
-    Query\Update,
     Query\Delete,
     Row,
 };
@@ -38,6 +37,7 @@ final class CollectionTable
     /** @var Set<Column\Name\Aliased> */
     private Set $columns;
     private Column\Name\Namespaced $id;
+    private Column\Name\Namespaced $reference;
     private Select $select;
 
     /**
@@ -57,8 +57,10 @@ final class CollectionTable
                     ->as($definition->name().'_'.$property->name()),
             );
         $this->id = Column\Name::of('id')->in($this->name);
+        $this->reference = Column\Name::of('entityReference')->in($this->name);
         $this->select = Select::from($this->name)->columns(
             $this->id,
+            $this->reference,
             ...$this->columns->toList(),
         );
     }
@@ -80,6 +82,14 @@ final class CollectionTable
     }
 
     public function primaryKey(): Table\Column
+    {
+        return Table\Column::of(
+            Table\Column\Name::of('entityReference'),
+            Table\Column\Type::varchar(36)->comment('UUID'),
+        );
+    }
+
+    public function foreignKey(): Table\Column
     {
         return Table\Column::of(
             Table\Column\Name::of('id'),
@@ -133,7 +143,7 @@ final class CollectionTable
     /**
      * @internal
      *
-     * @param Set<Set<Property>> $collection
+     * @param Set<Entity> $collection
      *
      * @return Maybe<Query>
      */
@@ -149,12 +159,17 @@ final class CollectionTable
                     $table,
                     ...$collection
                         ->map(
-                            static fn($properties) => new Row(
+                            static fn($entity) => new Row(
                                 new Row\Value(
                                     Column\Name::of('id')->in($table),
                                     $id->value(),
                                 ),
-                                ...$properties
+                                new Row\Value(
+                                    Column\Name::of('entityReference')->in($table),
+                                    $entity->reference()->toString(),
+                                ),
+                                ...$entity
+                                    ->properties()
                                     ->map(static fn($property) => new Row\Value(
                                         Column\Name::of($property->name())->in($table),
                                         $property->value(),
@@ -170,24 +185,46 @@ final class CollectionTable
     /**
      * @internal
      *
-     * @param Set<Set<Property>> $collection
+     * @param Set<Entity> $newEntities
+     * @param Set<Entity\Reference> $unmodifiedEntities
      *
      * @return Sequence<Query>
      */
-    public function update(Id $id, Set $collection): Sequence
-    {
+    public function update(
+        Id $id,
+        Set $newEntities,
+        Set $unmodifiedEntities,
+    ): Sequence {
+        $specification = PropertySpecification::of(
+            \sprintf(
+                '%s.%s',
+                $this->name->alias(),
+                $this->id->column()->toString(),
+            ),
+            Sign::equality,
+            $id->value(),
+        );
+
+        if (!$unmodifiedEntities->empty()) {
+            $specification = $specification->and(
+                PropertySpecification::of(
+                    \sprintf(
+                        '%s.%s',
+                        $this->name->alias(),
+                        $this->reference->column()->toString(),
+                    ),
+                    Sign::in,
+                    $unmodifiedEntities
+                        ->map(static fn($reference) => $reference->toString())
+                        ->toList(),
+                )->not(),
+            );
+        }
+
         return Sequence::of(
-            Delete::from($this->name)->where(PropertySpecification::of(
-                \sprintf(
-                    '%s.%s',
-                    $this->name->alias(),
-                    $this->id->column()->toString(),
-                ),
-                Sign::equality,
-                $id->value(),
-            )),
+            Delete::from($this->name)->where($specification),
             ...$this
-                ->insert($id, $collection)
+                ->insert($id, $newEntities)
                 ->toSequence()
                 ->toList(),
         );

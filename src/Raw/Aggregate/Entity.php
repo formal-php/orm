@@ -3,10 +3,7 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Raw\Aggregate;
 
-use Innmind\Immutable\{
-    Set,
-    Maybe,
-};
+use Innmind\Immutable\Set;
 
 /**
  * @psalm-immutable

@@ -18,7 +18,6 @@ use Innmind\Specification\{
     Operator,
     Sign,
 };
-use Innmind\Immutable\Set;
 
 /**
  * @internal
@@ -84,7 +83,7 @@ final class Fold
                 ->find(static fn($collection) => $collection->name() === $specification->collection())
                 ->flatMap(
                     static fn($collection) => $collection
-                        ->properties()
+                        ->entities()
                         ->find($filter),
                 )
                 ->match(
@@ -151,24 +150,23 @@ final class Fold
     }
 
     /**
-     * @return callable(Set<Aggregate\Property>): bool
+     * @return callable(Aggregate\Collection\Entity): bool
      */
     private function child(Specification $specification): callable
     {
         if ($specification instanceof Not) {
             $filter = $this->child($specification->specification());
 
-            return static fn(Set $properties) => !$filter($properties);
+            return static fn(Aggregate\Collection\Entity $entity) => !$filter($entity);
         }
 
         if ($specification instanceof Composite) {
             $left = $this->child($specification->left());
             $right = $this->child($specification->right());
 
-            /** @psalm-suppress MixedArgumentTypeCoercion */
             return match ($specification->operator()) {
-                Operator::and => static fn(Set $properties) => $left($properties) && $right($properties),
-                Operator::or => static fn(Set $properties) => $left($properties) || $right($properties),
+                Operator::and => static fn(Aggregate\Collection\Entity $entity) => $left($entity) && $right($entity),
+                Operator::or => static fn(Aggregate\Collection\Entity $entity) => $left($entity) || $right($entity),
             };
         }
 
@@ -180,7 +178,8 @@ final class Fold
 
         $filter = $this->filter($specification);
 
-        return static fn(Set $properties) => $properties
+        return static fn(Aggregate\Collection\Entity $entity) => $entity
+            ->properties()
             ->find(static fn($property) => $property->name() === $specification->property())
             ->match(
                 static fn($property) => $filter($property->value()),

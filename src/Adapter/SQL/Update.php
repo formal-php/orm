@@ -69,7 +69,10 @@ final class Update
                     ->collection($collection->name())
                     ->map(static fn($table) => $table->update(
                         $data->id(),
-                        $collection->properties(),
+                        $collection->newEntities(),
+                        $collection->unmodifiedEntities()->map(
+                            static fn($entity) => $entity->reference(),
+                        ),
                     ))
                     ->toSequence()
                     ->toSet(),

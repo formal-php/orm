@@ -6,6 +6,7 @@ namespace Formal\ORM\Adapter\SQL;
 use Formal\ORM\{
     Definition\Aggregate as Definition,
     Raw\Aggregate,
+    Raw\Aggregate\Collection\Entity\Reference,
 };
 use Formal\AccessLayer\{
     Connection,
@@ -24,8 +25,6 @@ use Innmind\Immutable\{
  */
 final class Decode
 {
-    /** @var Definition<T> */
-    private Definition $definition;
     /** @var MainTable<T> */
     private MainTable $mainTable;
     private Connection $connection;
@@ -43,7 +42,6 @@ final class Decode
         MainTable $mainTable,
         Connection $connection,
     ) {
-        $this->definition = $definition;
         $this->mainTable = $mainTable;
         $this->connection = $connection;
         $this->entityPrefix = $mainTable->name()->alias().'_';
@@ -115,9 +113,18 @@ final class Decode
                             // The memoize is here to make sure the user can't
                             // work with a partially loaded collection
                             yield ($this->connection)($collection->select($id))
-                                ->map(static fn($row) => self::properties(
-                                    $row,
-                                    $collection->columns(),
+                                ->map(static fn($row) => Aggregate\Collection\Entity::of(
+                                    $row
+                                        ->column($collection->primaryKey()->name()->toString())
+                                        ->filter(\is_string(...))
+                                        ->match(
+                                            Reference::of(...),
+                                            static fn() => throw new \RuntimeException('Invalid entity reference'),
+                                        ),
+                                    self::properties(
+                                        $row,
+                                        $collection->columns(),
+                                    ),
                                 ))
                                 ->toSet()
                                 ->memoize();
