@@ -88,8 +88,7 @@ final class Normalize
                             $property->name(),
                             $property->type()->normalize($value),
                         ))
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 ),
             $this
                 ->definition
@@ -103,8 +102,7 @@ final class Normalize
                                 ->get($entity->name())
                                 ->map($normalize),
                         )
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 ),
             $this
                 ->definition
@@ -118,8 +116,7 @@ final class Normalize
                                 ->get($optional->name())
                                 ->map($normalize),
                         )
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 ),
             $this
                 ->definition
@@ -133,8 +130,7 @@ final class Normalize
                                 ->get($collection->name())
                                 ->map(static fn($object) => $normalize($denormalized->id(), $object)),
                         )
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 ),
         );
     }

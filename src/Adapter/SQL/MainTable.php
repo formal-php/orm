@@ -34,6 +34,7 @@ use Innmind\Immutable\{
     Map,
     Maybe,
     Set,
+    Sequence,
 };
 
 /**
@@ -161,9 +162,9 @@ final class MainTable
     }
 
     /**
-     * @return Set<Column>
+     * @return Sequence<Column>
      */
-    public function columnsDefinition(MapType $mapType): Set
+    public function columnsDefinition(MapType $mapType): Sequence
     {
         return $this
             ->definition
@@ -212,11 +213,11 @@ final class MainTable
     /**
      * @internal
      *
-     * @param Set<Aggregate\Property> $properties
+     * @param Sequence<Aggregate\Property> $properties
      */
     public function insert(
         Id $id,
-        Set $properties,
+        Sequence $properties,
     ): Query {
         $table = $this->name->name();
 
@@ -276,11 +277,11 @@ final class MainTable
     }
 
     /**
-     * @return Set<EntityTable>
+     * @return Sequence<EntityTable>
      */
-    public function entities(): Set
+    public function entities(): Sequence
     {
-        return $this->entities->values()->toSet();
+        return $this->entities->values();
     }
 
     /**
@@ -294,11 +295,11 @@ final class MainTable
     }
 
     /**
-     * @return Set<OptionalTable>
+     * @return Sequence<OptionalTable>
      */
-    public function optionals(): Set
+    public function optionals(): Sequence
     {
-        return $this->optionals->values()->toSet();
+        return $this->optionals->values();
     }
 
     /**
@@ -312,11 +313,11 @@ final class MainTable
     }
 
     /**
-     * @return Set<CollectionTable>
+     * @return Sequence<CollectionTable>
      */
-    public function collections(): Set
+    public function collections(): Sequence
     {
-        return $this->collections->values()->toSet();
+        return $this->collections->values();
     }
 
     /**

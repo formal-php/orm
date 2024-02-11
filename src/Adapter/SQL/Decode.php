@@ -77,8 +77,7 @@ final class Decode
                 ->map(static fn($value) => Aggregate\Property::of(
                     Str::of($value->column()->toString())->drop(7)->toString(),
                     $value->value(),
-                ))
-                ->toSet(),
+                )),
             $this
                 ->mainTable
                 ->entities()

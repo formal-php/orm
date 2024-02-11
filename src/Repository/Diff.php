@@ -120,8 +120,7 @@ final class Diff
                 $property->name(),
                 $property->type()->normalize($value->now()),
             ))
-            ->values()
-            ->toSet();
+            ->values();
         /** @psalm-suppress MixedArgument */
         $entities = $diff
             ->flatMap(
@@ -137,8 +136,7 @@ final class Diff
                         static fn() => Map::of(),
                     ),
             )
-            ->values()
-            ->toSet();
+            ->values();
         /** @psalm-suppress MixedArgument */
         $optionals = $diff
             ->flatMap(
@@ -154,8 +152,7 @@ final class Diff
                         static fn() => Map::of(),
                     ),
             )
-            ->values()
-            ->toSet();
+            ->values();
         /** @psalm-suppress MixedArgument */
         $collections = $diff
             ->flatMap(
@@ -173,8 +170,7 @@ final class Diff
                         static fn() => Map::of(),
                     ),
             )
-            ->values()
-            ->toSet();
+            ->values();
 
         return Raw\Diff::of(
             $normalizedId,

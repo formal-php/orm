@@ -7,7 +7,7 @@ use Formal\ORM\Definition\Aggregate\Parsing;
 use Innmind\Reflection\ReflectionClass;
 use Innmind\Immutable\{
     Str,
-    Set,
+    Sequence,
     Monoid\Concat,
 };
 
@@ -21,30 +21,30 @@ final class Aggregate
     private string $class;
     /** @var Aggregate\Identity<T> */
     private Aggregate\Identity $id;
-    /** @var Set<Aggregate\Property<T, mixed>> */
-    private Set $properties;
-    /** @var Set<Aggregate\Entity> */
-    private Set $entities;
-    /** @var Set<Aggregate\Optional> */
-    private Set $optionals;
-    /** @var Set<Aggregate\Collection> */
-    private Set $collections;
+    /** @var Sequence<Aggregate\Property<T, mixed>> */
+    private Sequence $properties;
+    /** @var Sequence<Aggregate\Entity> */
+    private Sequence $entities;
+    /** @var Sequence<Aggregate\Optional> */
+    private Sequence $optionals;
+    /** @var Sequence<Aggregate\Collection> */
+    private Sequence $collections;
 
     /**
      * @param class-string<T> $class
      * @param Aggregate\Identity<T> $id
-     * @param Set<Aggregate\Property<T, mixed>> $properties
-     * @param Set<Aggregate\Entity> $entities
-     * @param Set<Aggregate\Optional> $optionals
-     * @param Set<Aggregate\Collection> $collections
+     * @param Sequence<Aggregate\Property<T, mixed>> $properties
+     * @param Sequence<Aggregate\Entity> $entities
+     * @param Sequence<Aggregate\Optional> $optionals
+     * @param Sequence<Aggregate\Collection> $collections
      */
     private function __construct(
         string $class,
         Aggregate\Identity $id,
-        Set $properties,
-        Set $entities,
-        Set $optionals,
-        Set $collections,
+        Sequence $properties,
+        Sequence $entities,
+        Sequence $optionals,
+        Sequence $collections,
     ) {
         $this->class = $class;
         $this->id = $id;
@@ -116,33 +116,33 @@ final class Aggregate
     }
 
     /**
-     * @return Set<Aggregate\Property<T, mixed>>
+     * @return Sequence<Aggregate\Property<T, mixed>>
      */
-    public function properties(): Set
+    public function properties(): Sequence
     {
         return $this->properties;
     }
 
     /**
-     * @return Set<Aggregate\Entity>
+     * @return Sequence<Aggregate\Entity>
      */
-    public function entities(): Set
+    public function entities(): Sequence
     {
         return $this->entities;
     }
 
     /**
-     * @return Set<Aggregate\Optional>
+     * @return Sequence<Aggregate\Optional>
      */
-    public function optionals(): Set
+    public function optionals(): Sequence
     {
         return $this->optionals;
     }
 
     /**
-     * @return Set<Aggregate\Collection>
+     * @return Sequence<Aggregate\Collection>
      */
-    public function collections(): Set
+    public function collections(): Sequence
     {
         return $this->collections;
     }

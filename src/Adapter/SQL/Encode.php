@@ -47,12 +47,10 @@ final class Encode
         $optionals = $this->optionals($data);
         $collections = $this->collections($data);
 
-        return Sequence::of(
-            $main,
-            ...$entities->toList(),
-            ...$optionals->toList(),
-            ...$collections->toList(),
-        );
+        return Sequence::of($main)
+            ->append($entities)
+            ->append($optionals)
+            ->append($collections);
     }
 
     /**
@@ -73,9 +71,9 @@ final class Encode
     }
 
     /**
-     * @return Set<Query>
+     * @return Sequence<Query>
      */
-    private function entities(Aggregate $data): Set
+    private function entities(Aggregate $data): Sequence
     {
         return $data
             ->entities()
@@ -86,15 +84,14 @@ final class Encode
                     ->map(
                         static fn($table) => $table->insert($data->id(), $entity->properties()),
                     )
-                    ->toSequence()
-                    ->toSet(),
+                    ->toSequence(),
             );
     }
 
     /**
-     * @return Set<Query>
+     * @return Sequence<Query>
      */
-    private function optionals(Aggregate $data): Set
+    private function optionals(Aggregate $data): Sequence
     {
         return $data
             ->optionals()
@@ -107,8 +104,7 @@ final class Encode
                             static fn($properties) => $table->insert($data->id(), $properties),
                         ),
                     )
-                    ->toSequence()
-                    ->toSet(),
+                    ->toSequence(),
             );
     }
 
@@ -121,9 +117,9 @@ final class Encode
     }
 
     /**
-     * @return Set<Query>
+     * @return Sequence<Query>
      */
-    private function collections(Aggregate $data): Set
+    private function collections(Aggregate $data): Sequence
     {
         return $data
             ->collections()
@@ -137,8 +133,7 @@ final class Encode
                             $collection->entities(),
                         ),
                     )
-                    ->toSequence()
-                    ->toSet(),
+                    ->toSequence(),
             );
     }
 }

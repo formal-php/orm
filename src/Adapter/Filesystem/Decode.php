@@ -17,6 +17,7 @@ use Innmind\Json\Json;
 use Innmind\Immutable\{
     Maybe,
     Set,
+    Sequence,
     Predicate\Instance,
 };
 
@@ -67,8 +68,7 @@ final class Decode
                         ->map(static fn($file) => Aggregate\Property::of(
                             $file->name()->toString(),
                             Json::decode($file->content()->toString()),
-                        ))
-                        ->toSet(),
+                        )),
                 ),
             $directory
                 ->get(Name::of('entities'))
@@ -89,8 +89,7 @@ final class Decode
                                     ))
                                     ->toSet(),
                             ),
-                        )
-                        ->toSet(),
+                        ),
                 ),
             $directory
                 ->get(Name::of('optionals'))
@@ -116,8 +115,7 @@ final class Decode
                                             ->toSet(),
                                     ),
                             ),
-                        )
-                        ->toSet(),
+                        ),
                 ),
             $directory
                 ->get(Name::of('collections'))
@@ -141,10 +139,9 @@ final class Decode
                                     ),
                                 ),
                             ),
-                        )
-                        ->toSet(),
+                        ),
                 ),
-        )->map(static fn(Set $properties, Set $entities, Set $optionals, Set $collections) => Aggregate::of(
+        )->map(static fn(Sequence $properties, Sequence $entities, Sequence $optionals, Sequence $collections) => Aggregate::of(
             $id($directory),
             $properties,
             $entities,
