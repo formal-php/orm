@@ -44,6 +44,9 @@ final class Collection
         return new self($name, $newEntities, Set::of());
     }
 
+    /**
+     * @internal
+     */
     public function with(self $unmodified): self
     {
         return new self(
