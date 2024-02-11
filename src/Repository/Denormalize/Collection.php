@@ -10,7 +10,6 @@ use Formal\ORM\{
     Raw\Aggregate\Collection as Raw,
     Repository\KnownCollectionEntity,
 };
-use Formal\ORM\Raw\Aggregate\Collection\Entity\Reference;
 use Innmind\Reflection\Instanciate;
 use Innmind\Immutable\{
     Map,
@@ -59,6 +58,7 @@ final class Collection
         return $collection
             ->entities()
             ->map(function($entity) use ($class, $id, $collection) {
+                $reference = $entity->reference();
                 $entity = Map::of(
                     ...$entity
                         ->properties()
@@ -76,14 +76,14 @@ final class Collection
 
                 /** @var T */
                 return ($this->instanciate)($class, $entity)
-                    ->map(fn($entity) => $this->knownCollectionEntity->add(
+                    ->map(fn($object) => $this->knownCollectionEntity->add(
                         $id,
                         $collection->name(),
-                        $entity,
-                        Reference::new(), // TODO get the reference stored by the adapter
+                        $object,
+                        $reference,
                     ))
                     ->match(
-                        static fn($entity) => $entity,
+                        static fn($object) => $object,
                         static fn() => throw new \RuntimeException("Unable to denormalize collection of type '$class'"),
                     );
             });

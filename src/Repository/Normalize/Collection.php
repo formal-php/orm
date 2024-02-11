@@ -88,8 +88,8 @@ final class Collection
                                 ->toSet(),
                         ),
                 )
+                ->map(Raw\Entity::of(...))
                 ->values()
-                ->map(Raw\Entity::of(...)) // TODO inject the reference
                 ->toSet(),
         );
     }

@@ -6,6 +6,7 @@ namespace Formal\ORM\Adapter\Filesystem;
 use Formal\ORM\{
     Definition\Aggregate as Definition,
     Raw\Aggregate,
+    Raw\Aggregate\Collection\Entity\Reference,
 };
 use Innmind\Filesystem\{
     File,
@@ -130,6 +131,7 @@ final class Decode
                                 $collection->name()->toString(),
                                 Set::of(...Json::decode($collection->content()->toString()))->map(
                                     static fn($entity) => Aggregate\Collection\Entity::of(
+                                        Reference::new(),
                                         Set::of(...$entity)->map(
                                             static fn($property) => Aggregate\Property::of(
                                                 $property[0],

@@ -6,6 +6,7 @@ namespace Formal\ORM\Adapter\SQL;
 use Formal\ORM\{
     Definition\Aggregate as Definition,
     Raw\Aggregate,
+    Raw\Aggregate\Collection\Entity\Reference,
 };
 use Formal\AccessLayer\{
     Connection,
@@ -116,7 +117,10 @@ final class Decode
                                     $row,
                                     $collection->columns(),
                                 ))
-                                ->map(Aggregate\Collection\Entity::of(...))
+                                ->map(static fn($entity) => Aggregate\Collection\Entity::of(
+                                    Reference::new(),
+                                    $entity,
+                                ))
                                 ->toSet()
                                 ->memoize();
                         })(),
