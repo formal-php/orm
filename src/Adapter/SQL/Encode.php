@@ -134,7 +134,7 @@ final class Encode
                     ->flatMap(
                         static fn($table) => $table->insert(
                             $data->id(),
-                            $collection->newEntities(),
+                            $collection->entities(),
                         ),
                     )
                     ->toSequence()

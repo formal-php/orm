@@ -170,24 +170,30 @@ final class CollectionTable
     /**
      * @internal
      *
-     * @param Set<Entity> $collection
+     * @param Set<Entity> $newEntities
+     * @param Set<Entity\Reference> $unmodifiedEntities
      *
      * @return Sequence<Query>
      */
-    public function update(Id $id, Set $collection): Sequence
-    {
+    public function update(
+        Id $id,
+        Set $newEntities,
+        Set $unmodifiedEntities,
+    ): Sequence {
         return Sequence::of(
-            Delete::from($this->name)->where(PropertySpecification::of(
-                \sprintf(
-                    '%s.%s',
-                    $this->name->alias(),
-                    $this->id->column()->toString(),
+            Delete::from($this->name)->where(
+                PropertySpecification::of(
+                    \sprintf(
+                        '%s.%s',
+                        $this->name->alias(),
+                        $this->id->column()->toString(),
+                    ),
+                    Sign::equality,
+                    $id->value(),
                 ),
-                Sign::equality,
-                $id->value(),
-            )),
+            ),
             ...$this
-                ->insert($id, $collection)
+                ->insert($id, $newEntities)
                 ->toSequence()
                 ->toList(),
         );

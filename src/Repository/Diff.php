@@ -161,8 +161,10 @@ final class Diff
                     ->normalizeCollection
                     ->get($name)
                     ->map(static fn($normalize) => self::diffCollections(
-                        $normalize($id, $value->then()),
-                        $normalize($id, $value->now()),
+                        $normalize,
+                        $id,
+                        $value->then(),
+                        $value->now(),
                     ))
                     ->match(
                         static fn($value) => Map::of([$name, $value]),
@@ -236,15 +238,31 @@ final class Diff
         );
     }
 
-    /**
-     * @psalm-pure
-     */
     private static function diffCollections(
-        Raw\Aggregate\Collection $then,
-        Raw\Aggregate\Collection $now,
+        Normalize\Collection $normalize,
+        Raw\Aggregate\Id $id,
+        Set $then,
+        Set $now,
     ): Raw\Aggregate\Collection {
-        // TODO diff inside the collection
-        return $now;
+        $diff = $now->partition(static fn($entity) => $then->contains($entity));
+        /** @var Set<object> */
+        $unmodified = $diff
+            ->get(true)
+            ->match(
+                static fn($unmodified) => $unmodified,
+                static fn() => Set::of(),
+            );
+        /** @var Set<object> */
+        $new = $diff
+            ->get(false)
+            ->match(
+                static fn($new) => $new,
+                static fn() => Set::of(),
+            );
+        $unmodified = $normalize($id, $unmodified);
+        $new = $normalize($id, $new);
+
+        return $new->with($unmodified);
     }
 
     /**

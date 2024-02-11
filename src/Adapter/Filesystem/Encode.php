@@ -93,6 +93,10 @@ final class Encode
                 // dedicated directory/file but there is currently no way to
                 // tell the filesystem to erase all files in a directory before
                 // persisting the new version.
+                // We don't need to persist the reference of each entity as their
+                // purpose is to persist the smallest diff possible, but since
+                // we store the whole collection each time no need to diff via
+                // the references.
                 $data
                     ->collections()
                     ->map(
@@ -100,7 +104,7 @@ final class Encode
                             $collection->name(),
                             Content::ofString(Json::encode(
                                 $collection
-                                    ->newEntities()
+                                    ->entities()
                                     ->map(
                                         static fn($entity) => $entity
                                             ->properties()

@@ -70,6 +70,9 @@ final class Update
                     ->map(static fn($table) => $table->update(
                         $data->id(),
                         $collection->newEntities(),
+                        $collection->unmodifiedEntities()->map(
+                            static fn($entity) => $entity->reference(),
+                        ),
                     ))
                     ->toSequence()
                     ->toSet(),
