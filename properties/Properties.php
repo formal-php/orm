@@ -59,6 +59,7 @@ final class Properties
             UpdatingOutsideOfTransactionIsNotAllowed::class,
             RemovingOutsideOfTransactionIsNotAllowed::class,
             IncrementallyAddElementsToACollection::class,
+            AddElementToCollections::class,
         ];
     }
 
