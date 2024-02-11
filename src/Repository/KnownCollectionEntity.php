@@ -28,17 +28,27 @@ final class KnownCollectionEntity
     /**
      * @template T of object
      *
+     * @param \WeakReference<Id> $idReference
      * @param T $entity
      * @param non-empty-string $collection
      *
      * @return T
      */
     public function add(
-        Id $id,
+        \WeakReference $idReference,
         string $collection,
         object $entity,
         Reference $reference,
     ): object {
+        $id = $idReference->get();
+
+        if (\is_null($id)) {
+            // The aggregate can go out of memory in case the user throw out
+            // the aggregate from memory but keep the collection.
+            // In this case we can't keep track of the reference.
+            return $entity;
+        }
+
         /** @var Map<non-empty-string, \WeakMap<object, Reference>> */
         $aggregate = $this->aggregates[$id] ?? Map::of();
         /** @var \WeakMap<object, Reference> */

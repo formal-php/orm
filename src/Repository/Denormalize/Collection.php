@@ -54,11 +54,18 @@ final class Collection
     public function __invoke(Id $id, Raw $collection): Set
     {
         $class = $this->definition->class();
+        $name = $collection->name();
+        // We use a weak reference to the aggregate id otherwise the closure below
+        // will always keep a reference to the id and all the weak maps that depend
+        // on this id will keep the associated data.
+        // This means that when reading lots of data the memory will always increase.
+        $idReference = \WeakReference::create($id);
 
         return $collection
             ->newEntities()
-            ->map(function($entity) use ($class, $id, $collection) {
+            ->map(function($entity) use ($class, $idReference, $name) {
                 $reference = $entity->reference();
+
                 $entity = Map::of(
                     ...$entity
                         ->properties()
@@ -77,8 +84,8 @@ final class Collection
                 /** @var T */
                 return ($this->instanciate)($class, $entity)
                     ->map(fn($object) => $this->knownCollectionEntity->add(
-                        $id,
-                        $collection->name(),
+                        $idReference,
+                        $name,
                         $object,
                         $reference,
                     ))
