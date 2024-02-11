@@ -4,17 +4,13 @@ declare(ticks = 1);
 
 namespace Properties\Formal\ORM;
 
-use Formal\ORM\{
-    Manager,
-};
+use Formal\ORM\Manager;
 use Fixtures\Formal\ORM\User;
 use Innmind\BlackBox\{
     Set,
     Property,
     Runner\Assert,
 };
-use Innmind\Immutable\Either;
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
 
 /**
  * @implements Property<Manager>
