@@ -131,8 +131,8 @@ final class Decode
                                 $collection->name()->toString(),
                                 Set::of(...Json::decode($collection->content()->toString()))->map(
                                     static fn($entity) => Aggregate\Collection\Entity::of(
-                                        Reference::new(),
-                                        Set::of(...$entity)->map(
+                                        Reference::of($entity['reference']),
+                                        Set::of(...$entity['properties'])->map(
                                             static fn($property) => Aggregate\Property::of(
                                                 $property[0],
                                                 $property[1],
