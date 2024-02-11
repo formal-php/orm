@@ -15,6 +15,7 @@
 - (Optional) Entities id column with the `SQL` adapter now use the Aggregate id as a value, the columns in the Aggregate column referencing these columns have been removed
 - `Formal\ORM\Raw\Aggregate\Collection::properties()` has been renamed `::entities()`
 - Collection tables now have an `entityReference` column
+- Collection, entities and optional entities table column `id` has been renamed `aggregateId`
 
 ## 1.2.0 - 2024-01-15
 
