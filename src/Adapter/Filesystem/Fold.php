@@ -164,7 +164,6 @@ final class Fold
             $left = $this->child($specification->left());
             $right = $this->child($specification->right());
 
-            /** @psalm-suppress MixedArgumentTypeCoercion */
             return match ($specification->operator()) {
                 Operator::and => static fn(Aggregate\Collection\Entity $entity) => $left($entity) && $right($entity),
                 Operator::or => static fn(Aggregate\Collection\Entity $entity) => $left($entity) || $right($entity),
