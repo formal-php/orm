@@ -6,7 +6,6 @@ namespace Formal\ORM\Repository;
 use Formal\ORM\{
     Definition\Aggregate as Definition,
     Definition\Aggregate\Property,
-    Definition\Aggregate\Entity,
     Raw\Aggregate,
     Id,
 };
@@ -91,14 +90,14 @@ final class Denormalize
      */
     public function __invoke(Id $id = null): callable
     {
-        $id = match ($id) {
+        $denormalize = match ($id) {
             null => $this->denormalizeId,
             default => static fn(Aggregate\Id $_) => $id,
         };
 
         return fn(Aggregate $data) => Denormalized::of(
-            $id($data->id()),
-            $this->properties($data),
+            $id = $denormalize($data->id()),
+            $this->properties($id, $data),
         );
     }
 
@@ -120,7 +119,7 @@ final class Denormalize
     /**
      * @return Map<non-empty-string, mixed>
      */
-    private function properties(Aggregate $data): Map
+    private function properties(Id $id, Aggregate $data): Map
     {
         return Map::of(
             ...$data
@@ -165,7 +164,7 @@ final class Denormalize
                     fn($collection) => $this
                         ->collections
                         ->get($collection->name())
-                        ->map(static fn($denormalize): Set => $denormalize($data->id(), $collection))
+                        ->map(static fn($denormalize): Set => $denormalize($id, $collection))
                         ->map(static fn($value) => [$collection->name(), $value])
                         ->toSequence()
                         ->toSet(),

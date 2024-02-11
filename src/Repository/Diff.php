@@ -6,6 +6,7 @@ namespace Formal\ORM\Repository;
 use Formal\ORM\{
     Definition\Aggregate as Definition,
     Raw,
+    Id,
 };
 use Innmind\Reflection\Extract;
 use Innmind\Immutable\{
@@ -80,7 +81,8 @@ final class Diff
      */
     public function __invoke(Denormalized $then, Denormalized $now): Raw\Diff
     {
-        $id = $this->definition->id()->normalize($now->id());
+        $id = $now->id();
+        $normalizedId = $this->definition->id()->normalize($now->id());
         $then = $then->properties();
         $now = $now->properties();
 
@@ -175,7 +177,7 @@ final class Diff
             ->toSet();
 
         return Raw\Diff::of(
-            $id,
+            $normalizedId,
             $properties,
             $entities,
             $optionals,
@@ -240,7 +242,7 @@ final class Diff
 
     private static function diffCollections(
         Normalize\Collection $normalize,
-        Raw\Aggregate\Id $id,
+        Id $id,
         Set $then,
         Set $now,
     ): Raw\Aggregate\Collection {

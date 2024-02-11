@@ -7,8 +7,8 @@ use Formal\ORM\{
     Definition\Aggregate\Collection as Definition,
     Raw\Aggregate\Collection as Raw,
     Raw\Aggregate\Property,
-    Raw\Aggregate\Id,
     Repository\KnownCollectionEntity,
+    Id,
 };
 use Innmind\Reflection\Extract;
 use Innmind\Immutable\{

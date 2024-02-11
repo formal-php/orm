@@ -6,9 +6,9 @@ namespace Formal\ORM\Repository\Denormalize;
 use Formal\ORM\{
     Definition\Aggregate\Collection as Definition,
     Definition\Aggregate\Property,
-    Raw\Aggregate\Id,
     Raw\Aggregate\Collection as Raw,
     Repository\KnownCollectionEntity,
+    Id,
 };
 use Innmind\Reflection\Instanciate;
 use Innmind\Immutable\{

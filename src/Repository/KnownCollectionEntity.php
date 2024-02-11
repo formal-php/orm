@@ -3,9 +3,9 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Repository;
 
-use Formal\ORM\Raw\Aggregate\{
+use Formal\ORM\{
     Id,
-    Collection\Entity\Reference,
+    Raw\Aggregate\Collection\Entity\Reference,
 };
 use Innmind\Immutable\Map;
 
@@ -41,11 +41,14 @@ final class KnownCollectionEntity
     ): object {
         /** @var Map<non-empty-string, \WeakMap<object, Reference>> */
         $aggregate = $this->aggregates[$id] ?? Map::of();
+        /** @var \WeakMap<object, Reference> */
         $entities = $aggregate->get($collection)->match(
             static fn($entities) => $entities,
             static fn() => new \WeakMap,
         );
         $entities[$entity] = $reference;
+        $aggregate = ($aggregate)($collection, $entities);
+        $this->aggregates[$id] = $aggregate;
 
         return $entity;
     }
@@ -70,6 +73,8 @@ final class KnownCollectionEntity
         );
         $reference = $entities[$entity] ?? Reference::new();
         $entities[$entity] = $reference;
+        $aggregate = ($aggregate)($collection, $entities);
+        $this->aggregates[$id] = $aggregate;
 
         return $reference;
     }

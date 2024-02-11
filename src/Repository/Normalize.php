@@ -74,11 +74,10 @@ final class Normalize
     public function __invoke(Denormalized $denormalized): Aggregate
     {
         $properties = $denormalized->properties();
-        $id = $this->definition->id()->normalize($denormalized->id());
 
         /** @psalm-suppress MixedArgument Due to the collection normalization */
         return Aggregate::of(
-            $id,
+            $this->definition->id()->normalize($denormalized->id()),
             $this
                 ->definition
                 ->properties()
@@ -132,7 +131,7 @@ final class Normalize
                         ->flatMap(
                             static fn($normalize) => $properties
                                 ->get($collection->name())
-                                ->map(static fn($object) => $normalize($id, $object)),
+                                ->map(static fn($object) => $normalize($denormalized->id(), $object)),
                         )
                         ->toSequence()
                         ->toSet(),
