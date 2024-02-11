@@ -60,6 +60,7 @@ final class Properties
             RemovingOutsideOfTransactionIsNotAllowed::class,
             IncrementallyAddElementsToACollection::class,
             AddElementToCollections::class,
+            ListingAggregatesUseConstantMemory::class,
         ];
     }
 
