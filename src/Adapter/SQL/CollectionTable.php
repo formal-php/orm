@@ -56,7 +56,7 @@ final class CollectionTable
                     ->in($this->name)
                     ->as($definition->name().'_'.$property->name()),
             );
-        $this->id = Column\Name::of('id')->in($this->name);
+        $this->id = Column\Name::of('aggregateId')->in($this->name);
         $this->reference = Column\Name::of('entityReference')->in($this->name);
         $this->select = Select::from($this->name)->columns(
             $this->id,
@@ -92,7 +92,7 @@ final class CollectionTable
     public function foreignKey(): Table\Column
     {
         return Table\Column::of(
-            Table\Column\Name::of('id'),
+            Table\Column\Name::of('aggregateId'),
             Table\Column\Type::varchar(36)->comment('UUID'),
         );
     }
@@ -161,7 +161,7 @@ final class CollectionTable
                         ->map(
                             static fn($entity) => new Row(
                                 new Row\Value(
-                                    Column\Name::of('id')->in($table),
+                                    Column\Name::of('aggregateId')->in($table),
                                     $id->value(),
                                 ),
                                 new Row\Value(

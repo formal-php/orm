@@ -55,7 +55,7 @@ final class OptionalTable
                     ->as($definition->name().'_'.$property->name()),
             );
         $this->select = Select::onDemand($this->name)->columns(
-            Column\Name::of('id')->in($this->name),
+            Column\Name::of('aggregateId')->in($this->name),
             ...$this->columns->toList(),
         );
     }
@@ -79,7 +79,7 @@ final class OptionalTable
     public function primaryKey(): Table\Column
     {
         return Table\Column::of(
-            Table\Column\Name::of('id'),
+            Table\Column\Name::of('aggregateId'),
             Table\Column\Type::varchar(36)->comment('UUID'),
         );
     }
@@ -117,7 +117,7 @@ final class OptionalTable
     public function select(Id $id): Select
     {
         return $this->select->where(PropertySpecification::of(
-            'id',
+            'aggregateId',
             Sign::equality,
             $id->value(),
         ));
@@ -136,7 +136,7 @@ final class OptionalTable
             $table,
             new Row(
                 new Row\Value(
-                    Column\Name::of('id')->in($table),
+                    Column\Name::of('aggregateId')->in($table),
                     $id->value(),
                 ),
                 ...$properties
@@ -183,14 +183,14 @@ final class OptionalTable
                     ),
                 )
                     ->where(PropertySpecification::of(
-                        'id',
+                        'aggregateId',
                         Sign::equality,
                         $id->value(),
                     )),
             ),
             fn() => Sequence::of(
                 Delete::from($this->name)->where(PropertySpecification::of(
-                    'id',
+                    'aggregateId',
                     Sign::equality,
                     $id->value(),
                 )),
