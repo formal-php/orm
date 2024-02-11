@@ -115,7 +115,7 @@ final class Decode
                             yield ($this->connection)($collection->select($id))
                                 ->map(static fn($row) => Aggregate\Collection\Entity::of(
                                     $row
-                                        ->column($collection->referenceColumn()->name()->toString())
+                                        ->column($collection->primaryKey()->name()->toString())
                                         ->filter(\is_string(...))
                                         ->match(
                                             Reference::of(...),

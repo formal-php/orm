@@ -83,15 +83,15 @@ final class CollectionTable
     public function primaryKey(): Table\Column
     {
         return Table\Column::of(
-            Table\Column\Name::of('id'),
+            Table\Column\Name::of('entityReference'),
             Table\Column\Type::varchar(36)->comment('UUID'),
         );
     }
 
-    public function referenceColumn(): Table\Column
+    public function foreignKey(): Table\Column
     {
         return Table\Column::of(
-            Table\Column\Name::of('entityReference'),
+            Table\Column\Name::of('id'),
             Table\Column\Type::varchar(36)->comment('UUID'),
         );
     }

@@ -84,21 +84,21 @@ final class ShowCreateTable
                 fn($collection) => Query\CreateTable::named(
                     $collection->name()->name(),
                     $collection->primaryKey(),
-                    $collection->referenceColumn(),
+                    $collection->foreignKey(),
                     ...$collection
                         ->columnsDefinition($this->mapType)
                         ->toList(),
                 )
-                    ->primaryKey($collection->referenceColumn()->name())
+                    ->primaryKey($collection->primaryKey()->name())
                     ->constraint(
                         ForeignKey::of(
-                            $collection->primaryKey()->name(),
+                            $collection->foreignKey()->name(),
                             $mainTable->name()->name(),
                             $mainTable->primaryKey()->name(),
                         )
                             ->onDeleteCascade()
                             ->named($collection->name()->name()->toString()),
-                    )
+                    ),
             )
             ->toList();
 
