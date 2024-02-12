@@ -3,7 +3,7 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Raw;
 
-use Innmind\Immutable\Set;
+use Innmind\Immutable\Sequence;
 
 /**
  * @psalm-immutable
@@ -11,27 +11,27 @@ use Innmind\Immutable\Set;
 final class Aggregate
 {
     private Aggregate\Id $id;
-    /** @var Set<Aggregate\Property> */
-    private Set $properties;
-    /** @var Set<Aggregate\Entity> */
-    private Set $entities;
-    /** @var Set<Aggregate\Optional> */
-    private Set $optionals;
-    /** @var Set<Aggregate\Collection> */
-    private Set $collections;
+    /** @var Sequence<Aggregate\Property> */
+    private Sequence $properties;
+    /** @var Sequence<Aggregate\Entity> */
+    private Sequence $entities;
+    /** @var Sequence<Aggregate\Optional> */
+    private Sequence $optionals;
+    /** @var Sequence<Aggregate\Collection> */
+    private Sequence $collections;
 
     /**
-     * @param Set<Aggregate\Property> $properties
-     * @param Set<Aggregate\Entity> $entities
-     * @param Set<Aggregate\Optional> $optionals
-     * @param Set<Aggregate\Collection> $collections
+     * @param Sequence<Aggregate\Property> $properties
+     * @param Sequence<Aggregate\Entity> $entities
+     * @param Sequence<Aggregate\Optional> $optionals
+     * @param Sequence<Aggregate\Collection> $collections
      */
     private function __construct(
         Aggregate\Id $id,
-        Set $properties,
-        Set $entities,
-        Set $optionals,
-        Set $collections,
+        Sequence $properties,
+        Sequence $entities,
+        Sequence $optionals,
+        Sequence $collections,
     ) {
         $this->id = $id;
         $this->properties = $properties;
@@ -43,17 +43,17 @@ final class Aggregate
     /**
      * @psalm-pure
      *
-     * @param Set<Aggregate\Property> $properties
-     * @param Set<Aggregate\Entity> $entities
-     * @param Set<Aggregate\Optional> $optionals
-     * @param Set<Aggregate\Collection> $collections
+     * @param Sequence<Aggregate\Property> $properties
+     * @param Sequence<Aggregate\Entity> $entities
+     * @param Sequence<Aggregate\Optional> $optionals
+     * @param Sequence<Aggregate\Collection> $collections
      */
     public static function of(
         Aggregate\Id $id,
-        Set $properties,
-        Set $entities,
-        Set $optionals,
-        Set $collections,
+        Sequence $properties,
+        Sequence $entities,
+        Sequence $optionals,
+        Sequence $collections,
     ): self {
         return new self($id, $properties, $entities, $optionals, $collections);
     }
@@ -64,33 +64,33 @@ final class Aggregate
     }
 
     /**
-     * @return Set<Aggregate\Property>
+     * @return Sequence<Aggregate\Property>
      */
-    public function properties(): Set
+    public function properties(): Sequence
     {
         return $this->properties;
     }
 
     /**
-     * @return Set<Aggregate\Entity>
+     * @return Sequence<Aggregate\Entity>
      */
-    public function entities(): Set
+    public function entities(): Sequence
     {
         return $this->entities;
     }
 
     /**
-     * @return Set<Aggregate\Optional>
+     * @return Sequence<Aggregate\Optional>
      */
-    public function optionals(): Set
+    public function optionals(): Sequence
     {
         return $this->optionals;
     }
 
     /**
-     * @return Set<Aggregate\Collection>
+     * @return Sequence<Aggregate\Collection>
      */
-    public function collections(): Set
+    public function collections(): Sequence
     {
         return $this->collections;
     }

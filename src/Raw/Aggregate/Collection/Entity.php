@@ -7,7 +7,7 @@ use Formal\ORM\Raw\Aggregate\{
     Property,
     Collection\Entity\Reference,
 };
-use Innmind\Immutable\Set;
+use Innmind\Immutable\Sequence;
 
 /**
  * @psalm-immutable
@@ -15,13 +15,13 @@ use Innmind\Immutable\Set;
 final class Entity
 {
     private Reference $reference;
-    /** @var Set<Property> */
-    private Set $properties;
+    /** @var Sequence<Property> */
+    private Sequence $properties;
 
     /**
-     * @param Set<Property> $properties
+     * @param Sequence<Property> $properties
      */
-    private function __construct(Reference $reference, Set $properties)
+    private function __construct(Reference $reference, Sequence $properties)
     {
         $this->reference = $reference;
         $this->properties = $properties;
@@ -30,9 +30,9 @@ final class Entity
     /**
      * @psalm-pure
      *
-     * @param Set<Property> $properties
+     * @param Sequence<Property> $properties
      */
-    public static function of(Reference $reference, Set $properties): self
+    public static function of(Reference $reference, Sequence $properties): self
     {
         return new self($reference, $properties);
     }
@@ -43,9 +43,9 @@ final class Entity
     }
 
     /**
-     * @return Set<Property>
+     * @return Sequence<Property>
      */
-    public function properties(): Set
+    public function properties(): Sequence
     {
         return $this->properties;
     }

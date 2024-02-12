@@ -16,6 +16,7 @@ use Formal\AccessLayer\{
 use Innmind\Immutable\{
     Maybe,
     Set,
+    Sequence,
     Str,
 };
 
@@ -77,8 +78,7 @@ final class Decode
                 ->map(static fn($value) => Aggregate\Property::of(
                     Str::of($value->column()->toString())->drop(7)->toString(),
                     $value->value(),
-                ))
-                ->toSet(),
+                )),
             $this
                 ->mainTable
                 ->entities()
@@ -154,11 +154,11 @@ final class Decode
     /**
      * @psalm-pure
      *
-     * @param Set<Column\Name\Aliased> $columns
+     * @param Sequence<Column\Name\Aliased> $columns
      *
-     * @return Set<Aggregate\Property>
+     * @return Sequence<Aggregate\Property>
      */
-    private static function properties(Row $row, Set $columns): Set
+    private static function properties(Row $row, Sequence $columns): Sequence
     {
         /** @psalm-suppress MixedArgument Due to the access-layer type */
         return $columns->flatMap(
@@ -171,8 +171,7 @@ final class Decode
                     },
                     $value,
                 ))
-                ->toSequence()
-                ->toSet(),
+                ->toSequence(),
         );
     }
 }

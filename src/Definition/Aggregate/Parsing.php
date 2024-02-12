@@ -16,6 +16,7 @@ use Innmind\Type\ClassName;
 use Innmind\Immutable\{
     Maybe,
     Set,
+    Sequence,
     Predicate\Instance,
 };
 
@@ -29,30 +30,30 @@ final class Parsing
     private string $class;
     /** @var Maybe<Identity<T>> */
     private Maybe $id;
-    /** @var Set<Property<T, mixed>> */
-    private Set $properties;
-    /** @var Set<Entity> */
-    private Set $entities;
-    /** @var Set<Optional> */
-    private Set $optionals;
-    /** @var Set<Collection> */
-    private Set $collections;
+    /** @var Sequence<Property<T, mixed>> */
+    private Sequence $properties;
+    /** @var Sequence<Entity> */
+    private Sequence $entities;
+    /** @var Sequence<Optional> */
+    private Sequence $optionals;
+    /** @var Sequence<Collection> */
+    private Sequence $collections;
 
     /**
      * @param class-string<T> $class
      * @param Maybe<Identity<T>> $id
-     * @param Set<Property<T, mixed>> $properties
-     * @param Set<Entity> $entities
-     * @param Set<Optional> $optionals
-     * @param Set<Collection> $collections
+     * @param Sequence<Property<T, mixed>> $properties
+     * @param Sequence<Entity> $entities
+     * @param Sequence<Optional> $optionals
+     * @param Sequence<Collection> $collections
      */
     private function __construct(
         string $class,
         Maybe $id,
-        Set $properties,
-        Set $entities,
-        Set $optionals,
-        Set $collections,
+        Sequence $properties,
+        Sequence $entities,
+        Sequence $optionals,
+        Sequence $collections,
     ) {
         $this->class = $class;
         $this->id = $id;
@@ -75,7 +76,7 @@ final class Parsing
         /** @var Maybe<Identity<A>> */
         $id = Maybe::nothing();
 
-        return new self($class, $id, Set::of(), Set::of(), Set::of(), Set::of());
+        return new self($class, $id, Sequence::of(), Sequence::of(), Sequence::of(), Sequence::of());
     }
 
     /**
@@ -143,33 +144,33 @@ final class Parsing
     }
 
     /**
-     * @return Set<Property<T, mixed>>
+     * @return Sequence<Property<T, mixed>>
      */
-    public function properties(): Set
+    public function properties(): Sequence
     {
         return $this->properties;
     }
 
     /**
-     * @return Set<Entity>
+     * @return Sequence<Entity>
      */
-    public function entities(): Set
+    public function entities(): Sequence
     {
         return $this->entities;
     }
 
     /**
-     * @return Set<Optional>
+     * @return Sequence<Optional>
      */
-    public function optionals(): Set
+    public function optionals(): Sequence
     {
         return $this->optionals;
     }
 
     /**
-     * @return Set<Collection>
+     * @return Sequence<Collection>
      */
-    public function collections(): Set
+    public function collections(): Sequence
     {
         return $this->collections;
     }
@@ -253,16 +254,19 @@ final class Parsing
             ->map(fn($property) => Entity::of(
                 $property->type()->toString(),
                 $property->name(),
-                ReflectionClass::of($property->type()->toString())
-                    ->properties()
+                Sequence::of(
+                    ...ReflectionClass::of($property->type()->toString())
+                        ->properties()
+                        ->toList(),
+                )
                     ->flatMap(
-                        fn($innerProperty) => $this->parseProperty(
-                            $property->type()->toString(),
-                            $innerProperty,
-                            $types,
-                        )
-                            ->toSequence()
-                            ->toSet(),
+                        fn($innerProperty) => $this
+                            ->parseProperty(
+                                $property->type()->toString(),
+                                $innerProperty,
+                                $types,
+                            )
+                            ->toSequence(),
                     ),
             ));
     }
@@ -290,16 +294,19 @@ final class Parsing
                     ->map(fn($contains) => Optional::of(
                         $contains->type()->toString(),
                         $property->name(),
-                        ReflectionClass::of($contains->type()->toString())
-                            ->properties()
+                        Sequence::of(
+                            ...ReflectionClass::of($contains->type()->toString())
+                                ->properties()
+                                ->toList(),
+                        )
                             ->flatMap(
-                                fn($innerProperty) => $this->parseProperty(
-                                    $property->type()->toString(),
-                                    $innerProperty,
-                                    $types,
-                                )
-                                    ->toSequence()
-                                    ->toSet(),
+                                fn($innerProperty) => $this
+                                    ->parseProperty(
+                                        $property->type()->toString(),
+                                        $innerProperty,
+                                        $types,
+                                    )
+                                    ->toSequence(),
                             ),
                     )),
             );
@@ -328,16 +335,19 @@ final class Parsing
                     ->map(fn($contains) => Collection::of(
                         $contains->type()->toString(),
                         $property->name(),
-                        ReflectionClass::of($contains->type()->toString())
-                            ->properties()
+                        Sequence::of(
+                            ...ReflectionClass::of($contains->type()->toString())
+                                ->properties()
+                                ->toList(),
+                        )
                             ->flatMap(
-                                fn($innerProperty) => $this->parseProperty(
-                                    $property->type()->toString(),
-                                    $innerProperty,
-                                    $types,
-                                )
-                                    ->toSequence()
-                                    ->toSet(),
+                                fn($innerProperty) => $this
+                                    ->parseProperty(
+                                        $property->type()->toString(),
+                                        $innerProperty,
+                                        $types,
+                                    )
+                                    ->toSequence(),
                             ),
                     )),
             );

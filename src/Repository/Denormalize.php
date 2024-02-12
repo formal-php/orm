@@ -130,8 +130,7 @@ final class Denormalize
                         ->get($property->name())
                         ->map(static fn($definition): mixed => $definition->type()->denormalize($property->value()))
                         ->map(static fn($value) => [$property->name(), $value])
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 )
                 ->toList(),
             ...$data
@@ -142,8 +141,7 @@ final class Denormalize
                         ->get($entity->name())
                         ->map(static fn($denormalize): object => $denormalize($entity))
                         ->map(static fn($value) => [$entity->name(), $value])
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 )
                 ->toList(),
             ...$data
@@ -154,8 +152,7 @@ final class Denormalize
                         ->get($optional->name())
                         ->map(static fn($denormalize): Maybe => $denormalize($optional))
                         ->map(static fn($value) => [$optional->name(), $value])
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 )
                 ->toList(),
             ...$data
@@ -166,8 +163,7 @@ final class Denormalize
                         ->get($collection->name())
                         ->map(static fn($denormalize): Set => $denormalize($id, $collection))
                         ->map(static fn($value) => [$collection->name(), $value])
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 )
                 ->toList(),
         );

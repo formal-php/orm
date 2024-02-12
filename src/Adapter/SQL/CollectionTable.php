@@ -34,8 +34,8 @@ final class CollectionTable
     /** @var Definition<T> */
     private Definition $definition;
     private Table\Name\Aliased $name;
-    /** @var Set<Column\Name\Aliased> */
-    private Set $columns;
+    /** @var Sequence<Column\Name\Aliased> */
+    private Sequence $columns;
     private Column\Name\Namespaced $id;
     private Column\Name\Namespaced $reference;
     private Select $select;
@@ -98,9 +98,9 @@ final class CollectionTable
     }
 
     /**
-     * @return Set<Column>
+     * @return Sequence<Column>
      */
-    public function columnsDefinition(MapType $mapType): Set
+    public function columnsDefinition(MapType $mapType): Sequence
     {
         return $this
             ->definition
@@ -117,9 +117,9 @@ final class CollectionTable
     }
 
     /**
-     * @return Set<Column\Name\Aliased>
+     * @return Sequence<Column\Name\Aliased>
      */
-    public function columns(): Set
+    public function columns(): Sequence
     {
         return $this->columns;
     }

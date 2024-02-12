@@ -17,6 +17,7 @@ use Innmind\Json\Json;
 use Innmind\Immutable\{
     Maybe,
     Set,
+    Sequence,
     Predicate\Instance,
 };
 
@@ -67,8 +68,7 @@ final class Decode
                         ->map(static fn($file) => Aggregate\Property::of(
                             $file->name()->toString(),
                             Json::decode($file->content()->toString()),
-                        ))
-                        ->toSet(),
+                        )),
                 ),
             $directory
                 ->get(Name::of('entities'))
@@ -86,11 +86,9 @@ final class Decode
                                     ->map(static fn($property) => Aggregate\Property::of(
                                         $property->name()->toString(),
                                         Json::decode($property->content()->toString()),
-                                    ))
-                                    ->toSet(),
+                                    )),
                             ),
-                        )
-                        ->toSet(),
+                        ),
                 ),
             $directory
                 ->get(Name::of('optionals'))
@@ -112,12 +110,10 @@ final class Decode
                                             ->map(static fn($property) => Aggregate\Property::of(
                                                 $property->name()->toString(),
                                                 Json::decode($property->content()->toString()),
-                                            ))
-                                            ->toSet(),
+                                            )),
                                     ),
                             ),
-                        )
-                        ->toSet(),
+                        ),
                 ),
             $directory
                 ->get(Name::of('collections'))
@@ -132,7 +128,7 @@ final class Decode
                                 Set::of(...Json::decode($collection->content()->toString()))->map(
                                     static fn($entity) => Aggregate\Collection\Entity::of(
                                         Reference::of($entity['reference']),
-                                        Set::of(...$entity['properties'])->map(
+                                        Sequence::of(...$entity['properties'])->map(
                                             static fn($property) => Aggregate\Property::of(
                                                 $property[0],
                                                 $property[1],
@@ -141,10 +137,9 @@ final class Decode
                                     ),
                                 ),
                             ),
-                        )
-                        ->toSet(),
+                        ),
                 ),
-        )->map(static fn(Set $properties, Set $entities, Set $optionals, Set $collections) => Aggregate::of(
+        )->map(static fn(Sequence $properties, Sequence $entities, Sequence $optionals, Sequence $collections) => Aggregate::of(
             $id($directory),
             $properties,
             $entities,
