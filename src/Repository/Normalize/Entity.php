@@ -32,7 +32,8 @@ final class Entity
         $this->extract = $extract;
         $this->properties = $definition
             ->properties()
-            ->map(static fn($property) => $property->name());
+            ->map(static fn($property) => $property->name())
+            ->toSet();
     }
 
     /**
@@ -58,8 +59,7 @@ final class Entity
                             $property->name(),
                             $property->type()->normalize($value),
                         ))
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 ),
         );
     }

@@ -3,7 +3,7 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Raw\Aggregate;
 
-use Innmind\Immutable\Set;
+use Innmind\Immutable\Sequence;
 
 /**
  * @psalm-immutable
@@ -12,14 +12,14 @@ final class Entity
 {
     /** @var non-empty-string */
     private string $name;
-    /** @var Set<Property> */
-    private Set $properties;
+    /** @var Sequence<Property> */
+    private Sequence $properties;
 
     /**
      * @param non-empty-string $name
-     * @param Set<Property> $properties
+     * @param Sequence<Property> $properties
      */
-    private function __construct(string $name, Set $properties)
+    private function __construct(string $name, Sequence $properties)
     {
         $this->name = $name;
         $this->properties = $properties;
@@ -29,9 +29,9 @@ final class Entity
      * @psalm-pure
      *
      * @param non-empty-string $name
-     * @param Set<Property> $properties
+     * @param Sequence<Property> $properties
      */
-    public static function of(string $name, Set $properties): self
+    public static function of(string $name, Sequence $properties): self
     {
         return new self($name, $properties);
     }
@@ -45,9 +45,9 @@ final class Entity
     }
 
     /**
-     * @return Set<Property>
+     * @return Sequence<Property>
      */
-    public function properties(): Set
+    public function properties(): Sequence
     {
         return $this->properties;
     }

@@ -4,7 +4,7 @@ declare(strict_types = 1);
 namespace Formal\ORM\Raw\Aggregate;
 
 use Innmind\Immutable\{
-    Set,
+    Sequence,
     Maybe,
 };
 
@@ -15,12 +15,12 @@ final class Optional
 {
     /** @var non-empty-string */
     private string $name;
-    /** @var Maybe<Set<Property>> */
+    /** @var Maybe<Sequence<Property>> */
     private Maybe $properties;
 
     /**
      * @param non-empty-string $name
-     * @param Maybe<Set<Property>> $properties
+     * @param Maybe<Sequence<Property>> $properties
      */
     private function __construct(string $name, Maybe $properties)
     {
@@ -32,7 +32,7 @@ final class Optional
      * @psalm-pure
      *
      * @param non-empty-string $name
-     * @param Maybe<Set<Property>> $properties
+     * @param Maybe<Sequence<Property>> $properties
      */
     public static function of(string $name, Maybe $properties): self
     {
@@ -48,7 +48,7 @@ final class Optional
     }
 
     /**
-     * @return Maybe<Set<Property>>
+     * @return Maybe<Sequence<Property>>
      */
     public function properties(): Maybe
     {

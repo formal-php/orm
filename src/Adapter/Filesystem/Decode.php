@@ -86,8 +86,7 @@ final class Decode
                                     ->map(static fn($property) => Aggregate\Property::of(
                                         $property->name()->toString(),
                                         Json::decode($property->content()->toString()),
-                                    ))
-                                    ->toSet(),
+                                    )),
                             ),
                         ),
                 ),
@@ -111,8 +110,7 @@ final class Decode
                                             ->map(static fn($property) => Aggregate\Property::of(
                                                 $property->name()->toString(),
                                                 Json::decode($property->content()->toString()),
-                                            ))
-                                            ->toSet(),
+                                            )),
                                     ),
                             ),
                         ),
@@ -130,7 +128,7 @@ final class Decode
                                 Set::of(...Json::decode($collection->content()->toString()))->map(
                                     static fn($entity) => Aggregate\Collection\Entity::of(
                                         Reference::of($entity['reference']),
-                                        Set::of(...$entity['properties'])->map(
+                                        Sequence::of(...$entity['properties'])->map(
                                             static fn($property) => Aggregate\Property::of(
                                                 $property[0],
                                                 $property[1],

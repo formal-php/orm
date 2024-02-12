@@ -42,7 +42,8 @@ final class Collection
         $this->knowCollectionEntity = $knownCollectionEntity;
         $this->properties = $definition
             ->properties()
-            ->map(static fn($property) => $property->name());
+            ->map(static fn($property) => $property->name())
+            ->toSet();
     }
 
     /**
@@ -84,8 +85,7 @@ final class Collection
                                     $property->name(),
                                     $property->type()->normalize($value),
                                 ))
-                                ->toSequence()
-                                ->toSet(),
+                                ->toSequence(),
                         ),
                 )
                 ->map(Raw\Entity::of(...))

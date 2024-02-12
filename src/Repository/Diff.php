@@ -12,6 +12,7 @@ use Innmind\Reflection\Extract;
 use Innmind\Immutable\{
     Map,
     Set,
+    Sequence,
 };
 
 /**
@@ -271,12 +272,12 @@ final class Diff
     /**
      * @psalm-pure
      *
-     * @param Set<Raw\Aggregate\Property> $then
-     * @param Set<Raw\Aggregate\Property> $now
+     * @param Sequence<Raw\Aggregate\Property> $then
+     * @param Sequence<Raw\Aggregate\Property> $now
      *
-     * @return Set<Raw\Aggregate\Property>
+     * @return Sequence<Raw\Aggregate\Property>
      */
-    private static function diffProperties(Set $then, Set $now): Set
+    private static function diffProperties(Sequence $then, Sequence $now): Sequence
     {
         $nowProperties = Map::of(
             ...$now
@@ -288,8 +289,7 @@ final class Diff
             static fn($then) => $nowProperties
                 ->get($then->name())
                 ->filter(static fn($now) => $then->value() !== $now->value())
-                ->toSequence()
-                ->toSet(),
+                ->toSequence(),
         );
     }
 }

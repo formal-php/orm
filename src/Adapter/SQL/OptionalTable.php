@@ -20,10 +20,7 @@ use Formal\AccessLayer\{
     Row,
 };
 use Innmind\Specification\Sign;
-use Innmind\Immutable\{
-    Set,
-    Sequence,
-};
+use Innmind\Immutable\Sequence;
 
 /**
  * @psalm-immutable
@@ -34,8 +31,8 @@ final class OptionalTable
     /** @var Definition<T> */
     private Definition $definition;
     private Table\Name\Aliased $name;
-    /** @var Set<Column\Name\Aliased> */
-    private Set $columns;
+    /** @var Sequence<Column\Name\Aliased> */
+    private Sequence $columns;
     private Select $select;
 
     /**
@@ -85,9 +82,9 @@ final class OptionalTable
     }
 
     /**
-     * @return Set<Column>
+     * @return Sequence<Column>
      */
-    public function columnsDefinition(MapType $mapType): Set
+    public function columnsDefinition(MapType $mapType): Sequence
     {
         return $this
             ->definition
@@ -104,9 +101,9 @@ final class OptionalTable
     }
 
     /**
-     * @return Set<Column\Name\Aliased>
+     * @return Sequence<Column\Name\Aliased>
      */
-    public function columns(): Set
+    public function columns(): Sequence
     {
         return $this->columns;
     }
@@ -126,9 +123,9 @@ final class OptionalTable
     /**
      * @internal
      *
-     * @param Set<Property> $properties
+     * @param Sequence<Property> $properties
      */
-    public function insert(Id $id, Set $properties): Query
+    public function insert(Id $id, Sequence $properties): Query
     {
         $table = $this->name->name();
 

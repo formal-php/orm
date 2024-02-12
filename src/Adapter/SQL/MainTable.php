@@ -115,7 +115,6 @@ final class MainTable
                     ->toList(),
                 ...$entities
                     ->values()
-                    ->toSet()
                     ->flatMap(static fn($table) => $table->columns())
                     ->toList(),
             );

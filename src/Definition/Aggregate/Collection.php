@@ -3,7 +3,7 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition\Aggregate;
 
-use Innmind\Immutable\Set;
+use Innmind\Immutable\Sequence;
 
 /**
  * @psalm-immutable
@@ -15,18 +15,18 @@ final class Collection
     private string $class;
     /** @var non-empty-string */
     private string $name;
-    /** @var Set<Property<T, mixed>> */
-    private Set $properties;
+    /** @var Sequence<Property<T, mixed>> */
+    private Sequence $properties;
 
     /**
      * @param class-string<T> $class
      * @param non-empty-string $name
-     * @param Set<Property<T, mixed>> $properties
+     * @param Sequence<Property<T, mixed>> $properties
      */
     private function __construct(
         string $class,
         string $name,
-        Set $properties,
+        Sequence $properties,
     ) {
         $this->class = $class;
         $this->name = $name;
@@ -40,14 +40,14 @@ final class Collection
      *
      * @param class-string<A> $class
      * @param non-empty-string $name
-     * @param Set<Property<A, mixed>> $properties
+     * @param Sequence<Property<A, mixed>> $properties
      *
      * @return self<A>
      */
     public static function of(
         string $class,
         string $name,
-        Set $properties,
+        Sequence $properties,
     ): self {
         return new self($class, $name, $properties);
     }
@@ -69,9 +69,9 @@ final class Collection
     }
 
     /**
-     * @return Set<Property<T, mixed>>
+     * @return Sequence<Property<T, mixed>>
      */
-    public function properties(): Set
+    public function properties(): Sequence
     {
         return $this->properties;
     }

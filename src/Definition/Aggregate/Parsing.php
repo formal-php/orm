@@ -254,16 +254,19 @@ final class Parsing
             ->map(fn($property) => Entity::of(
                 $property->type()->toString(),
                 $property->name(),
-                ReflectionClass::of($property->type()->toString())
-                    ->properties()
+                Sequence::of(
+                    ...ReflectionClass::of($property->type()->toString())
+                        ->properties()
+                        ->toList(),
+                )
                     ->flatMap(
-                        fn($innerProperty) => $this->parseProperty(
-                            $property->type()->toString(),
-                            $innerProperty,
-                            $types,
-                        )
-                            ->toSequence()
-                            ->toSet(),
+                        fn($innerProperty) => $this
+                            ->parseProperty(
+                                $property->type()->toString(),
+                                $innerProperty,
+                                $types,
+                            )
+                            ->toSequence(),
                     ),
             ));
     }
@@ -291,16 +294,19 @@ final class Parsing
                     ->map(fn($contains) => Optional::of(
                         $contains->type()->toString(),
                         $property->name(),
-                        ReflectionClass::of($contains->type()->toString())
-                            ->properties()
+                        Sequence::of(
+                            ...ReflectionClass::of($contains->type()->toString())
+                                ->properties()
+                                ->toList(),
+                        )
                             ->flatMap(
-                                fn($innerProperty) => $this->parseProperty(
-                                    $property->type()->toString(),
-                                    $innerProperty,
-                                    $types,
-                                )
-                                    ->toSequence()
-                                    ->toSet(),
+                                fn($innerProperty) => $this
+                                    ->parseProperty(
+                                        $property->type()->toString(),
+                                        $innerProperty,
+                                        $types,
+                                    )
+                                    ->toSequence(),
                             ),
                     )),
             );
@@ -329,16 +335,19 @@ final class Parsing
                     ->map(fn($contains) => Collection::of(
                         $contains->type()->toString(),
                         $property->name(),
-                        ReflectionClass::of($contains->type()->toString())
-                            ->properties()
+                        Sequence::of(
+                            ...ReflectionClass::of($contains->type()->toString())
+                                ->properties()
+                                ->toList(),
+                        )
                             ->flatMap(
-                                fn($innerProperty) => $this->parseProperty(
-                                    $property->type()->toString(),
-                                    $innerProperty,
-                                    $types,
-                                )
-                                    ->toSequence()
-                                    ->toSet(),
+                                fn($innerProperty) => $this
+                                    ->parseProperty(
+                                        $property->type()->toString(),
+                                        $innerProperty,
+                                        $types,
+                                    )
+                                    ->toSequence(),
                             ),
                     )),
             );

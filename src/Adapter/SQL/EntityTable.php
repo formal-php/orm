@@ -18,7 +18,7 @@ use Formal\AccessLayer\{
 };
 use Innmind\Specification\Sign;
 use Innmind\Immutable\{
-    Set,
+    Sequence,
     Maybe,
 };
 
@@ -31,8 +31,8 @@ final class EntityTable
     /** @var Definition<T> */
     private Definition $definition;
     private Table\Name\Aliased $name;
-    /** @var Set<Column\Name\Aliased> */
-    private Set $columns;
+    /** @var Sequence<Column\Name\Aliased> */
+    private Sequence $columns;
 
     /**
      * @param Definition<T> $definition
@@ -77,9 +77,9 @@ final class EntityTable
     }
 
     /**
-     * @return Set<Column>
+     * @return Sequence<Column>
      */
-    public function columnsDefinition(MapType $mapType): Set
+    public function columnsDefinition(MapType $mapType): Sequence
     {
         return $this
             ->definition
@@ -96,9 +96,9 @@ final class EntityTable
     }
 
     /**
-     * @return Set<Column\Name\Aliased>
+     * @return Sequence<Column\Name\Aliased>
      */
-    public function columns(): Set
+    public function columns(): Sequence
     {
         return $this->columns;
     }
@@ -106,9 +106,9 @@ final class EntityTable
     /**
      * @internal
      *
-     * @param Set<Property> $properties
+     * @param Sequence<Property> $properties
      */
-    public function insert(Id $id, Set $properties): Query
+    public function insert(Id $id, Sequence $properties): Query
     {
         $table = $this->name->name();
 
@@ -132,11 +132,11 @@ final class EntityTable
     /**
      * @internal
      *
-     * @param Set<Property> $properties
+     * @param Sequence<Property> $properties
      *
      * @return Maybe<Query>
      */
-    public function update(Id $id, Set $properties): Maybe
+    public function update(Id $id, Sequence $properties): Maybe
     {
         return Maybe::just($properties)
             ->filter(static fn($properties) => !$properties->empty())
