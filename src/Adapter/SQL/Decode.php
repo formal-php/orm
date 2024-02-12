@@ -114,7 +114,7 @@ final class Decode
                             // asked.
                             // The memoize is here to make sure the user can't
                             // work with a partially loaded collection
-                            yield ($this->connection)($collection->select($id))
+                            $entities = ($this->connection)($collection->select($id))
                                 ->map(static fn($row) => Aggregate\Collection\Entity::of(
                                     $row
                                         ->column($collection->primaryKey()->name()->toString())
@@ -128,10 +128,13 @@ final class Decode
                                         $collection->columns(),
                                     ),
                                 ))
-                                ->toSet()
-                                ->memoize();
+                                ->toList();
+
+                            foreach ($entities as $entity) {
+                                yield $entity;
+                            }
                         })(),
-                    )->flatMap(static fn($collection) => $collection),
+                    ),
                 )),
         ));
     }
