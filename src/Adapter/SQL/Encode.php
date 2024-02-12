@@ -8,10 +8,7 @@ use Formal\ORM\{
     Raw\Aggregate,
 };
 use Formal\AccessLayer\Query;
-use Innmind\Immutable\{
-    Set,
-    Sequence,
-};
+use Innmind\Immutable\Sequence;
 
 /**
  * @internal

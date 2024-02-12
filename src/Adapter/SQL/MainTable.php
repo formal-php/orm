@@ -33,7 +33,6 @@ use Innmind\Specification\{
 use Innmind\Immutable\{
     Map,
     Maybe,
-    Set,
     Sequence,
 };
 

@@ -8,10 +8,7 @@ use Formal\ORM\{
     Raw\Aggregate,
 };
 use Innmind\Reflection\Extract;
-use Innmind\Immutable\{
-    Set,
-    Map,
-};
+use Innmind\Immutable\Map;
 
 /**
  * @internal
