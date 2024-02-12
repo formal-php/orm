@@ -37,13 +37,11 @@ final class Update
                 fn($entity) => $this
                     ->mainTable
                     ->entity($entity->name())
-                    ->map(
-                        static fn($table) => $table
-                            ->update(
-                                $data->id(),
-                                $entity->properties(),
-                            )
-                            ->toSequence(),
+                    ->flatMap(
+                        static fn($table) => $table->update(
+                            $data->id(),
+                            $entity->properties(),
+                        ),
                     )
                     ->toSequence(),
             );
@@ -53,11 +51,11 @@ final class Update
                 fn($optional) => $this
                     ->mainTable
                     ->optional($optional->name())
-                    ->map(static fn($table) => $table->update(
+                    ->toSequence()
+                    ->flatMap(static fn($table) => $table->update(
                         $data->id(),
                         $optional,
-                    ))
-                    ->toSequence(),
+                    )),
             );
         $collections = $data
             ->collections()
@@ -65,21 +63,20 @@ final class Update
                 fn($collection) => $this
                     ->mainTable
                     ->collection($collection->name())
-                    ->map(static fn($table) => $table->update(
+                    ->toSequence()
+                    ->flatMap(static fn($table) => $table->update(
                         $data->id(),
                         $collection->newEntities(),
                         $collection->unmodifiedEntities()->map(
                             static fn($entity) => $entity->reference(),
                         ),
-                    ))
-                    ->toSequence(),
+                    )),
             );
 
-        return Sequence::of($main)
+        return $main
             ->append($entities)
             ->append($optionals)
-            ->append($collections)
-            ->flatMap(static fn($queries) => $queries);
+            ->append($collections);
     }
 
     /**
