@@ -93,12 +93,14 @@ final class Decode
                 ->optionals()
                 ->map(fn($optional) => Aggregate\Optional::of(
                     $optional->name()->alias(),
-                    ($this->connection)($optional->select($id))
-                        ->first()
-                        ->map(static fn($row) => self::properties(
-                            $row,
-                            $optional->columns(),
-                        )),
+                    Maybe::defer(
+                        fn() => ($this->connection)($optional->select($id))
+                            ->first()
+                            ->map(static fn($row) => self::properties(
+                                $row,
+                                $optional->columns(),
+                            )),
+                    ),
                 )),
             $this
                 ->mainTable
