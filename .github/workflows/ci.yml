@@ -23,6 +23,8 @@ jobs:
             - 3306
       elasticsearch:
         image: elasticsearch:${{ matrix.elasticsearch }}
+        env:
+          discovery.type: single-node
         ports:
           - 9200
     steps:
@@ -60,6 +62,8 @@ jobs:
             - 3306
       elasticsearch:
         image: elasticsearch:7.17.18
+        env:
+          discovery.type: single-node
         ports:
           - 9200
     steps:
