@@ -247,6 +247,9 @@ final class User
         );
     }
 
+    /**
+     * @no-named-arguments
+     */
     public function useRoles(Role ...$roles): self
     {
         return new self(
