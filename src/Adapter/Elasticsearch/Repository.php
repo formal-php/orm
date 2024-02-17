@@ -11,12 +11,20 @@ use Formal\ORM\{
     Sort,
 };
 use Innmind\HttpTransport\Transport;
+use Innmind\Http\{
+    Request,
+    Method,
+    ProtocolVersion,
+    Headers,
+    Header\ContentType,
+};
 use Innmind\UrlTemplate\Template;
 use Innmind\Url\Url;
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{
     Sequence,
     Maybe,
+    Map,
 };
 
 /**
@@ -26,29 +34,31 @@ use Innmind\Immutable\{
  */
 final class Repository implements RepositoryInterface
 {
-    private Transport $transport;
+    private Transport $http;
     private Transaction $transaction;
     /** @var Definition<T> */
     private Definition $definition;
+    private Encode $encode;
     private Url $url;
-    private Template $template;
+    private Template $path;
 
     /**
      * @param Definition<T> $definition
      */
     private function __construct(
-        Transport $transport,
+        Transport $http,
         Transaction $transaction,
         Definition $definition,
         Url $url,
     ) {
-        $this->transport = $transport;
+        $this->http = $http;
         $this->transaction = $transaction;
         $this->definition = $definition;
+        $this->encode = Encode::new();
         $this->url = $url;
         $index = $definition->name();
         /** @psalm-suppress ArgumentTypeCoercion */
-        $this->template = Template::of("/$index{/action,id}");
+        $this->path = Template::of("/$index{/action,id}");
     }
 
     /**
@@ -81,6 +91,26 @@ final class Repository implements RepositoryInterface
 
     public function add(Aggregate $data): void
     {
+        $_ = ($this->http)(Request::of(
+            $this->url->withPath(
+                $this
+                    ->path
+                    ->expand(Map::of(
+                        ['action', '_doc'],
+                        ['id', $data->id()->value()],
+                    ))
+                    ->path(),
+            ),
+            Method::put,
+            ProtocolVersion::v11,
+            Headers::of(
+                ContentType::of('application', 'json'),
+            ),
+            ($this->encode)($data),
+        ))->match(
+            static fn() => null,
+            static fn() => throw new \RuntimeException('Unable to persist the aggregate'),
+        );
     }
 
     public function update(Diff $data): void
