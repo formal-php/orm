@@ -23,7 +23,6 @@ final class MapType
             $type instanceof Type\BoolType => ['type' => 'boolean'],
             $type instanceof Type\IdType => ['type' => 'keyword'],
             $type instanceof Type\IntType => ['type' => 'long'],
-            $type instanceof Type\PointInTimeType => ['type' => 'date_nanos'],
             default => ['type' => 'text'],
         };
     }
