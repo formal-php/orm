@@ -11,6 +11,7 @@ jobs:
         php-version: ['8.2', '8.3']
         dependency-versions: ['lowest', 'highest']
         mariadb: ['10', '11']
+        elasticsearch: ['7.17.18', '8.12.1']
     name: 'BlackBox'
     services:
       mariadb:
@@ -20,6 +21,10 @@ jobs:
           MYSQL_DATABASE: example
         ports:
             - 3306
+      elasticsearch:
+        image: elasticsearch:${{ matrix.elasticsearch }}
+        ports:
+          - 9200
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -53,6 +58,10 @@ jobs:
           MYSQL_DATABASE: example
         ports:
             - 3306
+      elasticsearch:
+        image: elasticsearch:7.17.18
+        ports:
+          - 9200
     steps:
       - name: Checkout
         uses: actions/checkout@v2
