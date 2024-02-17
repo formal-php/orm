@@ -5,7 +5,6 @@ namespace Formal\ORM\Repository;
 
 use Formal\ORM\{
     Definition\Aggregate as Definition,
-    Raw\Aggregate,
     Id,
 };
 use Innmind\Reflection;

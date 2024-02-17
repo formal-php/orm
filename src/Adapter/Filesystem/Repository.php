@@ -11,10 +11,8 @@ use Formal\ORM\{
     Sort,
 };
 use Innmind\Filesystem\{
-    Adapter as Storage,
     Name,
     Directory,
-    File,
 };
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{

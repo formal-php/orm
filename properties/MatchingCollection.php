@@ -5,7 +5,6 @@ namespace Properties\Formal\ORM;
 
 use Formal\ORM\{
     Manager,
-    Id,
     Specification\Child,
 };
 use Fixtures\Formal\ORM\{
@@ -13,10 +12,6 @@ use Fixtures\Formal\ORM\{
     AddressValue,
 };
 use Innmind\Specification\Sign;
-use Innmind\Immutable\{
-    Str,
-    Sequence,
-};
 use Innmind\BlackBox\{
     Set,
     Property,

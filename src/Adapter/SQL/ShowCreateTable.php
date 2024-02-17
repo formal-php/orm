@@ -3,14 +3,10 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Adapter\SQL;
 
-use Formal\ORM\Definition\{
-    Aggregates,
-    Type,
-};
+use Formal\ORM\Definition\Aggregates;
 use Formal\AccessLayer\{
     Query,
     Query\Constraint\ForeignKey,
-    Table,
 };
 use Innmind\Immutable\Sequence;
 

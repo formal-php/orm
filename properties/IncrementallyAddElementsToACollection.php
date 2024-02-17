@@ -6,7 +6,6 @@ namespace Properties\Formal\ORM;
 use Formal\ORM\{
     Manager,
     Id,
-    Definition\Type\PointInTimeType\Format,
 };
 use Fixtures\Formal\ORM\User;
 use Innmind\BlackBox\{

@@ -12,8 +12,6 @@ use Formal\ORM\Definition\Type;
  */
 final class Property
 {
-    /** @var class-string<T> */
-    private string $class;
     /** @var non-empty-string */
     private string $name;
     /** @var Type<K> */
@@ -26,7 +24,6 @@ final class Property
      */
     private function __construct(string $class, string $name, Type $type)
     {
-        $this->class = $class;
         $this->name = $name;
         $this->type = $type;
     }

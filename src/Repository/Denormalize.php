@@ -22,8 +22,6 @@ use Innmind\Immutable\{
  */
 final class Denormalize
 {
-    /** @var Definition<T> */
-    private Definition $definition;
     private Instanciate $instanciate;
     /** @var \Closure(Aggregate\Id): Id<T> */
     private \Closure $denormalizeId;
@@ -43,7 +41,6 @@ final class Denormalize
         Definition $definition,
         KnownCollectionEntity $knownCollectionEntity,
     ) {
-        $this->definition = $definition;
         $this->instanciate = new Instanciate;
         /** @var \Closure(Aggregate\Id): Id<T> */
         $this->denormalizeId = $definition->id()->denormalize(...);

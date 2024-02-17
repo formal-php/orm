@@ -3,11 +3,7 @@ declare(strict_types = 1);
 
 namespace Properties\Formal\ORM;
 
-use Formal\ORM\{
-    Manager,
-    Id,
-    Definition\Type\PointInTimeType\Format,
-};
+use Formal\ORM\Manager;
 use Fixtures\Formal\ORM\User;
 use Innmind\BlackBox\{
     Set,

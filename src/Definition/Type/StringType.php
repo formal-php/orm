@@ -9,7 +9,6 @@ use Formal\ORM\Definition\{
 };
 use Innmind\Type\{
     Type as Concrete,
-    Nullable,
     Primitive,
 };
 use Innmind\Immutable\Maybe;

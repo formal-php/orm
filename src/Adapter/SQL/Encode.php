@@ -3,10 +3,7 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Adapter\SQL;
 
-use Formal\ORM\{
-    Definition\Aggregate as Definition,
-    Raw\Aggregate,
-};
+use Formal\ORM\Raw\Aggregate;
 use Formal\AccessLayer\Query;
 use Innmind\Immutable\Sequence;
 
@@ -17,20 +14,14 @@ use Innmind\Immutable\Sequence;
  */
 final class Encode
 {
-    /** @var Definition<T> */
-    private Definition $definition;
     /** @var MainTable<T> */
     private MainTable $mainTable;
 
     /**
-     * @param Definition<T> $definition
      * @param MainTable<T> $mainTable
      */
-    private function __construct(
-        Definition $definition,
-        MainTable $mainTable,
-    ) {
-        $this->definition = $definition;
+    private function __construct(MainTable $mainTable)
+    {
         $this->mainTable = $mainTable;
     }
 
@@ -55,16 +46,13 @@ final class Encode
      * @psalm-pure
      * @template A of object
      *
-     * @param Definition<A> $definition
      * @param MainTable<A> $mainTable
      *
      * @return self<A>
      */
-    public static function of(
-        Definition $definition,
-        MainTable $mainTable,
-    ): self {
-        return new self($definition, $mainTable);
+    public static function of(MainTable $mainTable): self
+    {
+        return new self($mainTable);
     }
 
     /**
