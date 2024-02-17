@@ -44,6 +44,7 @@ jobs:
         run: php blackbox.php
         env:
           DB_PORT: ${{ job.services.mariadb.ports[3306] }}
+          ES_PORT: ${{ job.services.elasticsearch.ports[9200] }}
   coverage:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -84,6 +85,7 @@ jobs:
         env:
           ENABLE_COVERAGE: 'true'
           DB_PORT: ${{ job.services.mariadb.ports[3306] }}
+          ES_PORT: ${{ job.services.elasticsearch.ports[9200] }}
       - uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
