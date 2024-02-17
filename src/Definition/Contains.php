@@ -30,6 +30,9 @@ final class Contains
      */
     public function type(): Type
     {
-        return ClassName::of($this->type);
+        return match ((new \ReflectionClass($this->type))->isEnum()) {
+            true => ClassName::ofEnum($this->type),
+            false => ClassName::of($this->type),
+        };
     }
 }

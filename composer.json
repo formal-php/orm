@@ -23,7 +23,7 @@
         "innmind/filesystem": "~7.4",
         "innmind/json": "~1.3",
         "innmind/time-continuum": "~3.3",
-        "innmind/type": "~1.1",
+        "innmind/type": "~1.2",
         "formal/access-layer": "~2.15"
     },
     "autoload": {

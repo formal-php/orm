@@ -30,11 +30,15 @@ final class User
     /** @var Set<User\Address> */
     #[Contains(User\Address::class)]
     private Set $addresses;
+    /** @var Maybe<Role> */
+    #[Contains(Role::class)]
+    private Maybe $role;
 
     /**
      * @param Id<self> $id
      * @param Maybe<User\Address> $billingAddress
      * @param Set<User\Address> $addresses
+     * @param Maybe<Role> $role
      */
     private function __construct(
         Id $id,
@@ -43,6 +47,7 @@ final class User
         User\Address $mainAddress,
         Maybe $billingAddress,
         Set $addresses,
+        Maybe $role,
     ) {
         $this->id = $id;
         $this->createdAt = $createdAt;
@@ -51,6 +56,7 @@ final class User
         $this->mainAddress = $mainAddress;
         $this->billingAddress = $billingAddress;
         $this->addresses = $addresses;
+        $this->role = $role;
     }
 
     public static function new(
@@ -59,6 +65,8 @@ final class User
     ): self {
         /** @var Maybe<User\Address> */
         $billingAddress = Maybe::nothing();
+        /** @var Maybe<Role> */
+        $role = Maybe::nothing();
 
         return new self(
             Id::new(self::class),
@@ -67,6 +75,7 @@ final class User
             User\Address::new('nowhere'),
             $billingAddress,
             Set::of(),
+            $role,
         );
     }
 
@@ -114,6 +123,14 @@ final class User
         return $this->addresses;
     }
 
+    /**
+     * @return Maybe<Role>
+     */
+    public function role(): Maybe
+    {
+        return $this->role;
+    }
+
     public function rename(string $name): self
     {
         return new self(
@@ -123,6 +140,7 @@ final class User
             $this->mainAddress,
             $this->billingAddress,
             $this->addresses,
+            $this->role,
         );
     }
 
@@ -135,6 +153,7 @@ final class User
             User\Address::new($address),
             $this->billingAddress,
             $this->addresses,
+            $this->role,
         );
     }
 
@@ -147,6 +166,7 @@ final class User
             $this->mainAddress,
             Maybe::just(User\Address::new($address)),
             $this->addresses,
+            $this->role,
         );
     }
 
@@ -162,6 +182,7 @@ final class User
             $this->mainAddress,
             $billingAddress,
             $this->addresses,
+            $this->role,
         );
     }
 
@@ -174,6 +195,7 @@ final class User
             $this->mainAddress,
             $this->billingAddress,
             ($this->addresses)(User\Address::new($address)),
+            $this->role,
         );
     }
 
@@ -186,6 +208,20 @@ final class User
             $this->mainAddress,
             $this->billingAddress,
             $this->addresses->filter(static fn($existing) => $existing->toString() !== $address),
+            $this->role,
+        );
+    }
+
+    public function useRole(Role $role): self
+    {
+        return new self(
+            $this->id,
+            $this->createdAt,
+            $this->name,
+            $this->mainAddress,
+            $this->billingAddress,
+            $this->addresses,
+            Maybe::just($role),
         );
     }
 }

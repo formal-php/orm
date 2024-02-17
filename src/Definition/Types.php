@@ -57,6 +57,7 @@ final class Types
             Type\IntType::of(...),
             Type\BoolType::of(...),
             Type\IdType::of(...),
+            Type\EnumType::of(...),
             ...$builders,
         );
     }
@@ -74,6 +75,7 @@ final class Types
             Type\IntType::of(...),
             Type\BoolType::of(...),
             Type\IdType::of(...),
+            Type\EnumType::of(...),
         );
     }
 }
