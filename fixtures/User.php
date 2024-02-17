@@ -30,11 +30,19 @@ final class User
     /** @var Set<User\Address> */
     #[Contains(User\Address::class)]
     private Set $addresses;
+    /** @var Maybe<Role> */
+    #[Contains(Role::class)]
+    private Maybe $role;
+    /** @var Set<Role> */
+    #[Contains(Role::class)]
+    private Set $roles;
 
     /**
      * @param Id<self> $id
      * @param Maybe<User\Address> $billingAddress
      * @param Set<User\Address> $addresses
+     * @param Maybe<Role> $role
+     * @param Set<Role> $roles
      */
     private function __construct(
         Id $id,
@@ -43,6 +51,8 @@ final class User
         User\Address $mainAddress,
         Maybe $billingAddress,
         Set $addresses,
+        Maybe $role,
+        Set $roles,
     ) {
         $this->id = $id;
         $this->createdAt = $createdAt;
@@ -51,6 +61,8 @@ final class User
         $this->mainAddress = $mainAddress;
         $this->billingAddress = $billingAddress;
         $this->addresses = $addresses;
+        $this->role = $role;
+        $this->roles = $roles;
     }
 
     public static function new(
@@ -59,6 +71,8 @@ final class User
     ): self {
         /** @var Maybe<User\Address> */
         $billingAddress = Maybe::nothing();
+        /** @var Maybe<Role> */
+        $role = Maybe::nothing();
 
         return new self(
             Id::new(self::class),
@@ -66,6 +80,8 @@ final class User
             $name,
             User\Address::new('nowhere'),
             $billingAddress,
+            Set::of(),
+            $role,
             Set::of(),
         );
     }
@@ -114,6 +130,22 @@ final class User
         return $this->addresses;
     }
 
+    /**
+     * @return Maybe<Role>
+     */
+    public function role(): Maybe
+    {
+        return $this->role;
+    }
+
+    /**
+     * @return Set<Role>
+     */
+    public function roles(): Set
+    {
+        return $this->roles;
+    }
+
     public function rename(string $name): self
     {
         return new self(
@@ -123,6 +155,8 @@ final class User
             $this->mainAddress,
             $this->billingAddress,
             $this->addresses,
+            $this->role,
+            $this->roles,
         );
     }
 
@@ -135,6 +169,8 @@ final class User
             User\Address::new($address),
             $this->billingAddress,
             $this->addresses,
+            $this->role,
+            $this->roles,
         );
     }
 
@@ -147,6 +183,8 @@ final class User
             $this->mainAddress,
             Maybe::just(User\Address::new($address)),
             $this->addresses,
+            $this->role,
+            $this->roles,
         );
     }
 
@@ -162,6 +200,8 @@ final class User
             $this->mainAddress,
             $billingAddress,
             $this->addresses,
+            $this->role,
+            $this->roles,
         );
     }
 
@@ -174,6 +214,8 @@ final class User
             $this->mainAddress,
             $this->billingAddress,
             ($this->addresses)(User\Address::new($address)),
+            $this->role,
+            $this->roles,
         );
     }
 
@@ -186,6 +228,39 @@ final class User
             $this->mainAddress,
             $this->billingAddress,
             $this->addresses->filter(static fn($existing) => $existing->toString() !== $address),
+            $this->role,
+            $this->roles,
+        );
+    }
+
+    public function useRole(Role $role): self
+    {
+        return new self(
+            $this->id,
+            $this->createdAt,
+            $this->name,
+            $this->mainAddress,
+            $this->billingAddress,
+            $this->addresses,
+            Maybe::just($role),
+            $this->roles,
+        );
+    }
+
+    /**
+     * @no-named-arguments
+     */
+    public function useRoles(Role ...$roles): self
+    {
+        return new self(
+            $this->id,
+            $this->createdAt,
+            $this->name,
+            $this->mainAddress,
+            $this->billingAddress,
+            $this->addresses,
+            $this->role,
+            Set::of(...$roles),
         );
     }
 }

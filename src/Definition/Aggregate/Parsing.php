@@ -332,24 +332,30 @@ final class Parsing
                     ->find(static fn($attribute) => $attribute->class() === Contains::class)
                     ->map(static fn($attribute) => $attribute->instance())
                     ->keep(Instance::of(Contains::class))
-                    ->map(fn($contains) => Collection::of(
-                        $contains->type()->toString(),
-                        $property->name(),
-                        Sequence::of(
-                            ...ReflectionClass::of($contains->type()->toString())
-                                ->properties()
-                                ->toList(),
-                        )
-                            ->flatMap(
-                                fn($innerProperty) => $this
-                                    ->parseProperty(
-                                        $property->type()->toString(),
-                                        $innerProperty,
-                                        $types,
-                                    )
-                                    ->toSequence(),
-                            ),
-                    )),
+                    ->map(fn($contains) => match ($contains->type()->enum()) {
+                        true => Collection::ofEnum(
+                            $contains->type()->toString(),
+                            $property->name(),
+                        ),
+                        false => Collection::of(
+                            $contains->type()->toString(),
+                            $property->name(),
+                            Sequence::of(
+                                ...ReflectionClass::of($contains->type()->toString())
+                                    ->properties()
+                                    ->toList(),
+                            )
+                                ->flatMap(
+                                    fn($innerProperty) => $this
+                                        ->parseProperty(
+                                            $property->type()->toString(),
+                                            $innerProperty,
+                                            $types,
+                                        )
+                                        ->toSequence(),
+                                ),
+                        ),
+                    }),
             );
     }
 }

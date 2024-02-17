@@ -8,7 +8,10 @@ use Formal\ORM\{
     Id,
     Definition\Type\PointInTimeType\Format,
 };
-use Fixtures\Formal\ORM\User;
+use Fixtures\Formal\ORM\{
+    User,
+    Role,
+};
 use Innmind\BlackBox\{
     Set,
     Property,
@@ -26,12 +29,18 @@ final class UpdateAggregate implements Property
     private string $name;
     private string $newName;
     private $createdAt;
+    private Role $role;
 
-    private function __construct(string $name, string $newName, $createdAt)
-    {
+    private function __construct(
+        string $name,
+        string $newName,
+        $createdAt,
+        Role $role,
+    ) {
         $this->name = $name;
         $this->newName = $newName;
         $this->createdAt = $createdAt;
+        $this->role = $role;
     }
 
     public static function any(): Set
@@ -41,6 +50,7 @@ final class UpdateAggregate implements Property
             Set\Strings::madeOf(Set\Chars::alphanumerical()),
             Set\Strings::madeOf(Set\Chars::alphanumerical()),
             PointInTime::any(),
+            Set\Elements::of(...Role::cases()),
         );
     }
 
@@ -69,7 +79,9 @@ final class UpdateAggregate implements Property
             );
         $assert->not()->null($loaded);
 
-        $user = $loaded->rename($this->newName);
+        $user = $loaded
+            ->rename($this->newName)
+            ->useRole($this->role);
         $manager->transactional(
             static fn() => Either::right(
                 $manager
@@ -102,6 +114,13 @@ final class UpdateAggregate implements Property
                     ->changeTimezone(new UTC)
                     ->format(new Format),
             );
+        $assert->same(
+            $this->role,
+            $reloaded->role()->match(
+                static fn($role) => $role,
+                static fn() => null,
+            ),
+        );
 
         // make sure the diff is correctly updated
         $user = $reloaded->rename($this->name);
