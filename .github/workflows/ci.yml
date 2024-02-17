@@ -10,10 +10,11 @@ jobs:
         os: [ubuntu-latest]
         php-version: ['8.2', '8.3']
         dependency-versions: ['lowest', 'highest']
+        mariadb: ['10', '11']
     name: 'BlackBox'
     services:
       mariadb:
-        image: mariadb:10
+        image: mariadb:${{ matrix.mariadb }}
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: example
