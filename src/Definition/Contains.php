@@ -3,10 +3,7 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition;
 
-use Innmind\Type\{
-    Type,
-    ClassName,
-};
+use Innmind\Type\ClassName;
 
 /**
  * @psalm-immutable
@@ -28,7 +25,7 @@ final class Contains
     /**
      * @internal
      */
-    public function type(): Type
+    public function type(): ClassName
     {
         return match ((new \ReflectionClass($this->type))->isEnum()) {
             true => ClassName::ofEnum($this->type),

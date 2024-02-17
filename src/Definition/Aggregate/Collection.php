@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition\Aggregate;
 
+use Formal\ORM\Definition\Type\StringType;
 use Innmind\Immutable\Sequence;
 
 /**
@@ -17,6 +18,7 @@ final class Collection
     private string $name;
     /** @var Sequence<Property<T, mixed>> */
     private Sequence $properties;
+    private bool $enum;
 
     /**
      * @param class-string<T> $class
@@ -27,10 +29,12 @@ final class Collection
         string $class,
         string $name,
         Sequence $properties,
+        bool $enum,
     ) {
         $this->class = $class;
         $this->name = $name;
         $this->properties = $properties;
+        $this->enum = $enum;
     }
 
     /**
@@ -49,7 +53,34 @@ final class Collection
         string $name,
         Sequence $properties,
     ): self {
-        return new self($class, $name, $properties);
+        return new self($class, $name, $properties, false);
+    }
+
+    /**
+     * @internal
+     * @psalm-pure
+     * @template A of object
+     *
+     * @param class-string<A> $class
+     * @param non-empty-string $name
+     *
+     * @return self<A>
+     */
+    public static function ofEnum(
+        string $class,
+        string $name,
+    ): self {
+        /** @psalm-suppress InvalidArgument */
+        return new self(
+            $class,
+            $name,
+            Sequence::of(Property::of(
+                $class,
+                'name',
+                StringType::new(),
+            )),
+            true,
+        );
     }
 
     /**
@@ -74,5 +105,14 @@ final class Collection
     public function properties(): Sequence
     {
         return $this->properties;
+    }
+
+    /**
+     * @psalm-assert-if-true class-string<\UnitEnum> $this->class
+     * @psalm-assert-if-true class-string<\UnitEnum> $this->class()
+     */
+    public function enum(): bool
+    {
+        return $this->enum;
     }
 }

@@ -26,6 +26,14 @@ final class StringType implements Type
 
     /**
      * @psalm-pure
+     */
+    public static function new(): self
+    {
+        return new self;
+    }
+
+    /**
+     * @psalm-pure
      *
      * @return Maybe<self>
      */

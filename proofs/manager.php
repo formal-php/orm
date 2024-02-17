@@ -96,6 +96,7 @@ return static function() {
     $aggregates = Aggregates::of(Types::of(
         Type\PointInTimeType::of(new Clock),
     ));
+    $connection(DropTable::ifExists(Table\Name::of('user_roles')));
     $connection(DropTable::ifExists(Table\Name::of('user_addresses')));
     $connection(DropTable::ifExists(Table\Name::of('user_mainAddress')));
     $connection(DropTable::ifExists(Table\Name::of('user_billingAddress')));
@@ -103,6 +104,7 @@ return static function() {
     $_ = Adapter\SQL\ShowCreateTable::of($aggregates)(User::class)->foreach($connection);
 
     $setup = static function() use ($connection, $aggregates) {
+        $connection(SQL::of('DELETE FROM user_roles'));
         $connection(SQL::of('DELETE FROM user_addresses'));
         $connection(SQL::of('DELETE FROM user_mainAddress'));
         $connection(SQL::of('DELETE FROM user_billingAddress'));

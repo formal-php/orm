@@ -53,13 +53,44 @@ final class Collection
      */
     public function __invoke(Id $id, Raw $collection): Set
     {
-        $class = $this->definition->class();
         $name = $collection->name();
         // We use a weak reference to the aggregate id otherwise the closure below
         // will always keep a reference to the id and all the weak maps that depend
         // on this id will keep the associated data.
         // This means that when reading lots of data the memory will always increase.
         $idReference = \WeakReference::create($id);
+
+        if ($this->definition->enum()) {
+            $class = $this->definition->class();
+
+            return $collection
+                ->newEntities()
+                ->map(function($entity) use ($class, $idReference, $name) {
+                    $value = $entity
+                        ->properties()
+                        ->find(static fn($property) => $property->name() === 'name')
+                        ->match(
+                            static fn($property) => $property->value(),
+                            static fn() => throw new \RuntimeException("Unable to denormalize collection of type '$class'"),
+                        );
+
+                    foreach ($class::cases() as $case) {
+                        if ($case->name === $value) {
+                            /** @var T */
+                            return $this->knownCollectionEntity->add(
+                                $idReference,
+                                $name,
+                                $case,
+                                $entity->reference(),
+                            );
+                        }
+                    }
+
+                    throw new \RuntimeException("Unable to denormalize collection of type '$class'");
+                });
+        }
+
+        $class = $this->definition->class();
 
         return $collection
             ->newEntities()
