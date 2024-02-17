@@ -8,28 +8,20 @@ use Innmind\Immutable\Sequence;
 
 /**
  * @psalm-immutable
- * @template T of object
  */
 final class Mapping
 {
-    /** @var Definition<T> */
-    private Definition $definition;
     private MapType $mapType;
 
-    /**
-     * @param Definition<T> $definition
-     */
-    private function __construct(Definition $definition)
+    private function __construct()
     {
-        $this->definition = $definition;
         $this->mapType = MapType::new();
     }
 
-    public function __invoke(): array
+    public function __invoke(Definition $definition): array
     {
-        $properties = $this->properties($this->definition->properties());
-        $entities = $this
-            ->definition
+        $properties = $this->properties($definition->properties());
+        $entities = $definition
             ->entities()
             ->map(fn($entity) => [
                 $entity->name() => [
@@ -37,8 +29,7 @@ final class Mapping
                 ],
             ])
             ->toList();
-        $optionals = $this
-            ->definition
+        $optionals = $definition
             ->optionals()
             ->map(fn($optional) => [
                 $optional->name() => [
@@ -46,8 +37,7 @@ final class Mapping
                 ],
             ])
             ->toList();
-        $collections = $this
-            ->definition
+        $collections = $definition
             ->collections()
             ->map(fn($optional) => [
                 $optional->name() => [
@@ -58,7 +48,7 @@ final class Mapping
             ->toList();
 
         return ['properties' => \array_merge(
-            [$this->definition->id()->property() => [
+            [$definition->id()->property() => [
                 'type' => 'keyword',
                 'index' => false,
             ]],
@@ -71,15 +61,10 @@ final class Mapping
 
     /**
      * @psalm-pure
-     * @template A of object
-     *
-     * @param Definition<A> $definition
-     *
-     * @return self<A>
      */
-    public static function of(Definition $definition): self
+    public static function new(): self
     {
-        return new self($definition);
+        return new self;
     }
 
     /**

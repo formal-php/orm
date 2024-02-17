@@ -19,7 +19,7 @@ return static function() {
                 Type\PointInTimeType::of(new Clock),
             ));
 
-            $mapping = Mapping::of($aggregates->get(User::class))();
+            $mapping = Mapping::new()($aggregates->get(User::class));
 
             $assert
                 ->expected([

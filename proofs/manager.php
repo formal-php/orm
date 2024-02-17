@@ -4,6 +4,8 @@ declare(strict_types = 1);
 use Formal\ORM\{
     Manager,
     Adapter,
+    Adapter\Elasticsearch\CreateIndex,
+    Adapter\Elasticsearch\DropIndex,
     Definition\Aggregates,
     Definition\Types,
     Definition\Type,
@@ -14,11 +16,11 @@ use Fixtures\Formal\ORM\{
 };
 use Properties\Formal\ORM\Properties;
 use Formal\AccessLayer\{
-    Connection\PDO,
     Query\DropTable,
     Query\SQL,
     Table,
 };
+use Innmind\OperatingSystem\Factory;
 use Innmind\Filesystem\Adapter\InMemory;
 use Innmind\TimeContinuum\Earth\Clock;
 use Innmind\Url\Url;
@@ -91,8 +93,10 @@ return static function() {
         )->named('Filesystem');
     }
 
+    $os = Factory::build();
+
     $port = \getenv('DB_PORT') ?: '3306';
-    $connection = PDO::of(Url::of("mysql://root:root@127.0.0.1:$port/example"));
+    $connection = $os->remote()->sql(Url::of("mysql://root:root@127.0.0.1:$port/example"));
     $aggregates = Aggregates::of(Types::of(
         Type\PointInTimeType::of(new Clock),
     ));
@@ -124,5 +128,44 @@ return static function() {
             $property,
             Set\Call::of($setup),
         )->named('SQL');
+    }
+
+    $port = \getenv('ES_PORT') ?: '9200';
+    $url = Url::of("http://127.0.0.1:$port/");
+    $createIndex = CreateIndex::of(
+        $os->remote()->http(),
+        $aggregates,
+        $url,
+    );
+    $dropIndex = DropIndex::of(
+        $os->remote()->http(),
+        $aggregates,
+        $url,
+    );
+    $setup = static function() use ($createIndex, $dropIndex, $os, $url, $aggregates) {
+        $_ = $dropIndex(User::class)
+            ->flatMap(static fn() => $createIndex(User::class))
+            ->match(
+                static fn() => null,
+                static fn() => throw new Exception('Unable to create user index'),
+            );
+
+        return Manager::of(
+            Adapter\Elasticsearch::of($os->remote()->http(), $url),
+            $aggregates,
+        );
+    };
+
+    yield properties(
+        'Elasticsearch properties',
+        Properties::any(),
+        Set\Call::of($setup),
+    );
+
+    foreach (Properties::alwaysApplicable() as $property) {
+        yield property(
+            $property,
+            Set\Call::of($setup),
+        )->named('Elasticsearch');
     }
 };
