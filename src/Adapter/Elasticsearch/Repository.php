@@ -20,11 +20,20 @@ use Innmind\Http\{
 };
 use Innmind\UrlTemplate\Template;
 use Innmind\Url\Url;
+use Innmind\Json\Json;
+use Innmind\Validation\{
+    Constraint,
+    Failure,
+    Is,
+    Shape,
+    Of,
+};
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{
     Sequence,
     Maybe,
     Map,
+    Validation,
 };
 
 /**
@@ -41,6 +50,8 @@ final class Repository implements RepositoryInterface
     private Encode $encode;
     /** @var Decode<T> */
     private Decode $decode;
+    /** @var Constraint<mixed, 0|positive-int> */
+    private Constraint $pluckCount;
     private Url $url;
     private Template $path;
 
@@ -58,6 +69,23 @@ final class Repository implements RepositoryInterface
         $this->definition = $definition;
         $this->encode = Encode::new();
         $this->decode = Decode::of($definition);
+        /**
+         * @psalm-suppress MixedInferredReturnType
+         * @psalm-suppress MixedArrayAccess
+         * @psalm-suppress MixedReturnStatement
+         * @var Constraint<mixed, 0|positive-int>
+         */
+        $this->pluckCount = Is::array()
+            ->and(
+                Shape::of(
+                    'count',
+                    Is::int()->and(Of::callable(static fn(int $value) => match (true) {
+                        $value >= 0 => Validation::success($value),
+                        default => Validation::fail(Failure::of('Count is negative')),
+                    })),
+                ),
+            )
+            ->map(static fn($body): int => $body['count']);
         $this->url = $url;
         $index = $definition->name();
         /** @psalm-suppress ArgumentTypeCoercion */
@@ -140,7 +168,19 @@ final class Repository implements RepositoryInterface
 
     public function size(Specification $specification = null): int
     {
-        return 0;
+        return ($this->http)(Request::of(
+            $this->url('_count'),
+            Method::get,
+            ProtocolVersion::v11,
+        ))
+            ->maybe()
+            ->map(static fn($success) => $success->response()->body()->toString())
+            ->map(Json::decode(...))
+            ->flatMap(fn($content) => ($this->pluckCount)($content)->maybe())
+            ->match(
+                static fn($count) => $count,
+                static fn() => throw new \RuntimeException('Count is negative'),
+            );
     }
 
     public function any(Specification $specification = null): bool
