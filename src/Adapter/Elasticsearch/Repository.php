@@ -113,7 +113,7 @@ final class Repository implements RepositoryInterface
                     ))
                     ->path(),
             ),
-            Method::get,
+            Method::head,
             ProtocolVersion::v11,
         ))->match(
             static fn() => true,
