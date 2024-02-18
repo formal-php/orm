@@ -155,6 +155,14 @@ final class Repository implements RepositoryInterface
 
     public function remove(Aggregate\Id $id): void
     {
+        $_ = ($this->http)(Request::of(
+            $this->url('_doc', $id->value()),
+            Method::delete,
+            ProtocolVersion::v11,
+        ))->match(
+            static fn() => null,
+            static fn() => null,
+        );
     }
 
     public function fetch(
