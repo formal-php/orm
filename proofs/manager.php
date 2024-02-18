@@ -6,6 +6,7 @@ use Formal\ORM\{
     Adapter,
     Adapter\Elasticsearch\CreateIndex,
     Adapter\Elasticsearch\DropIndex,
+    Adapter\Elasticsearch\Refresh,
     Definition\Aggregates,
     Definition\Types,
     Definition\Type,
@@ -151,7 +152,10 @@ return static function() {
             );
 
         return Manager::of(
-            Adapter\Elasticsearch::of($os->remote()->http(), $url),
+            Adapter\Elasticsearch::of(
+                Refresh::of($os->remote()->http()),
+                $url,
+            ),
             $aggregates,
         );
     };
