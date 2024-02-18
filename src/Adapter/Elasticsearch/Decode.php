@@ -7,8 +7,6 @@ use Formal\ORM\{
     Definition\Aggregate as Definition,
     Raw\Aggregate,
 };
-use Innmind\Filesystem\File\Content;
-use Innmind\Json\Json;
 use Innmind\Validation\{
     Constraint,
     Shape,
@@ -110,7 +108,7 @@ final class Decode
     }
 
     /**
-     * @return callable(Content): Maybe<Aggregate>
+     * @return callable(mixed): Maybe<Aggregate>
      */
     public function __invoke(Aggregate\Id $id = null): callable
     {
@@ -130,17 +128,13 @@ final class Decode
             default => Of::callable(static fn() => Validation::success($id)),
         };
 
-        return fn(Content $content) => Maybe::just($content->toString())
-            ->map(Json::decode(...))
-            ->flatMap(
-                fn($content) => Maybe::all(
-                    Is::array()->and($id)($content)->maybe(),
-                    ($this->properties)($content)->maybe(),
-                    Is::array()->and($this->entities)($content)->maybe(),
-                    Is::array()->and($this->optionals)($content)->maybe(),
-                    Is::array()->and($this->collections)($content)->maybe(),
-                )->map(Aggregate::of(...)),
-            );
+        return fn(mixed $content) => Maybe::all(
+            Is::array()->and($id)($content)->maybe(),
+            ($this->properties)($content)->maybe(),
+            Is::array()->and($this->entities)($content)->maybe(),
+            Is::array()->and($this->optionals)($content)->maybe(),
+            Is::array()->and($this->collections)($content)->maybe(),
+        )->map(Aggregate::of(...));
     }
 
     /**

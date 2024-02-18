@@ -10,6 +10,7 @@ use Formal\ORM\{
     Raw\Diff,
     Sort,
 };
+use Innmind\Filesystem\File\Content;
 use Innmind\HttpTransport\Transport;
 use Innmind\Http\{
     Request,
@@ -27,6 +28,7 @@ use Innmind\Validation\{
     Is,
     Shape,
     Of,
+    Each,
 };
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{
@@ -52,6 +54,8 @@ final class Repository implements RepositoryInterface
     private Decode $decode;
     /** @var Constraint<mixed, 0|positive-int> */
     private Constraint $pluckCount;
+    /** @var Constraint<mixed, Sequence<array>> */
+    private Constraint $pluckHits;
     private Url $url;
     private Template $path;
 
@@ -86,6 +90,29 @@ final class Repository implements RepositoryInterface
                 ),
             )
             ->map(static fn($body): int => $body['count']);
+        /**
+         * @psalm-suppress MixedInferredReturnType
+         * @psalm-suppress MixedArrayAccess
+         * @psalm-suppress MixedReturnStatement
+         * @var Constraint<mixed, Sequence<array>>
+         */
+        $this->pluckHits = Is::array()
+            ->and(Shape::of(
+                'hits',
+                Is::array()->and(Shape::of(
+                    'hits',
+                    Is::array()
+                        ->and(Is::list())
+                        ->and(Each::of(Shape::of(
+                            '_source',
+                            Is::array(),
+                        )))
+                        ->map(static fn($hits) => Sequence::of(...$hits)->map(
+                            static fn($hit): array => $hit['_source'],
+                        )),
+                )),
+            ))
+            ->map(static fn($body): Sequence => $body['hits']['hits']);
         $this->url = $url;
         $index = $definition->name();
         /** @psalm-suppress ArgumentTypeCoercion */
@@ -117,7 +144,8 @@ final class Repository implements RepositoryInterface
             ProtocolVersion::v11,
         ))
             ->maybe()
-            ->map(static fn($success) => $success->response()->body())
+            ->map(static fn($success) => $success->response()->body()->toString())
+            ->map(Json::decode(...))
             ->flatMap(($this->decode)($id));
     }
 
@@ -171,7 +199,36 @@ final class Repository implements RepositoryInterface
         ?int $drop,
         ?int $take,
     ): Sequence {
-        return Sequence::of();
+        $normalizedSort = null;
+
+        // When no sorting is defined we sort by id to make sure ES doesn't
+        // return the same document twice. This is not applied when there's a
+        // specification in order to not alter the scoring.
+        if (\is_null($specification) && \is_null($sort)) {
+            $normalizedSort = [[
+                $this->definition->id()->property() => 'asc',
+            ]];
+        }
+
+        if ($sort instanceof Sort\Property) {
+            $normalizedSort = [[
+                $sort->name() => $sort->direction()->name,
+            ]];
+        }
+
+        if ($sort instanceof Sort\Entity) {
+            $normalizedSort = [[
+                $sort->name().'.'.$sort->property()->name() => $sort->direction()->name,
+            ]];
+        }
+
+        // TODO add filter support
+
+        if (\is_null($take)) {
+            return $this->stream($drop ?? 0, $normalizedSort);
+        }
+
+        return $this->search($drop ?? 0, $take, $normalizedSort);
     }
 
     public function size(Specification $specification = null): int
@@ -214,5 +271,77 @@ final class Repository implements RepositoryInterface
                 })
                 ->path(),
         );
+    }
+
+    /**
+     * @param 0|positive-int $drop
+     * @return Sequence<Aggregate>
+     */
+    private function stream(int $drop, ?array $sort): Sequence
+    {
+        return Sequence::lazy(function() use ($drop, $sort) {
+            // This loop will break when reaching 10k documents (see
+            // self::search()). The user SHOULD be aware of this limitation
+            // after reading the documentation.
+            // In the case the user is not aware of this limitation, streaming
+            // more than 10k documents will crash the app (thus making the user
+            // aware of this limitation).
+            while (true) {
+                $hits = $this->search($drop, 100, $sort);
+
+                yield $hits;
+
+                // No need to do more calls as ES returns less than we asked for.
+                // This call is safe as the Sequence returned by self::search()
+                // is memoized.
+                if ($hits->size() < 100) {
+                    return;
+                }
+
+                $drop += 100;
+            }
+        })->flatMap(static fn($aggregates) => $aggregates);
+    }
+
+    /**
+     * @param 0|positive-int $drop
+     * @param positive-int $take
+     *
+     * @return Sequence<Aggregate>
+     */
+    private function search(int $drop, int $take, ?array $sort): Sequence
+    {
+        if (($drop + $take) > 10_000) {
+            throw new \LogicException('Elasticsearch does not support listing more than 10k documents');
+        }
+
+        $payload = ['size' => $take];
+
+        if ($drop !== 0) {
+            $payload['from'] = $drop;
+        }
+
+        if (\is_array($sort)) {
+            $payload['sort'] = $sort;
+        }
+
+        $decode = ($this->decode)();
+
+        return ($this->http)(Request::of(
+            $this->url('_search'),
+            Method::post,
+            ProtocolVersion::v11,
+            Headers::of(
+                ContentType::of('application', 'json'),
+            ),
+            Content::ofString(Json::encode($payload)),
+        ))
+            ->map(static fn($success) => $success->response()->body()->toString())
+            ->map(Json::decode(...))
+            ->maybe()
+            ->flatMap(fn($content) => ($this->pluckHits)($content)->maybe())
+            ->toSequence()
+            ->flatMap(static fn($hits) => $hits)
+            ->flatMap(static fn($hit) => $decode($hit)->toSequence());
     }
 }
