@@ -84,15 +84,7 @@ final class Repository implements RepositoryInterface
     public function get(Aggregate\Id $id): Maybe
     {
         return ($this->http)(Request::of(
-            $this->url->withPath(
-                $this
-                    ->path
-                    ->expand(Map::of(
-                        ['action', '_source'],
-                        ['id', $id->value()],
-                    ))
-                    ->path(),
-            ),
+            $this->url('_source', $id->value()),
             Method::get,
             ProtocolVersion::v11,
         ))
@@ -104,15 +96,7 @@ final class Repository implements RepositoryInterface
     public function contains(Aggregate\Id $id): bool
     {
         return ($this->http)(Request::of(
-            $this->url->withPath(
-                $this
-                    ->path
-                    ->expand(Map::of(
-                        ['action', '_doc'],
-                        ['id', $id->value()],
-                    ))
-                    ->path(),
-            ),
+            $this->url('_doc', $id->value()),
             Method::head,
             ProtocolVersion::v11,
         ))->match(
@@ -124,15 +108,7 @@ final class Repository implements RepositoryInterface
     public function add(Aggregate $data): void
     {
         $_ = ($this->http)(Request::of(
-            $this->url->withPath(
-                $this
-                    ->path
-                    ->expand(Map::of(
-                        ['action', '_doc'],
-                        ['id', $data->id()->value()],
-                    ))
-                    ->path(),
-            ),
+            $this->url('_doc', $data->id()->value()),
             Method::put,
             ProtocolVersion::v11,
             Headers::of(
@@ -170,5 +146,25 @@ final class Repository implements RepositoryInterface
     public function any(Specification $specification = null): bool
     {
         return false;
+    }
+
+    /**
+     * @param non-empty-string $action
+     * @param non-empty-string|null $id
+     */
+    private function url(string $action, string $id = null): Url
+    {
+        /** @var Map<non-empty-string, non-empty-string> */
+        $map = Map::of(['action', $action]);
+
+        return $this->url->withPath(
+            $this
+                ->path
+                ->expand(match ($id) {
+                    null => $map,
+                    default => ($map)('id', $id),
+                })
+                ->path(),
+        );
     }
 }
