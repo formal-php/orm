@@ -48,10 +48,7 @@ final class Mapping
             ->toList();
 
         return ['properties' => \array_merge(
-            [$definition->id()->property() => [
-                'type' => 'keyword',
-                'index' => false,
-            ]],
+            [$definition->id()->property() => ['type' => 'keyword']],
             $properties,
             ...$entities,
             ...$optionals,

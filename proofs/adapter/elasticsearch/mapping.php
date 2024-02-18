@@ -26,7 +26,6 @@ return static function() {
                     'properties' => [
                         'id' => [
                             'type' => 'keyword',
-                            'index' => false,
                         ],
                         'createdAt' => [
                             'type' => 'text',
