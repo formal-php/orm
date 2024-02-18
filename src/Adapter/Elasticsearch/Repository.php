@@ -86,7 +86,22 @@ final class Repository implements RepositoryInterface
 
     public function contains(Aggregate\Id $id): bool
     {
-        return false;
+        return ($this->http)(Request::of(
+            $this->url->withPath(
+                $this
+                    ->path
+                    ->expand(Map::of(
+                        ['action', '_doc'],
+                        ['id', $id->value()],
+                    ))
+                    ->path(),
+            ),
+            Method::get,
+            ProtocolVersion::v11,
+        ))->match(
+            static fn() => true,
+            static fn() => false,
+        );
     }
 
     public function add(Aggregate $data): void
