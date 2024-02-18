@@ -52,6 +52,7 @@ final class Repository implements RepositoryInterface
     private Encode $encode;
     /** @var Decode<T> */
     private Decode $decode;
+    private Query $query;
     /** @var Constraint<mixed, 0|positive-int> */
     private Constraint $pluckCount;
     /** @var Constraint<mixed, Sequence<array>> */
@@ -73,6 +74,7 @@ final class Repository implements RepositoryInterface
         $this->definition = $definition;
         $this->encode = Encode::new();
         $this->decode = Decode::of($definition);
+        $this->query = Query::new();
         /**
          * @psalm-suppress MixedInferredReturnType
          * @psalm-suppress MixedArrayAccess
@@ -116,7 +118,7 @@ final class Repository implements RepositoryInterface
         $this->url = $url;
         $index = $definition->name();
         /** @psalm-suppress ArgumentTypeCoercion */
-        $this->path = Template::of("/$index{/action,id}");
+        $this->path = Template::of("/$index{/action}{/id}");
     }
 
     /**
@@ -200,6 +202,7 @@ final class Repository implements RepositoryInterface
         ?int $take,
     ): Sequence {
         $normalizedSort = null;
+        $query = null;
 
         // When no sorting is defined we sort by id to make sure ES doesn't
         // return the same document twice. This is not applied when there's a
@@ -222,21 +225,43 @@ final class Repository implements RepositoryInterface
             ]];
         }
 
-        // TODO add filter support
-
-        if (\is_null($take)) {
-            return $this->stream($drop ?? 0, $normalizedSort);
+        if ($specification) {
+            $query = ($this->query)($specification);
         }
 
-        return $this->search($drop ?? 0, $take, $normalizedSort);
+        if (\is_null($take)) {
+            return $this->stream($drop ?? 0, $normalizedSort, $query);
+        }
+
+        return $this->search($drop ?? 0, $take, $normalizedSort, $query);
     }
 
     public function size(Specification $specification = null): int
     {
+        $content = null;
+
+        if ($specification) {
+            $query = ($this->query)($specification);
+            $content = ['query' => $query];
+        }
+
         return ($this->http)(Request::of(
             $this->url('_count'),
-            Method::get,
+            match ($content) {
+                null => Method::get,
+                default => Method::post,
+            },
             ProtocolVersion::v11,
+            match ($content) {
+                null => null,
+                default => Headers::of(
+                    ContentType::of('application', 'json'),
+                ),
+            },
+            match ($content) {
+                null => null,
+                default => Content::ofString(Json::encode($content)),
+            },
         ))
             ->maybe()
             ->map(static fn($success) => $success->response()->body()->toString())
@@ -279,9 +304,9 @@ final class Repository implements RepositoryInterface
      * @param 0|positive-int $drop
      * @return Sequence<Aggregate>
      */
-    private function stream(int $drop, ?array $sort): Sequence
+    private function stream(int $drop, ?array $sort, ?array $query): Sequence
     {
-        return Sequence::lazy(function() use ($drop, $sort) {
+        return Sequence::lazy(function() use ($drop, $sort, $query) {
             // This loop will break when reaching 10k documents (see
             // self::search()). The user SHOULD be aware of this limitation
             // after reading the documentation.
@@ -289,7 +314,7 @@ final class Repository implements RepositoryInterface
             // more than 10k documents will crash the app (thus making the user
             // aware of this limitation).
             while (true) {
-                $hits = $this->search($drop, 100, $sort);
+                $hits = $this->search($drop, 100, $sort, $query);
 
                 yield $hits;
 
@@ -311,8 +336,12 @@ final class Repository implements RepositoryInterface
      *
      * @return Sequence<Aggregate>
      */
-    private function search(int $drop, int $take, ?array $sort): Sequence
-    {
+    private function search(
+        int $drop,
+        int $take,
+        ?array $sort,
+        ?array $query,
+    ): Sequence {
         if (($drop + $take) > 10_000) {
             throw new \LogicException('Elasticsearch does not support listing more than 10k documents');
         }
@@ -325,6 +354,10 @@ final class Repository implements RepositoryInterface
 
         if (\is_array($sort)) {
             $payload['sort'] = $sort;
+        }
+
+        if (\is_array($query)) {
+            $payload['query'] = $query;
         }
 
         $decode = ($this->decode)();
