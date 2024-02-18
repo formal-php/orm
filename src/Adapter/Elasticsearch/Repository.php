@@ -39,6 +39,8 @@ final class Repository implements RepositoryInterface
     /** @var Definition<T> */
     private Definition $definition;
     private Encode $encode;
+    /** @var Decode<T> */
+    private Decode $decode;
     private Url $url;
     private Template $path;
 
@@ -55,6 +57,7 @@ final class Repository implements RepositoryInterface
         $this->transaction = $transaction;
         $this->definition = $definition;
         $this->encode = Encode::new();
+        $this->decode = Decode::of($definition);
         $this->url = $url;
         $index = $definition->name();
         /** @psalm-suppress ArgumentTypeCoercion */
@@ -80,8 +83,22 @@ final class Repository implements RepositoryInterface
 
     public function get(Aggregate\Id $id): Maybe
     {
-        /** @var Maybe<Aggregate> */
-        return Maybe::nothing();
+        return ($this->http)(Request::of(
+            $this->url->withPath(
+                $this
+                    ->path
+                    ->expand(Map::of(
+                        ['action', '_source'],
+                        ['id', $id->value()],
+                    ))
+                    ->path(),
+            ),
+            Method::get,
+            ProtocolVersion::v11,
+        ))
+            ->maybe()
+            ->map(static fn($success) => $success->response()->body())
+            ->flatMap(($this->decode)($id));
     }
 
     public function contains(Aggregate\Id $id): bool

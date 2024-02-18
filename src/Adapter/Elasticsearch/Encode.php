@@ -40,7 +40,10 @@ final class Encode
             ->map(fn($collection) => [
                 $collection->name() => $collection
                     ->entities()
-                    ->map(fn($entity) => $this->properties($entity->properties()))
+                    ->map(fn($entity) => [
+                        'reference' => $entity->reference()->toString(),
+                        'data' => $this->properties($entity->properties()),
+                    ])
                     ->toList(),
             ])
             ->toList();
