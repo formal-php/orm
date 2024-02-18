@@ -250,7 +250,9 @@ final class Repository implements RepositoryInterface
 
     public function any(Specification $specification = null): bool
     {
-        return false;
+        return !$this
+            ->fetch($specification, null, null, 1)
+            ->empty();
     }
 
     /**
