@@ -39,10 +39,18 @@ final class Mapping
             ->toList();
         $collections = $definition
             ->collections()
-            ->map(fn($optional) => [
-                $optional->name() => [
+            ->map(fn($collection) => [
+                $collection->name() => [
                     'type' => 'nested',
-                    'properties' => $this->properties($optional->properties()),
+                    'properties' => [
+                        'reference' => [
+                            'type' => 'keyword',
+                            'index' => false,
+                        ],
+                        'data' => [
+                            'properties' => $this->properties($collection->properties()),
+                        ],
+                    ],
                 ],
             ])
             ->toList();
