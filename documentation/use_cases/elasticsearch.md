@@ -116,3 +116,30 @@ $_ = $sql
 ```
 
 Then you can search these new aggregates [as any other](retrieve_aggregates.md)
+
+## Managing the indexes for the aggregates
+
+In order to persist the aggregates to Elasticsearch you need to create the underlying index via:
+
+```php
+use Formal\ORM\{
+    Definition\Aggregates,
+    Definition\Types,
+    Adapter\Elasticsearch\CreateIndex,
+};
+use Innmind\OperatingSystem\Factory;
+use Innmind\Url\Url;
+
+$createIndex = CreateIndex::of(
+    Factory::build()->remote()->http(),
+    Aggregates::of(Types::default()),
+    Url::of('http://localhost:9200/'),
+);
+
+$createIndex(Search\Product::class)->match(
+    static fn() => null,
+    static fn() => throw new \RuntimeException('Unable to create the index'),
+);
+```
+
+And to drop an index you can use `Formal\ORM\Adapter\Elasticsearch\DropIndex`.
