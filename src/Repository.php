@@ -4,7 +4,6 @@ declare(strict_types = 1);
 namespace Formal\ORM;
 
 use Formal\ORM\{
-    Adapter,
     Definition\Aggregate,
     Repository\Loaded,
     Repository\Normalize,

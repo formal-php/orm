@@ -5,7 +5,6 @@ namespace Formal\ORM\Sort;
 
 use Formal\ORM\{
     Sort,
-    Sort\Property,
 };
 
 /**
