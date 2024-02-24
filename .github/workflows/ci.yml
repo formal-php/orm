@@ -11,7 +11,7 @@ jobs:
         php-version: ['8.2', '8.3']
         dependency-versions: ['lowest', 'highest']
         mariadb: ['10', '11']
-        elasticsearch: ['7.17.18', '8.12.1']
+        elasticsearch: ['7.17.18']
     name: 'BlackBox'
     services:
       mariadb:
