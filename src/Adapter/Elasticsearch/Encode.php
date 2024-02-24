@@ -3,7 +3,10 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Adapter\Elasticsearch;
 
-use Formal\ORM\Raw\Aggregate;
+use Formal\ORM\Raw\{
+    Aggregate,
+    Diff,
+};
 use Innmind\Filesystem\File\Content;
 use Innmind\Json\Json;
 use Innmind\Immutable\Sequence;
@@ -17,7 +20,7 @@ final class Encode
     {
     }
 
-    public function __invoke(Aggregate $data): Content
+    public function __invoke(Diff|Aggregate $data): Content
     {
         $properties = $this->properties($data->properties());
         $entities = $data
@@ -48,13 +51,19 @@ final class Encode
             ])
             ->toList();
 
-        return Content::ofString(Json::encode(\array_merge(
+        $document = \array_merge(
             [$data->id()->name() => $data->id()->value()],
             $properties,
             ...$entities,
             ...$optionals,
             ...$collections,
-        )));
+        );
+
+        if ($data instanceof Diff) {
+            $document = ['doc' => $document];
+        }
+
+        return Content::ofString(Json::encode($document));
     }
 
     public static function new(): self

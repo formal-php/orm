@@ -181,6 +181,18 @@ final class Repository implements RepositoryInterface
 
     public function update(Diff $data): void
     {
+        $_ = ($this->http)(Request::of(
+            $this->url('_update', $data->id()->value()),
+            Method::post,
+            ProtocolVersion::v11,
+            Headers::of(
+                ContentType::of('application', 'json'),
+            ),
+            ($this->encode)($data),
+        ))->match(
+            static fn() => null,
+            static fn() => throw new \RuntimeException('Unable to update the aggregate'),
+        );
     }
 
     public function remove(Aggregate\Id $id): void
