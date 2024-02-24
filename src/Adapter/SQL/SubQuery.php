@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Formal\ORM\Specification;
+namespace Formal\ORM\Adapter\SQL;
 
 use Formal\AccessLayer\Query;
 use Innmind\Specification\{

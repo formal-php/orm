@@ -11,7 +11,6 @@ use Formal\ORM\{
     Specification\Property,
     Specification\Entity,
     Specification\Child,
-    Specification\SubQuery,
 };
 use Formal\AccessLayer\{
     Table,
