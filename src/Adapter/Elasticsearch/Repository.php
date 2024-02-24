@@ -74,7 +74,7 @@ final class Repository implements RepositoryInterface
         $this->definition = $definition;
         $this->encode = Encode::new();
         $this->decode = Decode::of($definition);
-        $this->query = Query::new();
+        $this->query = Query::new(Mapping::new(), $definition);
         /**
          * @psalm-suppress MixedInferredReturnType
          * @psalm-suppress MixedArrayAccess

@@ -3,9 +3,10 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Adapter\Elasticsearch;
 
-use Formal\ORM\Specification\{
-    Entity,
-    Child,
+use Formal\ORM\{
+    Definition\Aggregate as Definition,
+    Specification\Entity,
+    Specification\Child,
 };
 use Innmind\Specification\{
     Specification,
@@ -22,8 +23,58 @@ use Innmind\Specification\{
  */
 final class Query
 {
-    private function __construct()
+    /** @var array<non-empty-string, bool> */
+    private array $isText = [];
+
+    private function __construct(Mapping $mapping, Definition $definition)
     {
+        /** @var array<non-empty-string, array> */
+        $properties = $mapping($definition)['properties'] ?? [];
+
+        foreach ($properties as $property => $config) {
+            // Properties
+            if (\array_key_exists('type', $config) && $config['type'] !== 'nested') {
+                $this->isText[$property] = $config['type'] === 'text';
+
+                continue;
+            }
+
+            // Entities and optionals
+            if (
+                \array_key_exists('properties', $config) &&
+                \is_array($config['properties']) &&
+                !\array_key_exists('type', $config)
+            ) {
+                /** @var array $entityPropertyConfig */
+                foreach ($config['properties'] as $entityProperty => $entityPropertyConfig) {
+                    if (\array_key_exists('type', $entityPropertyConfig)) {
+                        $this->isText["$property.$entityProperty"] = $entityPropertyConfig['type'] === 'text';
+
+                        continue;
+                    }
+                }
+            }
+
+            // Collections
+            if (
+                \array_key_exists('properties', $config) &&
+                \is_array($config['properties']) &&
+                \array_key_exists('type', $config)
+            ) {
+                /**
+                 * @psalm-suppress ImpureMethodCall
+                 * @var string $collectionProperty
+                 * @var array $collectionPropertyConfig
+                 */
+                foreach ($config['properties']['data']['properties'] ?? [] as $collectionProperty => $collectionPropertyConfig) {
+                    if (\array_key_exists('type', $collectionPropertyConfig)) {
+                        $this->isText["$property.data.$collectionProperty"] = $collectionPropertyConfig['type'] === 'text';
+
+                        continue;
+                    }
+                }
+            }
+        }
     }
 
     public function __invoke(Specification $specification): array
@@ -34,11 +85,13 @@ final class Query
 
         if ($specification instanceof Child) {
             return [
-                'nested' => $specification->collection(),
-                'query' => $this->visit(
-                    $specification->specification(),
-                    $specification->collection().'.data.',
-                ),
+                'nested' => [
+                    'path' => $specification->collection(),
+                    'query' => $this->visit(
+                        $specification->specification(),
+                        $specification->collection().'.data.',
+                    ),
+                ],
             ];
         }
 
@@ -49,9 +102,9 @@ final class Query
      * @internal
      * @psalm-pure
      */
-    public static function new(): self
+    public static function new(Mapping $mapping, Definition $definition): self
     {
-        return new self;
+        return new self($mapping, $definition);
     }
 
     private function visit(Specification $specification, string $prefix = ''): array
@@ -110,22 +163,29 @@ final class Query
     {
         $property = $prefix.$specification->property();
 
-        // TODO adapt (in)equality and in search type based on the property type
-        // being a keyword or not from the mapping
+        if ($this->isText[$property] ?? true) {
+            return $this->compareText($property, $specification);
+        }
+
+        return $this->compareKeyword($property, $specification);
+    }
+
+    private function compareKeyword(string $property, Comparator $specification): array
+    {
         return match ($specification->sign()) {
             Sign::equality => [
-                'match_phrase' => [
+                'term' => [
                     $property => [
-                        'query' => $specification->value(),
+                        'value' => $specification->value(),
                     ],
                 ],
             ],
             Sign::inequality => [
                 'bool' => [
                     'must_not' => [[
-                        'match_phrase' => [
+                        'term' => [
                             $property => [
-                                'query' => $specification->value(),
+                                'value' => $specification->value(),
                             ],
                         ],
                     ]],
@@ -173,6 +233,45 @@ final class Query
                     'field' => $property,
                 ],
             ],
+            Sign::startsWith => $this->compareText($property, $specification),
+            Sign::endsWith => $this->compareText($property, $specification),
+            Sign::contains => $this->compareText($property, $specification), // Type can only be text as arrays can't be persisted
+            Sign::in => [
+                'terms' => [
+                    $property => $specification->value(),
+                ],
+            ],
+        };
+    }
+
+    private function compareText(string $property, Comparator $specification): array
+    {
+        /** @psalm-suppress MixedArgument Due to the array map */
+        return match ($specification->sign()) {
+            Sign::equality => [
+                'match_phrase' => [
+                    $property => [
+                        'query' => $specification->value(),
+                    ],
+                ],
+            ],
+            Sign::inequality => [
+                'bool' => [
+                    'must_not' => [[
+                        'match_phrase' => [
+                            $property => [
+                                'query' => $specification->value(),
+                            ],
+                        ],
+                    ]],
+                ],
+            ],
+            Sign::lessThan => $this->compareKeyword($property, $specification),
+            Sign::moreThan => $this->compareKeyword($property, $specification),
+            Sign::lessThanOrEqual => $this->compareKeyword($property, $specification),
+            Sign::moreThanOrEqual => $this->compareKeyword($property, $specification),
+            Sign::isNull => $this->compareKeyword($property, $specification),
+            Sign::isNotNull => $this->compareKeyword($property, $specification),
             Sign::startsWith => [
                 'wildcard' => [
                     $property => [
@@ -197,8 +296,17 @@ final class Query
                 ],
             ],
             Sign::in => [
-                'terms' => [
-                    $property => $specification->value(),
+                'bool' => [
+                    'should' => \array_map(
+                        static fn(string|int|bool|null $value) => [
+                            'match_phrase' => [
+                                $property => [
+                                    'query' => $value,
+                                ],
+                            ],
+                        ],
+                        $specification->value(),
+                    ),
                 ],
             ],
         };
