@@ -10,6 +10,7 @@
     - internally it uses an _entity reference_ but it doesn't impact user classes
 - You can use any enum as a property type (nullable/optional or not)
 - You can use any enum inside `Set`s without having to wrap them in another class
+- `Formal\ORM\Adapter\Elasticsearch` to store aggregates in Elasticsearch
 
 ### Changed
 
