@@ -79,7 +79,7 @@ final class MatchingSort implements Property
                 Sign::startsWith,
                 Str::of($this->prefix),
             ))
-            ->sort('nameStr', Sort::asc)
+            ->sort('sortableName', Sort::asc)
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
@@ -95,7 +95,7 @@ final class MatchingSort implements Property
                 Sign::startsWith,
                 Str::of($this->prefix),
             ))
-            ->sort('nameStr', Sort::desc)
+            ->sort('sortableName', Sort::desc)
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 

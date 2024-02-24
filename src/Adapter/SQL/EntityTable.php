@@ -68,11 +68,11 @@ final class EntityTable
         return new self($definition, $main);
     }
 
-    public function primaryKey(): Table\Column
+    public function primaryKey(): Column
     {
-        return Table\Column::of(
-            Table\Column\Name::of('aggregateId'),
-            Table\Column\Type::varchar(36)->comment('UUID'),
+        return Column::of(
+            Column\Name::of('aggregateId'),
+            Column\Type::varchar(36)->comment('UUID'),
         );
     }
 
@@ -84,8 +84,8 @@ final class EntityTable
         return $this
             ->definition
             ->properties()
-            ->map(static fn($property) => Table\Column::of(
-                Table\Column\Name::of($property->name()),
+            ->map(static fn($property) => Column::of(
+                Column\Name::of($property->name()),
                 $mapType($property->type()),
             ));
     }

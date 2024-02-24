@@ -150,11 +150,11 @@ final class MainTable
         return new self($definition);
     }
 
-    public function primaryKey(): Table\Column
+    public function primaryKey(): Column
     {
-        return Table\Column::of(
-            Table\Column\Name::of($this->definition->id()->property()),
-            Table\Column\Type::varchar(36)->comment('UUID'),
+        return Column::of(
+            Column\Name::of($this->definition->id()->property()),
+            Column\Type::varchar(36)->comment('UUID'),
         );
     }
 
@@ -166,8 +166,8 @@ final class MainTable
         return $this
             ->definition
             ->properties()
-            ->map(static fn($property) => Table\Column::of(
-                Table\Column\Name::of($property->name()),
+            ->map(static fn($property) => Column::of(
+                Column\Name::of($property->name()),
                 $mapType($property->type()),
             ));
     }

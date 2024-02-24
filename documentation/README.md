@@ -24,3 +24,4 @@ Before diving into use cases you should read more about these subjects:
 - [Retrieving multiple aggregates](use_cases/retrieve_aggregates.md)
 - [Using objects in aggregates properties](use_cases/types.md)
 - [Going to production](use_cases/production.md)
+- [Search an aggregate via Elasticsearch](use_cases/elasticsearch.md)
