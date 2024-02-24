@@ -32,7 +32,6 @@ final class Elasticsearch implements Adapter
     {
         return Elasticsearch\Repository::of(
             $this->transport,
-            $this->transaction,
             $definition,
             $this->url,
         );

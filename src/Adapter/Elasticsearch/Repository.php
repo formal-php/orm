@@ -46,7 +46,6 @@ use Innmind\Immutable\{
 final class Repository implements RepositoryInterface
 {
     private Transport $http;
-    private Transaction $transaction;
     /** @var Definition<T> */
     private Definition $definition;
     private Encode $encode;
@@ -65,12 +64,10 @@ final class Repository implements RepositoryInterface
      */
     private function __construct(
         Transport $http,
-        Transaction $transaction,
         Definition $definition,
         Url $url,
     ) {
         $this->http = $http;
-        $this->transaction = $transaction;
         $this->definition = $definition;
         $this->encode = Encode::new();
         $this->decode = Decode::of($definition);
@@ -131,11 +128,10 @@ final class Repository implements RepositoryInterface
      */
     public static function of(
         Transport $transport,
-        Transaction $transaction,
         Definition $definition,
         Url $url,
     ): self {
-        return new self($transport, $transaction, $definition, $url);
+        return new self($transport, $definition, $url);
     }
 
     public function get(Aggregate\Id $id): Maybe
