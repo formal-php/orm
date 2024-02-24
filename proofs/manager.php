@@ -16,7 +16,11 @@ use Fixtures\Formal\ORM\{
     Random,
     SortableType,
 };
-use Properties\Formal\ORM\Properties;
+use Properties\Formal\ORM\{
+    Properties,
+    FailingTransactionDueToLeftSide,
+    FailingTransactionDueToException,
+};
 use Formal\AccessLayer\{
     Query\DropTable,
     Query\SQL,
@@ -166,11 +170,19 @@ return static function() {
 
     yield properties(
         'Elasticsearch properties',
-        Properties::any(),
+        Properties::any(Properties::withoutTransactions()),
         Set\Call::of($setup),
     );
 
     foreach (Properties::alwaysApplicable() as $property) {
+        if (\in_array(
+            $property,
+            [FailingTransactionDueToLeftSide::class, FailingTransactionDueToException::class],
+            true,
+        )) {
+            continue;
+        }
+
         yield property(
             $property,
             Set\Call::of($setup),
