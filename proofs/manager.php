@@ -14,6 +14,7 @@ use Formal\ORM\{
 use Fixtures\Formal\ORM\{
     User,
     Random,
+    SortableType,
 };
 use Properties\Formal\ORM\Properties;
 use Formal\AccessLayer\{
@@ -78,6 +79,7 @@ return static function() {
             InMemory::emulateFilesystem(),
             Aggregates::of(Types::of(
                 Type\PointInTimeType::of(new Clock),
+                SortableType::of(...),
             )),
         )),
     );
@@ -89,6 +91,7 @@ return static function() {
                 InMemory::emulateFilesystem(),
                 Aggregates::of(Types::of(
                     Type\PointInTimeType::of(new Clock),
+                    SortableType::of(...),
                 )),
             )),
         )->named('Filesystem');
@@ -100,6 +103,7 @@ return static function() {
     $connection = $os->remote()->sql(Url::of("mysql://root:root@127.0.0.1:$port/example"));
     $aggregates = Aggregates::of(Types::of(
         Type\PointInTimeType::of(new Clock),
+        SortableType::of(...),
     ));
     $connection(DropTable::ifExists(Table\Name::of('user_roles')));
     $connection(DropTable::ifExists(Table\Name::of('user_addresses')));

@@ -78,7 +78,7 @@ final class MatchingSortEntity implements Property
                 Sign::startsWith,
                 $this->prefix,
             ))
-            ->sort('mainAddress.value', Sort::asc)
+            ->sort('mainAddress.sortable', Sort::asc)
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
@@ -94,7 +94,7 @@ final class MatchingSortEntity implements Property
                 Sign::startsWith,
                 $this->prefix,
             ))
-            ->sort('mainAddress.value', Sort::desc)
+            ->sort('mainAddress.sortable', Sort::desc)
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
