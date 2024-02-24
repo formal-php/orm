@@ -6,6 +6,7 @@ namespace Formal\ORM\Adapter\Elasticsearch;
 use Formal\ORM\Definition\Type;
 
 /**
+ * @internal
  * @psalm-immutable
  */
 final class MapType
