@@ -8,6 +8,7 @@ use Formal\ORM\{
     Raw\Aggregate,
     Specification\Property as PropertySpecification,
     Specification\Entity as EntitySpecification,
+    Specification\Entity2 as Entity2Specification,
     Specification\Child as ChildSpecification,
 };
 use Innmind\Specification\{
@@ -71,6 +72,18 @@ final class Fold
                 )
                 ->match(
                     static fn($property) => $filter($property->value()),
+                    static fn() => false,
+                );
+        }
+
+        if ($specification instanceof Entity2Specification) {
+            $filter = $this->child($specification->specification());
+
+            return static fn(Aggregate $aggregate) => $aggregate
+                ->entities()
+                ->find(static fn($entity) => $entity->name() === $specification->entity())
+                ->match(
+                    static fn($entity) => $filter($entity),
                     static fn() => false,
                 );
         }
@@ -150,14 +163,14 @@ final class Fold
     }
 
     /**
-     * @return callable(Aggregate\Collection\Entity): bool
+     * @return callable(Aggregate\Collection\Entity|Aggregate\Entity): bool
      */
     private function child(Specification $specification): callable
     {
         if ($specification instanceof Not) {
             $filter = $this->child($specification->specification());
 
-            return static fn(Aggregate\Collection\Entity $entity) => !$filter($entity);
+            return static fn(Aggregate\Collection\Entity|Aggregate\Entity $entity) => !$filter($entity);
         }
 
         if ($specification instanceof Composite) {
@@ -165,8 +178,8 @@ final class Fold
             $right = $this->child($specification->right());
 
             return match ($specification->operator()) {
-                Operator::and => static fn(Aggregate\Collection\Entity $entity) => $left($entity) && $right($entity),
-                Operator::or => static fn(Aggregate\Collection\Entity $entity) => $left($entity) || $right($entity),
+                Operator::and => static fn(Aggregate\Collection\Entity|Aggregate\Entity $entity) => $left($entity) && $right($entity),
+                Operator::or => static fn(Aggregate\Collection\Entity|Aggregate\Entity $entity) => $left($entity) || $right($entity),
             };
         }
 
@@ -178,7 +191,7 @@ final class Fold
 
         $filter = $this->filter($specification);
 
-        return static fn(Aggregate\Collection\Entity $entity) => $entity
+        return static fn(Aggregate\Collection\Entity|Aggregate\Entity $entity) => $entity
             ->properties()
             ->find(static fn($property) => $property->name() === $specification->property())
             ->match(

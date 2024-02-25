@@ -10,6 +10,7 @@ use Formal\ORM\{
     Raw\Diff,
     Specification\Property,
     Specification\Entity,
+    Specification\Entity2,
     Specification\Child,
 };
 use Formal\AccessLayer\{
@@ -343,6 +344,10 @@ final class MainTable
             };
         }
 
+        if ($specification instanceof Entity2) {
+            return $this->whereEntity($specification);
+        }
+
         if ($specification instanceof Entity) {
             return Property::of(
                 \sprintf(
@@ -377,6 +382,52 @@ final class MainTable
             'entity.'.$specification->property(),
             $specification->sign(),
             $specification->value(),
+        );
+    }
+
+    private function whereEntity(Entity2 $specification): Specification
+    {
+        $underlying = $specification->specification();
+
+        if ($underlying instanceof Not) {
+            return $this
+                ->whereEntity(Entity2::of(
+                    $specification->entity(),
+                    $underlying->specification(),
+                ))
+                ->not();
+        }
+
+        if ($underlying instanceof Composite) {
+            $left = $this->whereEntity(Entity2::of(
+                $specification->entity(),
+                $underlying->left(),
+            ));
+            $right = $this->whereEntity(Entity2::of(
+                $specification->entity(),
+                $underlying->right(),
+            ));
+
+            return match ($underlying->operator()) {
+                Operator::and => $left->and($right),
+                Operator::or => $left->or($right),
+            };
+        }
+
+        if (!($underlying instanceof Property)) {
+            $class = $underlying::class;
+
+            throw new \LogicException("Unsupported specification '$class'");
+        }
+
+        return Property::of(
+            \sprintf(
+                '%s.%s',
+                $specification->entity(),
+                $underlying->property(),
+            ),
+            $underlying->sign(),
+            $underlying->value(),
         );
     }
 }

@@ -118,6 +118,23 @@ final class Normalize
                 );
         }
 
+        if ($specification instanceof Entity2) {
+            return $this
+                ->entities
+                ->get($specification->entity())
+                ->map(fn($entity) => $this->child(
+                    $entity,
+                    $specification->specification(),
+                ))
+                ->match(
+                    static fn($normalized) => Entity2::of(
+                        $specification->entity(),
+                        $normalized,
+                    ),
+                    static fn() => throw new \LogicException("Unknown entity '{$specification->entity()}'"),
+                );
+        }
+
         if (!($specification instanceof Comparator)) {
             $class = $specification::class;
 

@@ -6,6 +6,7 @@ namespace Formal\ORM\Adapter\Elasticsearch;
 use Formal\ORM\{
     Definition\Aggregate as Definition,
     Specification\Entity,
+    Specification\Entity2,
     Specification\Child,
 };
 use Innmind\Specification\{
@@ -81,6 +82,10 @@ final class Query
     {
         if ($specification instanceof Entity) {
             return $this->visit($specification, $specification->entity().'.');
+        }
+
+        if ($specification instanceof Entity2) {
+            return $this->visit($specification->specification(), $specification->entity().'.');
         }
 
         if ($specification instanceof Child) {
