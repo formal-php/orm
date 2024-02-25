@@ -3,7 +3,7 @@ declare(strict_types = 1);
 
 namespace Fixtures\Formal\ORM;
 
-use Formal\ORM\Specification\Entity2;
+use Formal\ORM\Specification\Entity;
 use Innmind\Specification\Sign;
 
 /**
@@ -14,9 +14,9 @@ final class MainAddress
     /**
      * @psalm-pure
      */
-    public static function of(Sign $sign, string $value): Entity2
+    public static function of(Sign $sign, string $value): Entity
     {
-        return Entity2::of(
+        return Entity::of(
             'mainAddress',
             AddressValue::of($sign, $value),
         );

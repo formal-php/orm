@@ -9,7 +9,7 @@ use Formal\ORM\{
     Raw\Aggregate\Id,
     Raw\Diff,
     Specification\Property,
-    Specification\Entity2,
+    Specification\Entity,
     Specification\Child,
 };
 use Formal\AccessLayer\{
@@ -343,7 +343,7 @@ final class MainTable
             };
         }
 
-        if ($specification instanceof Entity2) {
+        if ($specification instanceof Entity) {
             return $this->whereEntity($specification);
         }
 
@@ -372,13 +372,13 @@ final class MainTable
         );
     }
 
-    private function whereEntity(Entity2 $specification): Specification
+    private function whereEntity(Entity $specification): Specification
     {
         $underlying = $specification->specification();
 
         if ($underlying instanceof Not) {
             return $this
-                ->whereEntity(Entity2::of(
+                ->whereEntity(Entity::of(
                     $specification->entity(),
                     $underlying->specification(),
                 ))
@@ -386,11 +386,11 @@ final class MainTable
         }
 
         if ($underlying instanceof Composite) {
-            $left = $this->whereEntity(Entity2::of(
+            $left = $this->whereEntity(Entity::of(
                 $specification->entity(),
                 $underlying->left(),
             ));
-            $right = $this->whereEntity(Entity2::of(
+            $right = $this->whereEntity(Entity::of(
                 $specification->entity(),
                 $underlying->right(),
             ));

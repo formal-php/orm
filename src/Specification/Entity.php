@@ -11,7 +11,7 @@ use Innmind\Specification\{
 /**
  * @psalm-immutable
  */
-final class Entity2 implements Specification
+final class Entity implements Specification
 {
     use Composable;
 

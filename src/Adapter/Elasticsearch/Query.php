@@ -5,7 +5,7 @@ namespace Formal\ORM\Adapter\Elasticsearch;
 
 use Formal\ORM\{
     Definition\Aggregate as Definition,
-    Specification\Entity2,
+    Specification\Entity,
     Specification\Child,
 };
 use Innmind\Specification\{
@@ -79,7 +79,7 @@ final class Query
 
     public function __invoke(Specification $specification): array
     {
-        if ($specification instanceof Entity2) {
+        if ($specification instanceof Entity) {
             return $this->visit($specification->specification(), $specification->entity().'.');
         }
 

@@ -116,7 +116,7 @@ final class Normalize
                 );
         }
 
-        if ($specification instanceof Entity2) {
+        if ($specification instanceof Entity) {
             return $this
                 ->entities
                 ->get($specification->entity())
@@ -125,7 +125,7 @@ final class Normalize
                     $specification->specification(),
                 ))
                 ->match(
-                    static fn($normalized) => Entity2::of(
+                    static fn($normalized) => Entity::of(
                         $specification->entity(),
                         $normalized,
                     ),

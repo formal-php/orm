@@ -7,7 +7,7 @@ use Formal\ORM\{
     Definition\Aggregate as Definition,
     Raw\Aggregate,
     Specification\Property as PropertySpecification,
-    Specification\Entity2 as Entity2Specification,
+    Specification\Entity as EntitySpecification,
     Specification\Child as ChildSpecification,
 };
 use Innmind\Specification\{
@@ -58,7 +58,7 @@ final class Fold
             };
         }
 
-        if ($specification instanceof Entity2Specification) {
+        if ($specification instanceof EntitySpecification) {
             $filter = $this->child($specification->specification());
 
             return static fn(Aggregate $aggregate) => $aggregate
