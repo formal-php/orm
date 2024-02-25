@@ -344,15 +344,7 @@ final class MainTable
         }
 
         if ($specification instanceof Entity) {
-            return Property::of(
-                \sprintf(
-                    '%s.%s',
-                    $specification->entity(),
-                    $specification->property(),
-                ),
-                $specification->sign(),
-                $specification->value(),
-            );
+            return $this->whereEntity($specification);
         }
 
         if ($specification instanceof Child) {
@@ -377,6 +369,52 @@ final class MainTable
             'entity.'.$specification->property(),
             $specification->sign(),
             $specification->value(),
+        );
+    }
+
+    private function whereEntity(Entity $specification): Specification
+    {
+        $underlying = $specification->specification();
+
+        if ($underlying instanceof Not) {
+            return $this
+                ->whereEntity(Entity::of(
+                    $specification->entity(),
+                    $underlying->specification(),
+                ))
+                ->not();
+        }
+
+        if ($underlying instanceof Composite) {
+            $left = $this->whereEntity(Entity::of(
+                $specification->entity(),
+                $underlying->left(),
+            ));
+            $right = $this->whereEntity(Entity::of(
+                $specification->entity(),
+                $underlying->right(),
+            ));
+
+            return match ($underlying->operator()) {
+                Operator::and => $left->and($right),
+                Operator::or => $left->or($right),
+            };
+        }
+
+        if (!($underlying instanceof Property)) {
+            $class = $underlying::class;
+
+            throw new \LogicException("Unsupported specification '$class'");
+        }
+
+        return Property::of(
+            \sprintf(
+                '%s.%s',
+                $specification->entity(),
+                $underlying->property(),
+            ),
+            $underlying->sign(),
+            $underlying->value(),
         );
     }
 }

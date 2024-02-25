@@ -18,8 +18,6 @@ use Innmind\Immutable\{
     Set,
     Sequence,
     Map,
-    Str,
-    Maybe,
     Predicate\Instance,
 };
 
@@ -118,40 +116,27 @@ final class Normalize
                 );
         }
 
+        if ($specification instanceof Entity) {
+            return $this
+                ->entities
+                ->get($specification->entity())
+                ->map(fn($entity) => $this->child(
+                    $entity,
+                    $specification->specification(),
+                ))
+                ->match(
+                    static fn($normalized) => Entity::of(
+                        $specification->entity(),
+                        $normalized,
+                    ),
+                    static fn() => throw new \LogicException("Unknown entity '{$specification->entity()}'"),
+                );
+        }
+
         if (!($specification instanceof Comparator)) {
             $class = $specification::class;
 
             throw new \LogicException("Unsupported specification '$class'");
-        }
-
-        $property = Str::of($specification->property());
-
-        if ($property->contains('.')) {
-            $parts = $property
-                ->split('.')
-                ->map(static fn($part) => $part->toString());
-
-            /** @psalm-suppress ArgumentTypeCoercion It doesn't understand the strings are not empty */
-            return Maybe::all($parts->first(), $parts->last())
-                ->flatMap(
-                    fn(string $entity, string $property) => $this
-                        ->entities
-                        ->get($entity)
-                        ->map(fn($properties) => Entity::of(
-                            $entity,
-                            $property,
-                            $specification->sign(),
-                            $this->normalizeProperty(
-                                $properties,
-                                $property,
-                                $specification->value(),
-                            ),
-                        )),
-                )
-                ->match(
-                    static fn($specification) => $specification,
-                    static fn() => throw new \LogicException("Unknown entity '{$property->toString()}'"),
-                );
         }
 
         return $this->normalize($specification);

@@ -21,6 +21,7 @@
 - `Formal\ORM\Raw\Aggregate\Collection::properties()` has been renamed `::entities()`
 - Collection tables now have an `entityReference` column
 - Collection, entities and optional entities table column `id` has been renamed `aggregateId`
+- `Formal\ORM\Specification\Entity` now has a similar api to `Child`
 
 ## 1.2.0 - 2024-01-15
 

@@ -82,7 +82,7 @@ $users = $manager
 
 You can filter on an aggregate:
 - property by using its name as the specification property
-- entity property by using the pattern `entityName.propertyName` as the specification property
+- entity property by using `Formal\ORM\Specification\Entity`, the properties don't need to be prefixed by the entity name
 - collection property by using `Formal\ORM\Specification\Child`, the properties don't need to be prefixed by the collection name
 
 When filtering on collections an aggregate will be returned as long as at least one child of the collection matches the specification.

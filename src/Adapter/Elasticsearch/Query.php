@@ -80,7 +80,7 @@ final class Query
     public function __invoke(Specification $specification): array
     {
         if ($specification instanceof Entity) {
-            return $this->visit($specification, $specification->entity().'.');
+            return $this->visit($specification->specification(), $specification->entity().'.');
         }
 
         if ($specification instanceof Child) {
