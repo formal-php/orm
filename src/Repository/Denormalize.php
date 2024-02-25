@@ -37,10 +37,8 @@ final class Denormalize
     /**
      * @param Definition<T> $definition
      */
-    private function __construct(
-        Definition $definition,
-        KnownCollectionEntity $knownCollectionEntity,
-    ) {
+    private function __construct(Definition $definition)
+    {
         $this->instanciate = new Instanciate;
         /** @var \Closure(Aggregate\Id): Id<T> */
         $this->denormalizeId = $definition->id()->denormalize(...);
@@ -74,7 +72,6 @@ final class Denormalize
                 ->map(fn($collection) => [$collection->name(), Denormalize\Collection::of(
                     $collection,
                     $this->instanciate,
-                    $knownCollectionEntity,
                 )])
                 ->toList(),
         );
@@ -93,8 +90,8 @@ final class Denormalize
         };
 
         return fn(Aggregate $data) => Denormalized::of(
-            $id = $denormalize($data->id()),
-            $this->properties($id, $data),
+            $denormalize($data->id()),
+            $this->properties($data),
         );
     }
 
@@ -106,17 +103,15 @@ final class Denormalize
      *
      * @return self<A>
      */
-    public static function of(
-        Definition $definition,
-        KnownCollectionEntity $knownCollectionEntity,
-    ): self {
-        return new self($definition, $knownCollectionEntity);
+    public static function of(Definition $definition): self
+    {
+        return new self($definition);
     }
 
     /**
      * @return Map<non-empty-string, mixed>
      */
-    private function properties(Id $id, Aggregate $data): Map
+    private function properties(Aggregate $data): Map
     {
         return Map::of(
             ...$data
@@ -158,7 +153,7 @@ final class Denormalize
                     fn($collection) => $this
                         ->collections
                         ->get($collection->name())
-                        ->map(static fn($denormalize): Set => $denormalize($id, $collection))
+                        ->map(static fn($denormalize): Set => $denormalize($collection))
                         ->map(static fn($value) => [$collection->name(), $value])
                         ->toSequence(),
                 )

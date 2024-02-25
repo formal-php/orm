@@ -189,15 +189,10 @@ final class Decode
             ->and(Is::list())
             ->and(Each::of(
                 Shape::of(
-                    'reference',
-                    Is::string()->map(Aggregate\Collection\Entity\Reference::of(...)),
+                    'data',
+                    self::properties($collection->properties()),
                 )
-                    ->with(
-                        'data',
-                        self::properties($collection->properties()),
-                    )
                     ->map(static fn(array $entity) => Aggregate\Collection\Entity::of(
-                        $entity['reference'],
                         $entity['data'],
                     )),
             ))

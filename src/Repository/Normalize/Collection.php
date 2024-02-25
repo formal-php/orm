@@ -7,14 +7,9 @@ use Formal\ORM\{
     Definition\Aggregate\Collection as Definition,
     Raw\Aggregate\Collection as Raw,
     Raw\Aggregate\Property,
-    Repository\KnownCollectionEntity,
-    Id,
 };
 use Innmind\Reflection\Extract;
-use Innmind\Immutable\{
-    Set,
-    Map,
-};
+use Innmind\Immutable\Set;
 
 /**
  * @internal
@@ -25,7 +20,6 @@ final class Collection
     /** @var Definition<T> */
     private Definition $definition;
     private Extract $extract;
-    private KnownCollectionEntity $knowCollectionEntity;
     /** @var Set<non-empty-string> */
     private Set $properties;
 
@@ -35,11 +29,9 @@ final class Collection
     private function __construct(
         Definition $definition,
         Extract $extract,
-        KnownCollectionEntity $knownCollectionEntity,
     ) {
         $this->definition = $definition;
         $this->extract = $extract;
-        $this->knowCollectionEntity = $knownCollectionEntity;
         $this->properties = $definition
             ->properties()
             ->map(static fn($property) => $property->name())
@@ -49,23 +41,11 @@ final class Collection
     /**
      * @param Set<T> $collection
      */
-    public function __invoke(Id $id, Set $collection): Raw
+    public function __invoke(Set $collection): Raw
     {
         $class = $this->definition->class();
-        $entities = Map::of(
-            ...$collection
-                ->map(fn($object) => [
-                    $this->knowCollectionEntity->reference(
-                        $id,
-                        $this->definition->name(),
-                        $object,
-                    ),
-                    $object,
-                ])
-                ->toList(),
-        );
-        $entities = $entities->map(
-            fn($_, $object) => ($this->extract)($object, $this->properties)->match(
+        $entities = $collection->map(
+            fn($object) => ($this->extract)($object, $this->properties)->match(
                 static fn($entity) => $entity,
                 static fn() => throw new \LogicException("Failed to extract properties from '$class'"),
             ),
@@ -75,7 +55,7 @@ final class Collection
             $this->definition->name(),
             $entities
                 ->map(
-                    fn($_, $entity) => $this
+                    fn($entity) => $this
                         ->definition
                         ->properties()
                         ->flatMap(
@@ -88,9 +68,7 @@ final class Collection
                                 ->toSequence(),
                         ),
                 )
-                ->map(Raw\Entity::of(...))
-                ->values()
-                ->toSet(),
+                ->map(Raw\Entity::of(...)),
         );
     }
 
@@ -105,8 +83,7 @@ final class Collection
     public static function of(
         Definition $definition,
         Extract $extract,
-        KnownCollectionEntity $knownCollectionEntity,
     ): self {
-        return new self($definition, $extract, $knownCollectionEntity);
+        return new self($definition, $extract);
     }
 }

@@ -43,10 +43,6 @@ final class Mapping
                 $collection->name() => [
                     'type' => 'nested',
                     'properties' => [
-                        'reference' => [
-                            'type' => 'keyword',
-                            'index' => false,
-                        ],
                         'data' => [
                             'properties' => $this->properties($collection->properties()),
                         ],

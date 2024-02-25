@@ -41,10 +41,8 @@ final class Encode
         $collections = $data
             ->collections()
             ->map(fn($collection) => [
-                $collection->name() => $collection
-                    ->entities()
+                $collection->name() => Sequence::of(...$collection->entities()->toList())
                     ->map(fn($entity) => [
-                        'reference' => $entity->reference()->toString(),
                         'data' => $this->properties($entity->properties()),
                     ])
                     ->toList(),

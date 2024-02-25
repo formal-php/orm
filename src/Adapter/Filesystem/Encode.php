@@ -14,6 +14,7 @@ use Innmind\Filesystem\{
     Name,
 };
 use Innmind\Json\Json;
+use Innmind\Immutable\Sequence;
 
 /**
  * @internal
@@ -99,11 +100,9 @@ final class Encode
                         static fn($collection) => File::named(
                             $collection->name(),
                             Content::ofString(Json::encode(
-                                $collection
-                                    ->entities()
+                                Sequence::of(...$collection->entities()->toList())
                                     ->map(
                                         static fn($entity) => [
-                                            'reference' => $entity->reference()->toString(),
                                             'properties' => $entity
                                                 ->properties()
                                                 ->map(static fn($property) => [

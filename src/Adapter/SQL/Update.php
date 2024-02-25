@@ -66,10 +66,7 @@ final class Update
                     ->toSequence()
                     ->flatMap(static fn($table) => $table->update(
                         $data->id(),
-                        $collection->newEntities(),
-                        $collection->unmodifiedEntities()->map(
-                            static fn($entity) => $entity->reference(),
-                        ),
+                        $collection->entities(),
                     )),
             );
 

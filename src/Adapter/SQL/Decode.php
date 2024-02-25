@@ -6,7 +6,6 @@ namespace Formal\ORM\Adapter\SQL;
 use Formal\ORM\{
     Definition\Aggregate as Definition,
     Raw\Aggregate,
-    Raw\Aggregate\Collection\Entity\Reference,
 };
 use Formal\AccessLayer\{
     Connection,
@@ -116,13 +115,6 @@ final class Decode
                             // work with a partially loaded collection
                             $entities = ($this->connection)($collection->select($id))
                                 ->map(static fn($row) => Aggregate\Collection\Entity::of(
-                                    $row
-                                        ->column($collection->primaryKey()->name()->toString())
-                                        ->filter(\is_string(...))
-                                        ->match(
-                                            Reference::of(...),
-                                            static fn() => throw new \RuntimeException('Invalid entity reference'),
-                                        ),
                                     self::properties(
                                         $row,
                                         $collection->columns(),

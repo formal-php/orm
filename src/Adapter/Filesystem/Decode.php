@@ -6,7 +6,6 @@ namespace Formal\ORM\Adapter\Filesystem;
 use Formal\ORM\{
     Definition\Aggregate as Definition,
     Raw\Aggregate,
-    Raw\Aggregate\Collection\Entity\Reference,
 };
 use Innmind\Filesystem\{
     File,
@@ -16,7 +15,6 @@ use Innmind\Filesystem\{
 use Innmind\Json\Json;
 use Innmind\Immutable\{
     Maybe,
-    Set,
     Sequence,
     Predicate\Instance,
 };
@@ -125,17 +123,18 @@ final class Decode
                         ->map(
                             static fn($collection) => Aggregate\Collection::of(
                                 $collection->name()->toString(),
-                                Set::of(...Json::decode($collection->content()->toString()))->map(
-                                    static fn($entity) => Aggregate\Collection\Entity::of(
-                                        Reference::of($entity['reference']),
-                                        Sequence::of(...$entity['properties'])->map(
-                                            static fn($property) => Aggregate\Property::of(
-                                                $property[0],
-                                                $property[1],
+                                Sequence::of(...Json::decode($collection->content()->toString()))
+                                    ->map(
+                                        static fn($entity) => Aggregate\Collection\Entity::of(
+                                            Sequence::of(...$entity['properties'])->map(
+                                                static fn($property) => Aggregate\Property::of(
+                                                    $property[0],
+                                                    $property[1],
+                                                ),
                                             ),
                                         ),
-                                    ),
-                                ),
+                                    )
+                                    ->toSet(),
                             ),
                         ),
                 ),

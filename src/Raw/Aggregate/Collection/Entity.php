@@ -3,10 +3,7 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Raw\Aggregate\Collection;
 
-use Formal\ORM\Raw\Aggregate\{
-    Property,
-    Collection\Entity\Reference,
-};
+use Formal\ORM\Raw\Aggregate\Property;
 use Innmind\Immutable\Sequence;
 
 /**
@@ -14,16 +11,14 @@ use Innmind\Immutable\Sequence;
  */
 final class Entity
 {
-    private Reference $reference;
     /** @var Sequence<Property> */
     private Sequence $properties;
 
     /**
      * @param Sequence<Property> $properties
      */
-    private function __construct(Reference $reference, Sequence $properties)
+    private function __construct(Sequence $properties)
     {
-        $this->reference = $reference;
         $this->properties = $properties;
     }
 
@@ -32,14 +27,9 @@ final class Entity
      *
      * @param Sequence<Property> $properties
      */
-    public static function of(Reference $reference, Sequence $properties): self
+    public static function of(Sequence $properties): self
     {
-        return new self($reference, $properties);
-    }
-
-    public function reference(): Reference
-    {
-        return $this->reference;
+        return new self($properties);
     }
 
     /**

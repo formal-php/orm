@@ -56,10 +56,6 @@ return static function() {
                         'addresses' => [
                             'type' => 'nested',
                             'properties' => [
-                                'reference' => [
-                                    'type' => 'keyword',
-                                    'index' => false,
-                                ],
                                 'data' => [
                                     'properties' => [
                                         'value' => [
@@ -72,10 +68,6 @@ return static function() {
                         'roles' => [
                             'type' => 'nested',
                             'properties' => [
-                                'reference' => [
-                                    'type' => 'keyword',
-                                    'index' => false,
-                                ],
                                 'data' => [
                                     'properties' => [
                                         'name' => [

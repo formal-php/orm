@@ -7,8 +7,6 @@ use Formal\ORM\{
     Definition\Aggregate\Collection as Definition,
     Definition\Aggregate\Property,
     Raw\Aggregate\Collection as Raw,
-    Repository\KnownCollectionEntity,
-    Id,
 };
 use Innmind\Reflection\Instanciate;
 use Innmind\Immutable\{
@@ -25,7 +23,6 @@ final class Collection
     /** @var Definition<T> */
     private Definition $definition;
     private Instanciate $instanciate;
-    private KnownCollectionEntity $knownCollectionEntity;
     /** @var Map<non-empty-string, Property<T, mixed>> */
     private Map $properties;
 
@@ -35,11 +32,9 @@ final class Collection
     private function __construct(
         Definition $definition,
         Instanciate $instanciate,
-        KnownCollectionEntity $knownCollectionEntity,
     ) {
         $this->definition = $definition;
         $this->instanciate = $instanciate;
-        $this->knownCollectionEntity = $knownCollectionEntity;
         $this->properties = Map::of(
             ...$definition
                 ->properties()
@@ -51,21 +46,14 @@ final class Collection
     /**
      * @return Set<T>
      */
-    public function __invoke(Id $id, Raw $collection): Set
+    public function __invoke(Raw $collection): Set
     {
-        $name = $collection->name();
-        // We use a weak reference to the aggregate id otherwise the closure below
-        // will always keep a reference to the id and all the weak maps that depend
-        // on this id will keep the associated data.
-        // This means that when reading lots of data the memory will always increase.
-        $idReference = \WeakReference::create($id);
-
         if ($this->definition->enum()) {
             $class = $this->definition->class();
 
             return $collection
-                ->newEntities()
-                ->map(function($entity) use ($class, $idReference, $name) {
+                ->entities()
+                ->map(static function($entity) use ($class) {
                     $value = $entity
                         ->properties()
                         ->find(static fn($property) => $property->name() === 'name')
@@ -77,12 +65,7 @@ final class Collection
                     foreach ($class::cases() as $case) {
                         if ($case->name === $value) {
                             /** @var T */
-                            return $this->knownCollectionEntity->add(
-                                $idReference,
-                                $name,
-                                $case,
-                                $entity->reference(),
-                            );
+                            return $case;
                         }
                     }
 
@@ -93,10 +76,8 @@ final class Collection
         $class = $this->definition->class();
 
         return $collection
-            ->newEntities()
-            ->map(function($entity) use ($class, $idReference, $name) {
-                $reference = $entity->reference();
-
+            ->entities()
+            ->map(function($entity) use ($class) {
                 $entity = Map::of(
                     ...$entity
                         ->properties()
@@ -112,17 +93,10 @@ final class Collection
                 );
 
                 /** @var T */
-                return ($this->instanciate)($class, $entity)
-                    ->map(fn($object) => $this->knownCollectionEntity->add(
-                        $idReference,
-                        $name,
-                        $object,
-                        $reference,
-                    ))
-                    ->match(
-                        static fn($object) => $object,
-                        static fn() => throw new \RuntimeException("Unable to denormalize collection of type '$class'"),
-                    );
+                return ($this->instanciate)($class, $entity)->match(
+                    static fn($object) => $object,
+                    static fn() => throw new \RuntimeException("Unable to denormalize collection of type '$class'"),
+                );
             });
     }
 
@@ -137,8 +111,7 @@ final class Collection
     public static function of(
         Definition $definition,
         Instanciate $instanciate,
-        KnownCollectionEntity $knownCollectionEntity,
     ): self {
-        return new self($definition, $instanciate, $knownCollectionEntity);
+        return new self($definition, $instanciate);
     }
 }
