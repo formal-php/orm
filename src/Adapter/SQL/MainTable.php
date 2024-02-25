@@ -9,7 +9,6 @@ use Formal\ORM\{
     Raw\Aggregate\Id,
     Raw\Diff,
     Specification\Property,
-    Specification\Entity,
     Specification\Entity2,
     Specification\Child,
 };
@@ -346,18 +345,6 @@ final class MainTable
 
         if ($specification instanceof Entity2) {
             return $this->whereEntity($specification);
-        }
-
-        if ($specification instanceof Entity) {
-            return Property::of(
-                \sprintf(
-                    '%s.%s',
-                    $specification->entity(),
-                    $specification->property(),
-                ),
-                $specification->sign(),
-                $specification->value(),
-            );
         }
 
         if ($specification instanceof Child) {
