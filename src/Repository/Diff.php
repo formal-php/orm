@@ -98,69 +98,50 @@ final class Diff
                         static fn() => Map::of(),
                     ),
             )
-            ->filter(static fn($_, $property) => $property->changed());
+            ->filter(static fn($_, $property) => $property->changed())
+            ->values();
 
-        $properties = $diff
-            ->flatMap(
-                fn($name, $value) => $this
-                    ->definition
-                    ->properties()
-                    ->find(static fn($property) => $property->name() === $name)
-                    ->match(
-                        static fn($property) => Map::of([$property, $value]),
-                        static fn() => Map::of(),
-                    ),
-            )
-            ->map(static fn($property, $value) => Raw\Aggregate\Property::of(
-                $property->name(),
-                $property->type()->normalize($value->now()),
-            ))
-            ->values();
+        $properties = $diff->flatMap(
+            fn($value) => $this
+                ->definition
+                ->properties()
+                ->find(static fn($property) => $property->name() === $value->name())
+                ->map(static fn($property) => Raw\Aggregate\Property::of(
+                    $property->name(),
+                    $property->type()->normalize($value->now()),
+                ))
+                ->toSequence(),
+        );
         /** @psalm-suppress MixedArgument */
-        $entities = $diff
-            ->flatMap(
-                fn($name, $value) => $this
-                    ->normalizeEntity
-                    ->get($name)
-                    ->map(static fn($normalize) => self::diffEntities(
-                        $normalize($value->then()),
-                        $normalize($value->now()),
-                    ))
-                    ->match(
-                        static fn($value) => Map::of([$name, $value]),
-                        static fn() => Map::of(),
-                    ),
-            )
-            ->values();
+        $entities = $diff->flatMap(
+            fn($value) => $this
+                ->normalizeEntity
+                ->get($value->name())
+                ->map(static fn($normalize) => self::diffEntities(
+                    $normalize($value->then()),
+                    $normalize($value->now()),
+                ))
+                ->toSequence(),
+        );
         /** @psalm-suppress MixedArgument */
-        $optionals = $diff
-            ->flatMap(
-                fn($name, $value) => $this
-                    ->normalizeOptional
-                    ->get($name)
-                    ->map(static fn($normalize) => self::diffOptionals(
-                        $normalize($value->then()),
-                        $normalize($value->now()),
-                    ))
-                    ->match(
-                        static fn($value) => Map::of([$name, $value]),
-                        static fn() => Map::of(),
-                    ),
-            )
-            ->values();
+        $optionals = $diff->flatMap(
+            fn($value) => $this
+                ->normalizeOptional
+                ->get($value->name())
+                ->map(static fn($normalize) => self::diffOptionals(
+                    $normalize($value->then()),
+                    $normalize($value->now()),
+                ))
+                ->toSequence(),
+        );
         /** @psalm-suppress MixedArgument */
-        $collections = $diff
-            ->flatMap(
-                fn($name, $value) => $this
-                    ->normalizeCollection
-                    ->get($name)
-                    ->map(static fn($normalize) => $normalize($value->now()))
-                    ->match(
-                        static fn($value) => Map::of([$name, $value]),
-                        static fn() => Map::of(),
-                    ),
-            )
-            ->values();
+        $collections = $diff->flatMap(
+            fn($value) => $this
+                ->normalizeCollection
+                ->get($value->name())
+                ->map(static fn($normalize) => $normalize($value->now()))
+                ->toSequence(),
+        );
 
         return Raw\Diff::of(
             $normalizedId,
