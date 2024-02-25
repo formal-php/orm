@@ -62,13 +62,12 @@ final class Query
                 \array_key_exists('type', $config)
             ) {
                 /**
-                 * @psalm-suppress ImpureMethodCall
                  * @var string $collectionProperty
                  * @var array $collectionPropertyConfig
                  */
-                foreach ($config['properties']['data']['properties'] ?? [] as $collectionProperty => $collectionPropertyConfig) {
+                foreach ($config['properties'] as $collectionProperty => $collectionPropertyConfig) {
                     if (\array_key_exists('type', $collectionPropertyConfig)) {
-                        $this->isText["$property.data.$collectionProperty"] = $collectionPropertyConfig['type'] === 'text';
+                        $this->isText["$property.$collectionProperty"] = $collectionPropertyConfig['type'] === 'text';
 
                         continue;
                     }
@@ -89,7 +88,7 @@ final class Query
                     'path' => $specification->collection(),
                     'query' => $this->visit(
                         $specification->specification(),
-                        $specification->collection().'.data.',
+                        $specification->collection().'.',
                     ),
                 ],
             ];

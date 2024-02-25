@@ -29,10 +29,8 @@ final class Normalize
     /**
      * @param Definition<T> $definition
      */
-    private function __construct(
-        Definition $definition,
-        KnownCollectionEntity $knownCollectionEntity,
-    ) {
+    private function __construct(Definition $definition)
+    {
         $this->definition = $definition;
         $this->extract = new Extract;
         $this->normalizeEntity = Map::of(
@@ -59,7 +57,6 @@ final class Normalize
                 ->map(fn($collection) => [$collection, Normalize\Collection::of(
                     $collection,
                     $this->extract,
-                    $knownCollectionEntity,
                 )])
                 ->toList(),
         );
@@ -125,7 +122,7 @@ final class Normalize
                         ->flatMap(
                             static fn($normalize) => $properties
                                 ->get($collection->name())
-                                ->map(static fn($object) => $normalize($denormalized->id(), $object)),
+                                ->map(static fn($object) => $normalize($object)),
                         )
                         ->toSequence(),
                 ),
@@ -140,10 +137,8 @@ final class Normalize
      *
      * @return self<A>
      */
-    public static function of(
-        Definition $definition,
-        KnownCollectionEntity $knownCollectionEntity,
-    ): self {
-        return new self($definition, $knownCollectionEntity);
+    public static function of(Definition $definition): self
+    {
+        return new self($definition);
     }
 }

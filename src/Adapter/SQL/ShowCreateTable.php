@@ -79,13 +79,11 @@ final class ShowCreateTable
             ->map(
                 fn($collection) => Query\CreateTable::named(
                     $collection->name()->name(),
-                    $collection->primaryKey(),
                     $collection->foreignKey(),
                     ...$collection
                         ->columnsDefinition($this->mapType)
                         ->toList(),
                 )
-                    ->primaryKey($collection->primaryKey()->name())
                     ->constraint(
                         ForeignKey::of(
                             $collection->foreignKey()->name(),

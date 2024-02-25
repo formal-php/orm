@@ -37,10 +37,10 @@ return static function() {
                     CREATE TABLE  `user_billingAddress` (`aggregateId` varchar(36) NOT NULL  COMMENT 'UUID', `value` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', CONSTRAINT `FK_user_billingAddress` FOREIGN KEY (`aggregateId`) REFERENCES `user`(`id`) ON DELETE CASCADE, UNIQUE (`aggregateId`))
                     SQL,
                     <<<SQL
-                    CREATE TABLE  `user_addresses` (`entityReference` varchar(36) NOT NULL  COMMENT 'UUID', `aggregateId` varchar(36) NOT NULL  COMMENT 'UUID', `value` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', PRIMARY KEY (`entityReference`), CONSTRAINT `FK_user_addresses` FOREIGN KEY (`aggregateId`) REFERENCES `user`(`id`) ON DELETE CASCADE)
+                    CREATE TABLE  `user_addresses` (`aggregateId` varchar(36) NOT NULL  COMMENT 'UUID', `value` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', CONSTRAINT `FK_user_addresses` FOREIGN KEY (`aggregateId`) REFERENCES `user`(`id`) ON DELETE CASCADE)
                     SQL,
                     <<<SQL
-                    CREATE TABLE  `user_roles` (`entityReference` varchar(36) NOT NULL  COMMENT 'UUID', `aggregateId` varchar(36) NOT NULL  COMMENT 'UUID', `name` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', PRIMARY KEY (`entityReference`), CONSTRAINT `FK_user_roles` FOREIGN KEY (`aggregateId`) REFERENCES `user`(`id`) ON DELETE CASCADE)
+                    CREATE TABLE  `user_roles` (`aggregateId` varchar(36) NOT NULL  COMMENT 'UUID', `name` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', CONSTRAINT `FK_user_roles` FOREIGN KEY (`aggregateId`) REFERENCES `user`(`id`) ON DELETE CASCADE)
                     SQL,
                 ])
                 ->same($queries);

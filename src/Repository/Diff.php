@@ -6,12 +6,10 @@ namespace Formal\ORM\Repository;
 use Formal\ORM\{
     Definition\Aggregate as Definition,
     Raw,
-    Id,
 };
 use Innmind\Reflection\Extract;
 use Innmind\Immutable\{
     Map,
-    Set,
     Sequence,
 };
 
@@ -40,10 +38,8 @@ final class Diff
     /**
      * @param Definition<T> $definition
      */
-    private function __construct(
-        Definition $definition,
-        KnownCollectionEntity $knownCollectionEntity,
-    ) {
+    private function __construct(Definition $definition)
+    {
         $this->definition = $definition;
         $this->extract = new Extract;
         $this->normalizeEntity = Map::of(
@@ -70,7 +66,6 @@ final class Diff
                 ->map(fn($collection) => [$collection->name(), Normalize\Collection::of(
                     $collection,
                     $this->extract,
-                    $knownCollectionEntity,
                 )])
                 ->toList(),
         );
@@ -82,7 +77,6 @@ final class Diff
      */
     public function __invoke(Denormalized $then, Denormalized $now): Raw\Diff
     {
-        $id = $now->id();
         $normalizedId = $this->definition->id()->normalize($now->id());
         $then = $then->properties();
         $now = $now->properties();
@@ -160,12 +154,7 @@ final class Diff
                 fn($name, $value) => $this
                     ->normalizeCollection
                     ->get($name)
-                    ->map(static fn($normalize) => self::diffCollections(
-                        $normalize,
-                        $id,
-                        $value->then(),
-                        $value->now(),
-                    ))
+                    ->map(static fn($normalize) => $normalize($value->now()))
                     ->match(
                         static fn($value) => Map::of([$name, $value]),
                         static fn() => Map::of(),
@@ -190,11 +179,9 @@ final class Diff
      *
      * @return self<A>
      */
-    public static function of(
-        Definition $definition,
-        KnownCollectionEntity $knownCollectionEntity,
-    ): self {
-        return new self($definition, $knownCollectionEntity);
+    public static function of(Definition $definition): self
+    {
+        return new self($definition);
     }
 
     /**
@@ -235,38 +222,6 @@ final class Diff
             static fn() => $diff,
             static fn() => Raw\Aggregate\Optional\BrandNew::of($diff),
         );
-    }
-
-    private static function diffCollections(
-        Normalize\Collection $normalize,
-        Id $id,
-        Set $then,
-        Set $now,
-    ): Raw\Aggregate\Collection {
-        // We memoize to make sure we won't iterate multiple times over a
-        // lazy Set leading to unwanted amount of persisted entities.
-        $then = $then->memoize();
-        $now = $now->memoize();
-
-        $diff = $now->partition(static fn($entity) => $then->contains($entity));
-        /** @var Set<object> */
-        $unmodified = $diff
-            ->get(true)
-            ->match(
-                static fn($unmodified) => $unmodified,
-                static fn() => Set::of(),
-            );
-        /** @var Set<object> */
-        $new = $diff
-            ->get(false)
-            ->match(
-                static fn($new) => $new,
-                static fn() => Set::of(),
-            );
-        $unmodified = $normalize($id, $unmodified);
-        $new = $normalize($id, $new);
-
-        return $new->with($unmodified);
     }
 
     /**

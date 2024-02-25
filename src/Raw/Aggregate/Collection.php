@@ -14,46 +14,29 @@ final class Collection
     /** @var non-empty-string */
     private string $name;
     /** @var Set<Entity> */
-    private Set $newEntities;
-    /** @var Set<Entity> */
-    private Set $unmodifiedEntities;
+    private Set $entities;
 
     /**
      * @param non-empty-string $name
-     * @param Set<Entity> $newEntities
-     * @param Set<Entity> $unmodifiedEntities
+     * @param Set<Entity> $entities
      */
     private function __construct(
         string $name,
-        Set $newEntities,
-        Set $unmodifiedEntities,
+        Set $entities,
     ) {
         $this->name = $name;
-        $this->newEntities = $newEntities;
-        $this->unmodifiedEntities = $unmodifiedEntities;
+        $this->entities = $entities;
     }
 
     /**
      * @psalm-pure
      *
      * @param non-empty-string $name
-     * @param Set<Entity> $newEntities
+     * @param Set<Entity> $entities
      */
-    public static function of(string $name, Set $newEntities): self
+    public static function of(string $name, Set $entities): self
     {
-        return new self($name, $newEntities, Set::of());
-    }
-
-    /**
-     * @internal
-     */
-    public function with(self $unmodified): self
-    {
-        return new self(
-            $this->name,
-            $this->newEntities,
-            $unmodified->newEntities(),
-        );
+        return new self($name, $entities);
     }
 
     /**
@@ -67,25 +50,9 @@ final class Collection
     /**
      * @return Set<Entity>
      */
-    public function newEntities(): Set
-    {
-        return $this->newEntities;
-    }
-
-    /**
-     * @return Set<Entity>
-     */
-    public function unmodifiedEntities(): Set
-    {
-        return $this->unmodifiedEntities;
-    }
-
-    /**
-     * @return Set<Entity>
-     */
     public function entities(): Set
     {
-        return $this->unmodifiedEntities->merge($this->newEntities);
+        return $this->entities;
     }
 
     public function referenceSame(self $collection): bool
