@@ -43,9 +43,4 @@ final class Property
     {
         return $this->value;
     }
-
-    public function referenceSame(self $property): bool
-    {
-        return $this->name === $property->name();
-    }
 }

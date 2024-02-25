@@ -54,9 +54,4 @@ final class Collection
     {
         return $this->entities;
     }
-
-    public function referenceSame(self $collection): bool
-    {
-        return $this->name === $collection->name();
-    }
 }

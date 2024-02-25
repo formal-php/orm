@@ -51,9 +51,4 @@ final class Entity
     {
         return $this->properties;
     }
-
-    public function referenceSame(self $entity): bool
-    {
-        return $this->name === $entity->name();
-    }
 }

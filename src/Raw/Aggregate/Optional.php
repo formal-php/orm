@@ -54,9 +54,4 @@ final class Optional
     {
         return $this->properties;
     }
-
-    public function referenceSame(self|Optional\BrandNew $optional): bool
-    {
-        return $this->name === $optional->name();
-    }
 }
