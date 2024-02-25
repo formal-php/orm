@@ -102,15 +102,13 @@ final class Encode
                             Content::ofString(Json::encode(
                                 Sequence::of(...$collection->entities()->toList())
                                     ->map(
-                                        static fn($entity) => [
-                                            'properties' => $entity
-                                                ->properties()
-                                                ->map(static fn($property) => [
-                                                    $property->name(),
-                                                    $property->value(),
-                                                ])
-                                                ->toList(),
-                                        ],
+                                        static fn($entity) => $entity
+                                            ->properties()
+                                            ->map(static fn($property) => [
+                                                $property->name(),
+                                                $property->value(),
+                                            ])
+                                            ->toList(),
                                     )
                                     ->toList(),
                             )),

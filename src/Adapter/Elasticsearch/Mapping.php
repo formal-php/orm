@@ -42,11 +42,7 @@ final class Mapping
             ->map(fn($collection) => [
                 $collection->name() => [
                     'type' => 'nested',
-                    'properties' => [
-                        'data' => [
-                            'properties' => $this->properties($collection->properties()),
-                        ],
-                    ],
+                    'properties' => $this->properties($collection->properties()),
                 ],
             ])
             ->toList();

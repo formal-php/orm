@@ -56,24 +56,16 @@ return static function() {
                         'addresses' => [
                             'type' => 'nested',
                             'properties' => [
-                                'data' => [
-                                    'properties' => [
-                                        'value' => [
-                                            'type' => 'text',
-                                        ],
-                                    ],
+                                'value' => [
+                                    'type' => 'text',
                                 ],
                             ],
                         ],
                         'roles' => [
                             'type' => 'nested',
                             'properties' => [
-                                'data' => [
-                                    'properties' => [
-                                        'name' => [
-                                            'type' => 'text',
-                                        ],
-                                    ],
+                                'name' => [
+                                    'type' => 'text',
                                 ],
                             ],
                         ],

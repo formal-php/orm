@@ -126,7 +126,7 @@ final class Decode
                                 Sequence::of(...Json::decode($collection->content()->toString()))
                                     ->map(
                                         static fn($entity) => Aggregate\Collection\Entity::of(
-                                            Sequence::of(...$entity['properties'])->map(
+                                            Sequence::of(...$entity)->map(
                                                 static fn($property) => Aggregate\Property::of(
                                                     $property[0],
                                                     $property[1],
