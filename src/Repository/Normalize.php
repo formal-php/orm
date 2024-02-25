@@ -8,10 +8,7 @@ use Formal\ORM\{
     Raw\Aggregate,
 };
 use Innmind\Reflection\Extract;
-use Innmind\Immutable\{
-    Set,
-    Map,
-};
+use Innmind\Immutable\Map;
 
 /**
  * @internal
@@ -72,6 +69,7 @@ final class Normalize
     {
         $properties = $denormalized->properties();
 
+        /** @psalm-suppress MixedArgument Due to the collection normalization */
         return Aggregate::of(
             $this->definition->id()->normalize($denormalized->id()),
             $this
@@ -84,8 +82,7 @@ final class Normalize
                             $property->name(),
                             $property->type()->normalize($value),
                         ))
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 ),
             $this
                 ->definition
@@ -99,8 +96,7 @@ final class Normalize
                                 ->get($entity->name())
                                 ->map($normalize),
                         )
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 ),
             $this
                 ->definition
@@ -114,8 +110,7 @@ final class Normalize
                                 ->get($optional->name())
                                 ->map($normalize),
                         )
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 ),
             $this
                 ->definition
@@ -127,10 +122,9 @@ final class Normalize
                         ->flatMap(
                             static fn($normalize) => $properties
                                 ->get($collection->name())
-                                ->map($normalize),
+                                ->map(static fn($object) => $normalize($object)),
                         )
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 ),
         );
     }

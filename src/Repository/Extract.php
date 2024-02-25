@@ -5,14 +5,10 @@ namespace Formal\ORM\Repository;
 
 use Formal\ORM\{
     Definition\Aggregate as Definition,
-    Raw\Aggregate,
     Id,
 };
 use Innmind\Reflection;
-use Innmind\Immutable\{
-    Set,
-    Map,
-};
+use Innmind\Immutable\Set;
 
 /**
  * @internal
@@ -38,21 +34,22 @@ final class Extract
         $this->allProperties = $definition
             ->properties()
             ->map(static fn($property) => $property->name())
-            ->merge(
+            ->append(
                 $definition
                     ->entities()
                     ->map(static fn($entity) => $entity->name()),
             )
-            ->merge(
+            ->append(
                 $definition
                     ->optionals()
                     ->map(static fn($optional) => $optional->name()),
             )
-            ->merge(
+            ->append(
                 $definition
                     ->collections()
                     ->map(static fn($collection) => $collection->name()),
-            );
+            )
+            ->toSet();
         /**
          * @psalm-suppress InvalidArgument
          * @var \Closure(T): Id<T>

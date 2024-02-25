@@ -44,7 +44,7 @@ $manager = Manager::sql(
 
 Now the ORM will communicate with the MySQL database.
 
-In this configuration the connection will stay open as long a you keep a reference to the manager in memory. However if you  want to use it in a long living process you should change a little how the adapter is constructed.
+In this configuration the connection will stay open as long a you keep a reference to the manager in memory. However if you want to use it in a long living process you should change a little how the adapter is constructed.
 
 ```php
 use Formal\ORM\{

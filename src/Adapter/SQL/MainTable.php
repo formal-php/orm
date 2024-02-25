@@ -6,9 +6,11 @@ namespace Formal\ORM\Adapter\SQL;
 use Formal\ORM\{
     Definition\Aggregate as Definition,
     Raw\Aggregate,
+    Raw\Aggregate\Id,
     Raw\Diff,
     Specification\Property,
     Specification\Entity,
+    Specification\Child,
 };
 use Formal\AccessLayer\{
     Table,
@@ -23,7 +25,6 @@ use Formal\AccessLayer\{
 use Innmind\Specification\{
     Specification,
     Not,
-    Comparator,
     Composite,
     Operator,
     Sign,
@@ -31,7 +32,7 @@ use Innmind\Specification\{
 use Innmind\Immutable\{
     Map,
     Maybe,
-    Set,
+    Sequence,
 };
 
 /**
@@ -75,7 +76,7 @@ final class MainTable
                 ->optionals()
                 ->map(fn($entity) => [
                     $entity->name(),
-                    OptionalTable::of($entity, $this->name, $definition->id()),
+                    OptionalTable::of($entity, $this->name),
                 ])
                 ->toList(),
         );
@@ -90,10 +91,10 @@ final class MainTable
         );
         $select = $entities->reduce(
             Select::onDemand($this->name),
-            fn(Select $select, $name, $table) => $select->join(
+            fn(Select $select, $_, $table) => $select->join(
                 Join::left($table->name())->on(
-                    Column\Name::of($name)->in($this->name),
-                    Column\Name::of('id')->in($table->name()),
+                    Column\Name::of($this->definition->id()->property())->in($this->name),
+                    $table->primaryKey()->name()->in($table->name()),
                 ),
             ),
         );
@@ -112,7 +113,6 @@ final class MainTable
                     ->toList(),
                 ...$entities
                     ->values()
-                    ->toSet()
                     ->flatMap(static fn($table) => $table->columns())
                     ->toList(),
             );
@@ -121,26 +121,17 @@ final class MainTable
         $this->contains = Select::from($this->name)
             ->columns(Column\Name::of($definition->id()->property())->in($this->name));
         // No need for this query to be lazy as the result is directly collapsed
-        // to a boolean
-        $this->count = Select::from($this->name)->count('count');
-        $delete = $entities->reduce(
-            Delete::from($this->name),
-            fn(Delete $delete, $name, $table) => $delete->join(
+        // to an int
+        $this->count = $entities->reduce(
+            Select::from($this->name)->count('count'),
+            fn(Select $select, $_, $table) => $select->join(
                 Join::left($table->name())->on(
-                    Column\Name::of($name)->in($this->name),
-                    Column\Name::of('id')->in($table->name()),
+                    Column\Name::of($this->definition->id()->property())->in($this->name),
+                    $table->primaryKey()->name()->in($table->name()),
                 ),
             ),
         );
-        $this->delete = $optionals->reduce(
-            $delete,
-            fn(Delete $delete, $name, $table) => $delete->join(
-                Join::left($table->name())->on(
-                    Column\Name::of($name)->in($this->name),
-                    Column\Name::of('id')->in($table->name()),
-                ),
-            ),
-        );
+        $this->delete = Delete::from($this->name);
         $this->entities = $entities;
         $this->optionals = $optionals;
         $this->collections = $collections;
@@ -159,28 +150,26 @@ final class MainTable
         return new self($definition);
     }
 
-    public function primaryKey(): Table\Column
+    public function primaryKey(): Column
     {
-        return Table\Column::of(
-            Table\Column\Name::of($this->definition->id()->property()),
-            Table\Column\Type::varchar(36)->comment('UUID'),
+        return Column::of(
+            Column\Name::of($this->definition->id()->property()),
+            Column\Type::varchar(36)->comment('UUID'),
         );
     }
 
     /**
-     * @return Set<Column>
+     * @return Sequence<Column>
      */
-    public function columnsDefinition(MapType $mapType): Set
+    public function columnsDefinition(MapType $mapType): Sequence
     {
         return $this
             ->definition
             ->properties()
-            ->map(static fn($property) => Table\Column::of(
-                Table\Column\Name::of($property->name()),
+            ->map(static fn($property) => Column::of(
+                Column\Name::of($property->name()),
                 $mapType($property->type()),
-            ))
-            ->merge($this->entities()->map(static fn($entity) => $entity->foreignKey()))
-            ->merge($this->optionals()->map(static fn($optional) => $optional->foreignKey()));
+            ));
     }
 
     public function name(): Table\Name\Aliased
@@ -191,9 +180,12 @@ final class MainTable
     /**
      * @internal
      */
-    public function select(): Select
+    public function select(Specification $specification = null): Select
     {
-        return $this->select;
+        return match ($specification) {
+            null => $this->select,
+            default => $this->select->where($this->where($specification)),
+        };
     }
 
     /**
@@ -207,24 +199,22 @@ final class MainTable
     /**
      * @internal
      */
-    public function count(): Select
+    public function count(Specification $specification = null): Select
     {
-        return $this->count;
+        return match ($specification) {
+            null => $this->count,
+            default => $this->count->where($this->where($specification)),
+        };
     }
 
     /**
      * @internal
      *
-     * @param non-empty-string $uuid
-     * @param Set<Aggregate\Property> $properties
-     * @param Map<non-empty-string, non-empty-string> $entities
-     * @param Map<non-empty-string, non-empty-string> $optionals
+     * @param Sequence<Aggregate\Property> $properties
      */
     public function insert(
-        string $uuid,
-        Set $properties,
-        Map $entities,
-        Map $optionals,
+        Id $id,
+        Sequence $properties,
     ): Query {
         $table = $this->name->name();
 
@@ -233,27 +223,13 @@ final class MainTable
             new Row(
                 new Row\Value(
                     Column\Name::of($this->definition->id()->property())->in($table),
-                    $uuid,
+                    $id->value(),
                 ),
                 ...$properties
                     ->map(static fn($property) => new Row\Value(
                         Column\Name::of($property->name())->in($table),
                         $property->value(),
                     ))
-                    ->toList(),
-                ...$entities
-                    ->map(static fn($name, $value) => new Row\Value(
-                        Column\Name::of($name)->in($table),
-                        $value,
-                    ))
-                    ->values()
-                    ->toList(),
-                ...$optionals
-                    ->map(static fn($name, $value) => new Row\Value(
-                        Column\Name::of($name)->in($table),
-                        $value,
-                    ))
-                    ->values()
                     ->toList(),
             ),
         );
@@ -298,9 +274,60 @@ final class MainTable
     }
 
     /**
-     * @internal
+     * @return Sequence<EntityTable>
      */
-    public function where(Specification $specification): Specification
+    public function entities(): Sequence
+    {
+        return $this->entities->values();
+    }
+
+    /**
+     * @param non-empty-string $name
+     *
+     * @return Maybe<EntityTable>
+     */
+    public function entity(string $name): Maybe
+    {
+        return $this->entities->get($name);
+    }
+
+    /**
+     * @return Sequence<OptionalTable>
+     */
+    public function optionals(): Sequence
+    {
+        return $this->optionals->values();
+    }
+
+    /**
+     * @param non-empty-string $name
+     *
+     * @return Maybe<OptionalTable>
+     */
+    public function optional(string $name): Maybe
+    {
+        return $this->optionals->get($name);
+    }
+
+    /**
+     * @return Sequence<CollectionTable>
+     */
+    public function collections(): Sequence
+    {
+        return $this->collections->values();
+    }
+
+    /**
+     * @param non-empty-string $name
+     *
+     * @return Maybe<CollectionTable>
+     */
+    public function collection(string $name): Maybe
+    {
+        return $this->collections->get($name);
+    }
+
+    private function where(Specification $specification): Specification
     {
         if ($specification instanceof Not) {
             return $this->where($specification->specification())->not();
@@ -317,14 +344,18 @@ final class MainTable
         }
 
         if ($specification instanceof Entity) {
-            return Property::of(
-                \sprintf(
-                    '%s.%s',
-                    $specification->entity(),
-                    $specification->property(),
-                ),
-                $specification->sign(),
-                $specification->value(),
+            return $this->whereEntity($specification);
+        }
+
+        if ($specification instanceof Child) {
+            return SubQuery::of(
+                \sprintf('entity.%s', $this->definition->id()->property()),
+                $this
+                    ->collection($specification->collection())
+                    ->match(
+                        static fn($collection) => $collection->where($specification->specification()),
+                        static fn() => throw new \LogicException("Unkown collection '{$specification->collection()}'"),
+                    ),
             );
         }
 
@@ -341,57 +372,49 @@ final class MainTable
         );
     }
 
-    /**
-     * @return Set<EntityTable>
-     */
-    public function entities(): Set
+    private function whereEntity(Entity $specification): Specification
     {
-        return $this->entities->values()->toSet();
-    }
+        $underlying = $specification->specification();
 
-    /**
-     * @param non-empty-string $name
-     *
-     * @return Maybe<EntityTable>
-     */
-    public function entity(string $name): Maybe
-    {
-        return $this->entities->get($name);
-    }
+        if ($underlying instanceof Not) {
+            return $this
+                ->whereEntity(Entity::of(
+                    $specification->entity(),
+                    $underlying->specification(),
+                ))
+                ->not();
+        }
 
-    /**
-     * @return Set<OptionalTable>
-     */
-    public function optionals(): Set
-    {
-        return $this->optionals->values()->toSet();
-    }
+        if ($underlying instanceof Composite) {
+            $left = $this->whereEntity(Entity::of(
+                $specification->entity(),
+                $underlying->left(),
+            ));
+            $right = $this->whereEntity(Entity::of(
+                $specification->entity(),
+                $underlying->right(),
+            ));
 
-    /**
-     * @param non-empty-string $name
-     *
-     * @return Maybe<OptionalTable>
-     */
-    public function optional(string $name): Maybe
-    {
-        return $this->optionals->get($name);
-    }
+            return match ($underlying->operator()) {
+                Operator::and => $left->and($right),
+                Operator::or => $left->or($right),
+            };
+        }
 
-    /**
-     * @return Set<CollectionTable>
-     */
-    public function collections(): Set
-    {
-        return $this->collections->values()->toSet();
-    }
+        if (!($underlying instanceof Property)) {
+            $class = $underlying::class;
 
-    /**
-     * @param non-empty-string $name
-     *
-     * @return Maybe<CollectionTable>
-     */
-    public function collection(string $name): Maybe
-    {
-        return $this->collections->get($name);
+            throw new \LogicException("Unsupported specification '$class'");
+        }
+
+        return Property::of(
+            \sprintf(
+                '%s.%s',
+                $specification->entity(),
+                $underlying->property(),
+            ),
+            $underlying->sign(),
+            $underlying->value(),
+        );
     }
 }

@@ -55,7 +55,7 @@ final class Repository implements RepositoryInterface
         $this->definition = $definition;
         $this->mainTable = MainTable::of($definition);
         $this->decode = Decode::of($definition, $this->mainTable, $connection);
-        $this->encode = Encode::of($definition, $this->mainTable);
+        $this->encode = Encode::of($this->mainTable);
         $this->update = Update::of($this->mainTable);
         $this->idColumn = \sprintf(
             '%s.%s',
@@ -130,11 +130,7 @@ final class Repository implements RepositoryInterface
         ?int $drop,
         ?int $take,
     ): Sequence {
-        $select = $this->mainTable->select();
-
-        if ($specification) {
-            $select = $select->where($this->mainTable->where($specification));
-        }
+        $select = $this->mainTable->select($specification);
 
         if ($sort) {
             $column = match (true) {
@@ -175,13 +171,7 @@ final class Repository implements RepositoryInterface
 
     public function size(Specification $specification = null): int
     {
-        $count = $this->mainTable->count();
-        $count = match ($specification) {
-            null => $count,
-            default => $count->where(
-                $this->mainTable->where($specification),
-            ),
-        };
+        $count = $this->mainTable->count($specification);
 
         /** @var 0|positive-int SQL count() should never return a negative value */
         return ($this->connection)($count)
@@ -192,6 +182,24 @@ final class Repository implements RepositoryInterface
             ->match(
                 static fn($count) => $count,
                 static fn() => 0,
+            );
+    }
+
+    public function any(Specification $specification = null): bool
+    {
+        $count = $this
+            ->mainTable
+            ->count($specification)
+            ->limit(1);
+
+        return ($this->connection)($count)
+            ->first()
+            ->flatMap(static fn($row) => $row->column('count'))
+            ->filter(\is_numeric(...))
+            ->map(static fn($count) => (int) $count)
+            ->match(
+                static fn($count) => $count !== 0,
+                static fn() => false,
             );
     }
 }

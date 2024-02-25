@@ -10,7 +10,6 @@ use Formal\ORM\{
 };
 use Innmind\Type\{
     Type as Concrete,
-    Nullable,
     ClassName,
 };
 use Innmind\Immutable\Maybe;

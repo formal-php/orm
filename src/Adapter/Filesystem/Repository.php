@@ -11,10 +11,8 @@ use Formal\ORM\{
     Sort,
 };
 use Innmind\Filesystem\{
-    Adapter as Storage,
     Name,
     Directory,
-    File,
 };
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{
@@ -69,7 +67,7 @@ final class Repository implements RepositoryInterface
         return $this
             ->directory()
             ->get(Name::of($id->value()))
-            ->keep(Instance::of(File::class))
+            ->keep(Instance::of(Directory::class))
             ->flatMap(($this->decode)($id));
     }
 
@@ -93,13 +91,13 @@ final class Repository implements RepositoryInterface
 
     public function update(Diff $data): void
     {
-        $_ = $this
-            ->get($data->id())
-            ->map(Apply::of($data))
-            ->match(
-                $this->add(...),
-                static fn() => null,
-            );
+        $this->transaction->mutate(
+            fn($adapter) => $adapter->add(
+                Directory::named($this->definition->name())->add(
+                    ($this->encode)($data),
+                ),
+            ),
+        );
     }
 
     public function remove(Aggregate\Id $id): void
@@ -178,6 +176,17 @@ final class Repository implements RepositoryInterface
             ->size();
     }
 
+    public function any(Specification $specification = null): bool
+    {
+        return $this
+            ->fetch($specification, null, null, 1)
+            ->first()
+            ->match(
+                static fn() => true,
+                static fn() => false,
+            );
+    }
+
     /**
      * @return Sequence<Aggregate>
      */
@@ -188,7 +197,7 @@ final class Repository implements RepositoryInterface
         return $this
             ->directory()
             ->all()
-            ->keep(Instance::of(File::class))
+            ->keep(Instance::of(Directory::class))
             ->flatMap(static fn($file) => $decode($file)->toSequence());
     }
 

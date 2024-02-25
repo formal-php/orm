@@ -3,17 +3,9 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Adapter\SQL;
 
-use Formal\ORM\{
-    Definition\Aggregate as Definition,
-    Raw\Aggregate,
-};
+use Formal\ORM\Raw\Aggregate;
 use Formal\AccessLayer\Query;
-use Innmind\Immutable\{
-    Set,
-    Sequence,
-    Map,
-};
-use Ramsey\Uuid\Uuid;
+use Innmind\Immutable\Sequence;
 
 /**
  * @internal
@@ -22,20 +14,14 @@ use Ramsey\Uuid\Uuid;
  */
 final class Encode
 {
-    /** @var Definition<T> */
-    private Definition $definition;
     /** @var MainTable<T> */
     private MainTable $mainTable;
 
     /**
-     * @param Definition<T> $definition
      * @param MainTable<T> $mainTable
      */
-    private function __construct(
-        Definition $definition,
-        MainTable $mainTable,
-    ) {
-        $this->definition = $definition;
+    private function __construct(MainTable $mainTable)
+    {
         $this->mainTable = $mainTable;
     }
 
@@ -44,19 +30,14 @@ final class Encode
      */
     public function __invoke(Aggregate $data): Sequence
     {
+        $main = $this->main($data);
         $entities = $this->entities($data);
         $optionals = $this->optionals($data);
-        $main = $this->main(
-            $data,
-            $entities->keys(),
-            $optionals->keys(),
-        );
         $collections = $this->collections($data);
 
-        return $entities
-            ->values()
-            ->append($optionals->values())
-            ->add($main)
+        return Sequence::of($main)
+            ->append($entities)
+            ->append($optionals)
             ->append($collections);
     }
 
@@ -65,48 +46,39 @@ final class Encode
      * @psalm-pure
      * @template A of object
      *
-     * @param Definition<A> $definition
      * @param MainTable<A> $mainTable
      *
      * @return self<A>
      */
-    public static function of(
-        Definition $definition,
-        MainTable $mainTable,
-    ): self {
-        return new self($definition, $mainTable);
+    public static function of(MainTable $mainTable): self
+    {
+        return new self($mainTable);
     }
 
     /**
-     * @return Map<array{non-empty-string, non-empty-string}, Query>
+     * @return Sequence<Query>
      */
-    private function entities(Aggregate $data): Map
+    private function entities(Aggregate $data): Sequence
     {
-        $inserts = $data
+        return $data
             ->entities()
             ->flatMap(
                 fn($entity) => $this
                     ->mainTable
                     ->entity($entity->name())
                     ->map(
-                        static fn($table) => [
-                            [$entity->name(), $uuid = Uuid::uuid4()->toString()],
-                            $table->insert($uuid, $entity->properties()),
-                        ],
+                        static fn($table) => $table->insert($data->id(), $entity->properties()),
                     )
-                    ->toSequence()
-                    ->toSet(),
+                    ->toSequence(),
             );
-
-        return Map::of(...$inserts->toList());
     }
 
     /**
-     * @return Map<array{non-empty-string, non-empty-string}, Query>
+     * @return Sequence<Query>
      */
-    private function optionals(Aggregate $data): Map
+    private function optionals(Aggregate $data): Sequence
     {
-        $inserts = $data
+        return $data
             ->optionals()
             ->flatMap(
                 fn($optional) => $this
@@ -114,36 +86,19 @@ final class Encode
                     ->optional($optional->name())
                     ->flatMap(
                         static fn($table) => $optional->properties()->map(
-                            static fn($properties) => [
-                                [$optional->name(), $uuid = Uuid::uuid4()->toString()],
-                                $table->insert($uuid, $properties),
-                            ],
+                            static fn($properties) => $table->insert($data->id(), $properties),
                         ),
                     )
-                    ->toSequence()
-                    ->toSet(),
+                    ->toSequence(),
             );
-
-        return Map::of(...$inserts->toList());
     }
 
-    /**
-     * @param Set<array{non-empty-string, non-empty-string}> $entities
-     * @param Set<array{non-empty-string, non-empty-string}> $optionals
-     */
-    private function main(
-        Aggregate $data,
-        Set $entities,
-        Set $optionals,
-    ): Query {
-        return $this
-            ->mainTable
-            ->insert(
-                $data->id()->value(),
-                $data->properties(),
-                Map::of(...$entities->toList()),
-                Map::of(...$optionals->toList()),
-            );
+    private function main(Aggregate $data): Query
+    {
+        return $this->mainTable->insert(
+            $data->id(),
+            $data->properties(),
+        );
     }
 
     /**
@@ -151,7 +106,7 @@ final class Encode
      */
     private function collections(Aggregate $data): Sequence
     {
-        $inserts = $data
+        return $data
             ->collections()
             ->flatMap(
                 fn($collection) => $this
@@ -160,13 +115,10 @@ final class Encode
                     ->flatMap(
                         static fn($table) => $table->insert(
                             $data->id(),
-                            $collection->properties(),
+                            $collection->entities(),
                         ),
                     )
-                    ->toSequence()
-                    ->toSet(),
+                    ->toSequence(),
             );
-
-        return Sequence::of(...$inserts->toList());
     }
 }

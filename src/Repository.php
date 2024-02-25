@@ -4,7 +4,6 @@ declare(strict_types = 1);
 namespace Formal\ORM;
 
 use Formal\ORM\{
-    Adapter,
     Definition\Aggregate,
     Repository\Loaded,
     Repository\Normalize,
@@ -134,7 +133,6 @@ final class Repository
 
         $this->loaded->add($this, $now);
 
-        /** @psalm-suppress InvalidArgument For some reason Psalm lose track of $then type */
         $_ = $then->match(
             fn($then) => $this->adapter->update(
                 ($this->diff)($then, $now),
@@ -190,12 +188,15 @@ final class Repository
 
     public function any(Specification $specification = null): bool
     {
-        return $this->size($specification) !== 0;
+        return $this->adapter->any(match ($specification) {
+            null => null,
+            default => ($this->normalizeSpecification)($specification),
+        });
     }
 
     public function none(Specification $specification = null): bool
     {
-        return $this->size($specification) === 0;
+        return !$this->any($specification);
     }
 
     /**

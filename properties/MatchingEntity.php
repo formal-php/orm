@@ -3,19 +3,12 @@ declare(strict_types = 1);
 
 namespace Properties\Formal\ORM;
 
-use Formal\ORM\{
-    Manager,
-    Id,
-};
+use Formal\ORM\Manager;
 use Fixtures\Formal\ORM\{
     User,
     MainAddress,
 };
 use Innmind\Specification\Sign;
-use Innmind\Immutable\{
-    Str,
-    Sequence,
-};
 use Innmind\BlackBox\{
     Set,
     Property,

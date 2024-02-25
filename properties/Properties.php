@@ -10,12 +10,12 @@ use Innmind\BlackBox\{
 
 final class Properties
 {
-    public static function any(): Set\Properties
+    public static function any(array $properties = null): Set\Properties
     {
         return Set\Properties::any(
             ...\array_map(
                 static fn($property) => [$property, 'any'](),
-                self::list(),
+                $properties ?? self::list(),
             ),
         );
     }
@@ -31,6 +31,7 @@ final class Properties
             UpdateEntity::class,
             UpdateOptional::class,
             UpdateCollection::class,
+            UpdateCollectionOfEnums::class,
             SavingAggregateTwiceAddsItOnce::class,
             ContainsAggregate::class,
             RemoveUnknownAggregateDoesNothing::class,
@@ -42,6 +43,7 @@ final class Properties
             Matching::class,
             MatchingIds::class,
             MatchingEntity::class,
+            MatchingCollection::class,
             MatchingSort::class,
             MatchingSortEntity::class,
             MatchingTake::class,
@@ -57,7 +59,28 @@ final class Properties
             AddingOutsideOfTransactionIsNotAllowed::class,
             UpdatingOutsideOfTransactionIsNotAllowed::class,
             RemovingOutsideOfTransactionIsNotAllowed::class,
+            IncrementallyAddElementsToACollection::class,
+            AddElementToCollections::class,
+            ListingAggregatesUseConstantMemory::class,
         ];
+    }
+
+    /**
+     * @return non-empty-list<class-string<Property>>
+     */
+    public static function withoutTransactions(): array
+    {
+        return \array_values(\array_filter(
+            self::list(),
+            static fn($class) => !\in_array(
+                $class,
+                [
+                    FailingTransactionDueToLeftSide::class,
+                    FailingTransactionDueToException::class,
+                ],
+                true,
+            ),
+        ));
     }
 
     /**
@@ -71,6 +94,7 @@ final class Properties
             UpdateEntity::class,
             UpdateOptional::class,
             UpdateCollection::class,
+            UpdateCollectionOfEnums::class,
             SavingAggregateTwiceAddsItOnce::class,
             ContainsAggregate::class,
             RemoveUnknownAggregateDoesNothing::class,
@@ -82,6 +106,7 @@ final class Properties
             Matching::class,
             MatchingIds::class,
             MatchingEntity::class,
+            MatchingCollection::class,
             MatchingSort::class,
             MatchingSortEntity::class,
             MatchingTake::class,
@@ -94,6 +119,7 @@ final class Properties
             FailingTransactionDueToException::class,
             DroppingMoreElementsThanWasTakenReturnsNothing::class,
             AddingOutsideOfTransactionIsNotAllowed::class,
+            IncrementallyAddElementsToACollection::class,
         ];
     }
 }

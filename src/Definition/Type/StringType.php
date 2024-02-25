@@ -9,7 +9,6 @@ use Formal\ORM\Definition\{
 };
 use Innmind\Type\{
     Type as Concrete,
-    Nullable,
     Primitive,
 };
 use Innmind\Immutable\Maybe;
@@ -22,6 +21,14 @@ final class StringType implements Type
 {
     private function __construct()
     {
+    }
+
+    /**
+     * @psalm-pure
+     */
+    public static function new(): self
+    {
+        return new self;
     }
 
     /**

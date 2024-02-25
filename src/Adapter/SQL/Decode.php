@@ -15,6 +15,7 @@ use Formal\AccessLayer\{
 use Innmind\Immutable\{
     Maybe,
     Set,
+    Sequence,
     Str,
 };
 
@@ -24,8 +25,6 @@ use Innmind\Immutable\{
  */
 final class Decode
 {
-    /** @var Definition<T> */
-    private Definition $definition;
     /** @var MainTable<T> */
     private MainTable $mainTable;
     private Connection $connection;
@@ -43,7 +42,6 @@ final class Decode
         MainTable $mainTable,
         Connection $connection,
     ) {
-        $this->definition = $definition;
         $this->mainTable = $mainTable;
         $this->connection = $connection;
         $this->entityPrefix = $mainTable->name()->alias().'_';
@@ -79,8 +77,7 @@ final class Decode
                 ->map(static fn($value) => Aggregate\Property::of(
                     Str::of($value->column()->toString())->drop(7)->toString(),
                     $value->value(),
-                ))
-                ->toSet(),
+                )),
             $this
                 ->mainTable
                 ->entities()
@@ -95,12 +92,14 @@ final class Decode
                 ->optionals()
                 ->map(fn($optional) => Aggregate\Optional::of(
                     $optional->name()->alias(),
-                    ($this->connection)($optional->select($id))
-                        ->first()
-                        ->map(static fn($row) => self::properties(
-                            $row,
-                            $optional->columns(),
-                        )),
+                    Maybe::defer(
+                        fn() => ($this->connection)($optional->select($id))
+                            ->first()
+                            ->map(static fn($row) => self::properties(
+                                $row,
+                                $optional->columns(),
+                            )),
+                    ),
                 )),
             $this
                 ->mainTable
@@ -114,15 +113,20 @@ final class Decode
                             // asked.
                             // The memoize is here to make sure the user can't
                             // work with a partially loaded collection
-                            yield ($this->connection)($collection->select($id))
-                                ->map(static fn($row) => self::properties(
-                                    $row,
-                                    $collection->columns(),
+                            $entities = ($this->connection)($collection->select($id))
+                                ->map(static fn($row) => Aggregate\Collection\Entity::of(
+                                    self::properties(
+                                        $row,
+                                        $collection->columns(),
+                                    ),
                                 ))
-                                ->toSet()
-                                ->memoize();
+                                ->toList();
+
+                            foreach ($entities as $entity) {
+                                yield $entity;
+                            }
                         })(),
-                    )->flatMap(static fn($collection) => $collection),
+                    ),
                 )),
         ));
     }
@@ -147,11 +151,11 @@ final class Decode
     /**
      * @psalm-pure
      *
-     * @param Set<Column\Name\Aliased> $columns
+     * @param Sequence<Column\Name\Aliased> $columns
      *
-     * @return Set<Aggregate\Property>
+     * @return Sequence<Aggregate\Property>
      */
-    private static function properties(Row $row, Set $columns): Set
+    private static function properties(Row $row, Sequence $columns): Sequence
     {
         /** @psalm-suppress MixedArgument Due to the access-layer type */
         return $columns->flatMap(
@@ -164,8 +168,7 @@ final class Decode
                     },
                     $value,
                 ))
-                ->toSequence()
-                ->toSet(),
+                ->toSequence(),
         );
     }
 }

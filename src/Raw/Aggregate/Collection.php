@@ -3,6 +3,7 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Raw\Aggregate;
 
+use Formal\ORM\Raw\Aggregate\Collection\Entity;
 use Innmind\Immutable\Set;
 
 /**
@@ -12,28 +13,30 @@ final class Collection
 {
     /** @var non-empty-string */
     private string $name;
-    /** @var Set<Set<Property>> */
-    private Set $properties;
+    /** @var Set<Entity> */
+    private Set $entities;
 
     /**
      * @param non-empty-string $name
-     * @param Set<Set<Property>> $properties
+     * @param Set<Entity> $entities
      */
-    private function __construct(string $name, Set $properties)
-    {
+    private function __construct(
+        string $name,
+        Set $entities,
+    ) {
         $this->name = $name;
-        $this->properties = $properties;
+        $this->entities = $entities;
     }
 
     /**
      * @psalm-pure
      *
      * @param non-empty-string $name
-     * @param Set<Set<Property>> $properties
+     * @param Set<Entity> $entities
      */
-    public static function of(string $name, Set $properties): self
+    public static function of(string $name, Set $entities): self
     {
-        return new self($name, $properties);
+        return new self($name, $entities);
     }
 
     /**
@@ -45,15 +48,10 @@ final class Collection
     }
 
     /**
-     * @return Set<Set<Property>>
+     * @return Set<Entity>
      */
-    public function properties(): Set
+    public function entities(): Set
     {
-        return $this->properties;
-    }
-
-    public function referenceSame(self $collection): bool
-    {
-        return $this->name === $collection->name();
+        return $this->entities;
     }
 }

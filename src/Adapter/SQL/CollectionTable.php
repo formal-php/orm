@@ -6,7 +6,7 @@ namespace Formal\ORM\Adapter\SQL;
 use Formal\ORM\{
     Definition\Aggregate\Collection as Definition,
     Raw\Aggregate\Id,
-    Raw\Aggregate\Property,
+    Raw\Aggregate\Collection\Entity,
     Specification\Property as PropertySpecification,
 };
 use Formal\AccessLayer\{
@@ -14,11 +14,11 @@ use Formal\AccessLayer\{
     Table\Column,
     Query,
     Query\Select,
-    Query\Update,
     Query\Delete,
     Row,
 };
 use Innmind\Specification\Sign;
+use Innmind\Specification\Specification;
 use Innmind\Immutable\{
     Set,
     Maybe,
@@ -33,10 +33,9 @@ final class CollectionTable
 {
     /** @var Definition<T> */
     private Definition $definition;
-    private Table\Name\Aliased $main;
     private Table\Name\Aliased $name;
-    /** @var Set<Column\Name\Aliased> */
-    private Set $columns;
+    /** @var Sequence<Column\Name\Aliased> */
+    private Sequence $columns;
     private Column\Name\Namespaced $id;
     private Select $select;
 
@@ -48,7 +47,6 @@ final class CollectionTable
         Table\Name\Aliased $main,
     ) {
         $this->definition = $definition;
-        $this->main = $main;
         $this->name = Table\Name::of($main->name()->toString().'_'.$definition->name())->as($definition->name());
         $this->columns = $definition
             ->properties()
@@ -57,7 +55,7 @@ final class CollectionTable
                     ->in($this->name)
                     ->as($definition->name().'_'.$property->name()),
             );
-        $this->id = Column\Name::of('id')->in($this->name);
+        $this->id = Column\Name::of('aggregateId')->in($this->name);
         $this->select = Select::from($this->name)->columns(
             $this->id,
             ...$this->columns->toList(),
@@ -80,24 +78,24 @@ final class CollectionTable
         return new self($definition, $main);
     }
 
-    public function primaryKey(): Table\Column
+    public function foreignKey(): Column
     {
-        return Table\Column::of(
-            Table\Column\Name::of('id'),
-            Table\Column\Type::varchar(36)->comment('UUID'),
+        return Column::of(
+            Column\Name::of('aggregateId'),
+            Column\Type::varchar(36)->comment('UUID'),
         );
     }
 
     /**
-     * @return Set<Column>
+     * @return Sequence<Column>
      */
-    public function columnsDefinition(MapType $mapType): Set
+    public function columnsDefinition(MapType $mapType): Sequence
     {
         return $this
             ->definition
             ->properties()
-            ->map(static fn($property) => Table\Column::of(
-                Table\Column\Name::of($property->name()),
+            ->map(static fn($property) => Column::of(
+                Column\Name::of($property->name()),
                 $mapType($property->type()),
             ));
     }
@@ -108,9 +106,9 @@ final class CollectionTable
     }
 
     /**
-     * @return Set<Column\Name\Aliased>
+     * @return Sequence<Column\Name\Aliased>
      */
-    public function columns(): Set
+    public function columns(): Sequence
     {
         return $this->columns;
     }
@@ -134,7 +132,7 @@ final class CollectionTable
     /**
      * @internal
      *
-     * @param Set<Set<Property>> $collection
+     * @param Set<Entity> $collection
      *
      * @return Maybe<Query>
      */
@@ -150,12 +148,13 @@ final class CollectionTable
                     $table,
                     ...$collection
                         ->map(
-                            static fn($properties) => new Row(
+                            static fn($entity) => new Row(
                                 new Row\Value(
-                                    Column\Name::of('id')->in($table),
+                                    Column\Name::of('aggregateId')->in($table),
                                     $id->value(),
                                 ),
-                                ...$properties
+                                ...$entity
+                                    ->properties()
                                     ->map(static fn($property) => new Row\Value(
                                         Column\Name::of($property->name())->in($table),
                                         $property->value(),
@@ -171,12 +170,14 @@ final class CollectionTable
     /**
      * @internal
      *
-     * @param Set<Set<Property>> $collection
+     * @param Set<Entity> $entities
      *
      * @return Sequence<Query>
      */
-    public function update(Id $id, Set $collection): Sequence
-    {
+    public function update(
+        Id $id,
+        Set $entities,
+    ): Sequence {
         return Sequence::of(
             Delete::from($this->name)->where(PropertySpecification::of(
                 \sprintf(
@@ -188,9 +189,16 @@ final class CollectionTable
                 $id->value(),
             )),
             ...$this
-                ->insert($id, $collection)
+                ->insert($id, $entities)
                 ->toSequence()
                 ->toList(),
         );
+    }
+
+    public function where(Specification $specification): Query
+    {
+        return Select::from($this->name)
+            ->columns($this->id)
+            ->where($specification);
     }
 }

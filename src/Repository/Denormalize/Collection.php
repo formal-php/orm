@@ -29,8 +29,10 @@ final class Collection
     /**
      * @param Definition<T> $definition
      */
-    private function __construct(Definition $definition, Instanciate $instanciate)
-    {
+    private function __construct(
+        Definition $definition,
+        Instanciate $instanciate,
+    ) {
         $this->definition = $definition;
         $this->instanciate = $instanciate;
         $this->properties = Map::of(
@@ -46,28 +48,53 @@ final class Collection
      */
     public function __invoke(Raw $collection): Set
     {
+        if ($this->definition->enum()) {
+            $class = $this->definition->class();
+
+            return $collection
+                ->entities()
+                ->map(static function($entity) use ($class) {
+                    $value = $entity
+                        ->properties()
+                        ->find(static fn($property) => $property->name() === 'name')
+                        ->match(
+                            static fn($property) => $property->value(),
+                            static fn() => throw new \RuntimeException("Unable to denormalize collection of type '$class'"),
+                        );
+
+                    foreach ($class::cases() as $case) {
+                        if ($case->name === $value) {
+                            /** @var T */
+                            return $case;
+                        }
+                    }
+
+                    throw new \RuntimeException("Unable to denormalize collection of type '$class'");
+                });
+        }
+
         $class = $this->definition->class();
 
         return $collection
-            ->properties()
-            ->map(function($properties) use ($class) {
-                $properties = Map::of(
-                    ...$properties
+            ->entities()
+            ->map(function($entity) use ($class) {
+                $entity = Map::of(
+                    ...$entity
+                        ->properties()
                         ->flatMap(
                             fn($property) => $this
                                 ->properties
                                 ->get($property->name())
                                 ->map(static fn($definition): mixed => $definition->type()->denormalize($property->value()))
                                 ->map(static fn($value) => [$property->name(), $value])
-                                ->toSequence()
-                                ->toSet(),
+                                ->toSequence(),
                         )
                         ->toList(),
                 );
 
                 /** @var T */
-                return ($this->instanciate)($class, $properties)->match(
-                    static fn($collection) => $collection,
+                return ($this->instanciate)($class, $entity)->match(
+                    static fn($object) => $object,
                     static fn() => throw new \RuntimeException("Unable to denormalize collection of type '$class'"),
                 );
             });
@@ -81,8 +108,10 @@ final class Collection
      *
      * @return self<A>
      */
-    public static function of(Definition $definition, Instanciate $instanciate): self
-    {
+    public static function of(
+        Definition $definition,
+        Instanciate $instanciate,
+    ): self {
         return new self($definition, $instanciate);
     }
 }

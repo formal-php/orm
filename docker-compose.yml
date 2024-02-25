@@ -7,3 +7,9 @@ services:
             MYSQL_DATABASE: example
         ports:
             - '3306:3306'
+    elasticsearch:
+        image: elasticsearch:7.17.18
+        environment:
+            discovery.type: single-node
+        ports:
+            - '9200:9200'

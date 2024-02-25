@@ -6,7 +6,6 @@ namespace Formal\ORM\Repository;
 use Formal\ORM\{
     Definition\Aggregate as Definition,
     Definition\Aggregate\Property,
-    Definition\Aggregate\Entity,
     Raw\Aggregate,
     Id,
 };
@@ -23,8 +22,6 @@ use Innmind\Immutable\{
  */
 final class Denormalize
 {
-    /** @var Definition<T> */
-    private Definition $definition;
     private Instanciate $instanciate;
     /** @var \Closure(Aggregate\Id): Id<T> */
     private \Closure $denormalizeId;
@@ -42,7 +39,6 @@ final class Denormalize
      */
     private function __construct(Definition $definition)
     {
-        $this->definition = $definition;
         $this->instanciate = new Instanciate;
         /** @var \Closure(Aggregate\Id): Id<T> */
         $this->denormalizeId = $definition->id()->denormalize(...);
@@ -88,13 +84,13 @@ final class Denormalize
      */
     public function __invoke(Id $id = null): callable
     {
-        $id = match ($id) {
+        $denormalize = match ($id) {
             null => $this->denormalizeId,
             default => static fn(Aggregate\Id $_) => $id,
         };
 
         return fn(Aggregate $data) => Denormalized::of(
-            $id($data->id()),
+            $denormalize($data->id()),
             $this->properties($data),
         );
     }
@@ -126,8 +122,7 @@ final class Denormalize
                         ->get($property->name())
                         ->map(static fn($definition): mixed => $definition->type()->denormalize($property->value()))
                         ->map(static fn($value) => [$property->name(), $value])
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 )
                 ->toList(),
             ...$data
@@ -138,8 +133,7 @@ final class Denormalize
                         ->get($entity->name())
                         ->map(static fn($denormalize): object => $denormalize($entity))
                         ->map(static fn($value) => [$entity->name(), $value])
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 )
                 ->toList(),
             ...$data
@@ -150,8 +144,7 @@ final class Denormalize
                         ->get($optional->name())
                         ->map(static fn($denormalize): Maybe => $denormalize($optional))
                         ->map(static fn($value) => [$optional->name(), $value])
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 )
                 ->toList(),
             ...$data
@@ -162,8 +155,7 @@ final class Denormalize
                         ->get($collection->name())
                         ->map(static fn($denormalize): Set => $denormalize($collection))
                         ->map(static fn($value) => [$collection->name(), $value])
-                        ->toSequence()
-                        ->toSet(),
+                        ->toSequence(),
                 )
                 ->toList(),
         );

@@ -4,61 +4,41 @@ declare(strict_types = 1);
 namespace Formal\ORM\Specification;
 
 use Innmind\Specification\{
-    Comparator,
-    Sign,
+    Specification,
     Composable,
 };
 
 /**
- * This specification should only be used in the implementation of an adapter
- * for this ORM
- *
  * @psalm-immutable
  */
-final class Entity implements Comparator
+final class Entity implements Specification
 {
     use Composable;
 
     /** @var non-empty-string */
     private string $entity;
-    /** @var non-empty-string */
-    private string $property;
-    private Sign $sign;
-    /** @var null|string|int|bool|list<string|int|bool|null> */
-    private null|string|int|bool|array $value;
+    private Specification $specification;
 
     /**
      * @param non-empty-string $entity
-     * @param non-empty-string $property
-     * @param null|string|int|bool|list<string|int|bool|null> $value
      */
-    private function __construct(
-        string $entity,
-        string $property,
-        Sign $sign,
-        null|string|int|bool|array $value,
-    ) {
+    private function __construct(string $entity, Specification $specification)
+    {
         $this->entity = $entity;
-        $this->property = $property;
-        $this->sign = $sign;
-        $this->value = $value;
+        $this->specification = $specification;
     }
 
     /**
-     * @internal
+     * Use this specification to find an aggregate where the specified entity
+     * matches the given specification.
+     *
      * @psalm-pure
      *
      * @param non-empty-string $entity
-     * @param non-empty-string $property
-     * @param null|string|int|bool|list<string|int|bool|null> $value
      */
-    public static function of(
-        string $entity,
-        string $property,
-        Sign $sign,
-        null|string|int|bool|array $value,
-    ): self {
-        return new self($entity, $property, $sign, $value);
+    public static function of(string $entity, Specification $specification): self
+    {
+        return new self($entity, $specification);
     }
 
     /**
@@ -69,21 +49,8 @@ final class Entity implements Comparator
         return $this->entity;
     }
 
-    public function property(): string
+    public function specification(): Specification
     {
-        return $this->property;
-    }
-
-    public function sign(): Sign
-    {
-        return $this->sign;
-    }
-
-    /**
-     * @return null|string|int|bool|list<string|int|bool|null>
-     */
-    public function value(): null|string|int|bool|array
-    {
-        return $this->value;
+        return $this->specification;
     }
 }

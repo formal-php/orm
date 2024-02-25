@@ -8,6 +8,7 @@ use Formal\ORM\{
     Raw\Aggregate,
     Specification\Property as PropertySpecification,
     Specification\Entity as EntitySpecification,
+    Specification\Child as ChildSpecification,
 };
 use Innmind\Specification\{
     Specification,
@@ -58,18 +59,30 @@ final class Fold
         }
 
         if ($specification instanceof EntitySpecification) {
-            $filter = $this->filter($specification);
+            $filter = $this->child($specification->specification());
 
             return static fn(Aggregate $aggregate) => $aggregate
                 ->entities()
                 ->find(static fn($entity) => $entity->name() === $specification->entity())
+                ->match(
+                    static fn($entity) => $filter($entity),
+                    static fn() => false,
+                );
+        }
+
+        if ($specification instanceof ChildSpecification) {
+            $filter = $this->child($specification->specification());
+
+            return static fn(Aggregate $aggregate) => $aggregate
+                ->collections()
+                ->find(static fn($collection) => $collection->name() === $specification->collection())
                 ->flatMap(
-                    static fn($entity) => $entity
-                        ->properties()
-                        ->find(static fn($property) => $property->name() === $specification->property()),
+                    static fn($collection) => $collection
+                        ->entities()
+                        ->find($filter),
                 )
                 ->match(
-                    static fn($property) => $filter($property->value()),
+                    static fn() => true,
                     static fn() => false,
                 );
         }
@@ -129,5 +142,43 @@ final class Fold
             Sign::contains => static fn(null|string|int|bool $value): bool => \is_string($value) && \str_contains($value, $specification->value()),
             Sign::in => static fn(null|string|int|bool $value): bool => \in_array($value, $specification->value(), true),
         };
+    }
+
+    /**
+     * @return callable(Aggregate\Collection\Entity|Aggregate\Entity): bool
+     */
+    private function child(Specification $specification): callable
+    {
+        if ($specification instanceof Not) {
+            $filter = $this->child($specification->specification());
+
+            return static fn(Aggregate\Collection\Entity|Aggregate\Entity $entity) => !$filter($entity);
+        }
+
+        if ($specification instanceof Composite) {
+            $left = $this->child($specification->left());
+            $right = $this->child($specification->right());
+
+            return match ($specification->operator()) {
+                Operator::and => static fn(Aggregate\Collection\Entity|Aggregate\Entity $entity) => $left($entity) && $right($entity),
+                Operator::or => static fn(Aggregate\Collection\Entity|Aggregate\Entity $entity) => $left($entity) || $right($entity),
+            };
+        }
+
+        if (!($specification instanceof PropertySpecification)) {
+            $class = $specification::class;
+
+            throw new \LogicException("Unsupported specification '$class'");
+        }
+
+        $filter = $this->filter($specification);
+
+        return static fn(Aggregate\Collection\Entity|Aggregate\Entity $entity) => $entity
+            ->properties()
+            ->find(static fn($property) => $property->name() === $specification->property())
+            ->match(
+                static fn($property) => $filter($property->value()),
+                static fn() => false,
+            );
     }
 }

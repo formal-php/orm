@@ -3,10 +3,7 @@ declare(strict_types = 1);
 
 namespace Properties\Formal\ORM;
 
-use Formal\ORM\{
-    Manager,
-    Id,
-};
+use Formal\ORM\Manager;
 use Fixtures\Formal\ORM\{
     User,
     Username,

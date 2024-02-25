@@ -10,7 +10,7 @@ use Formal\ORM\{
 use Innmind\Reflection\Extract;
 use Innmind\Immutable\{
     Map,
-    Set,
+    Sequence,
 };
 
 /**
@@ -28,16 +28,12 @@ final class Diff
     /** @var Definition<T> */
     private Definition $definition;
     private Extract $extract;
-    /** @var Set<non-empty-string> */
-    private Set $properties;
     /** @var Map<non-empty-string, Normalize\Entity> */
     private Map $normalizeEntity;
     /** @var Map<non-empty-string, Normalize\Optional> */
     private Map $normalizeOptional;
     /** @var Map<non-empty-string, Normalize\Collection> */
     private Map $normalizeCollection;
-    /** @var \Closure(T): Raw\Aggregate\Id */
-    private \Closure $extractId;
 
     /**
      * @param Definition<T> $definition
@@ -46,24 +42,6 @@ final class Diff
     {
         $this->definition = $definition;
         $this->extract = new Extract;
-        $this->properties = $definition
-            ->properties()
-            ->map(static fn($property) => $property->name())
-            ->merge(
-                $definition
-                    ->entities()
-                    ->map(static fn($entity) => $entity->name()),
-            )
-            ->merge(
-                $definition
-                    ->optionals()
-                    ->map(static fn($optional) => $optional->name()),
-            )
-            ->merge(
-                $definition
-                    ->collections()
-                    ->map(static fn($collection) => $collection->name()),
-            );
         $this->normalizeEntity = Map::of(
             ...$definition
                 ->entities()
@@ -91,12 +69,6 @@ final class Diff
                 )])
                 ->toList(),
         );
-        $id = $definition->id();
-        /**
-         * @psalm-suppress InvalidArgument
-         * @var \Closure(T): Raw\Aggregate\Id
-         */
-        $this->extractId = static fn(object $aggregate): Raw\Aggregate\Id => $id->normalize($id->extract($aggregate));
     }
 
     /**
@@ -105,7 +77,7 @@ final class Diff
      */
     public function __invoke(Denormalized $then, Denormalized $now): Raw\Diff
     {
-        $id = $this->definition->id()->normalize($now->id());
+        $normalizedId = $this->definition->id()->normalize($now->id());
         $then = $then->properties();
         $now = $now->properties();
 
@@ -126,76 +98,53 @@ final class Diff
                         static fn() => Map::of(),
                     ),
             )
-            ->filter(static fn($_, $property) => $property->changed());
+            ->filter(static fn($_, $property) => $property->changed())
+            ->values();
 
-        $properties = $diff
-            ->flatMap(
-                fn($name, $value) => $this
-                    ->definition
-                    ->properties()
-                    ->find(static fn($property) => $property->name() === $name)
-                    ->match(
-                        static fn($property) => Map::of([$property, $value]),
-                        static fn() => Map::of(),
-                    ),
-            )
-            ->map(static fn($property, $value) => Raw\Aggregate\Property::of(
-                $property->name(),
-                $property->type()->normalize($value->now()),
-            ))
-            ->values()
-            ->toSet();
+        $properties = $diff->flatMap(
+            fn($value) => $this
+                ->definition
+                ->properties()
+                ->find(static fn($property) => $property->name() === $value->name())
+                ->map(static fn($property) => Raw\Aggregate\Property::of(
+                    $property->name(),
+                    $property->type()->normalize($value->now()),
+                ))
+                ->toSequence(),
+        );
         /** @psalm-suppress MixedArgument */
-        $entities = $diff
-            ->flatMap(
-                fn($name, $value) => $this
-                    ->normalizeEntity
-                    ->get($name)
-                    ->map(static fn($normalize) => self::diffEntities(
-                        $normalize($value->then()),
-                        $normalize($value->now()),
-                    ))
-                    ->match(
-                        static fn($value) => Map::of([$name, $value]),
-                        static fn() => Map::of(),
-                    ),
-            )
-            ->values()
-            ->toSet();
+        $entities = $diff->flatMap(
+            fn($value) => $this
+                ->normalizeEntity
+                ->get($value->name())
+                ->map(static fn($normalize) => self::diffEntities(
+                    $normalize($value->then()),
+                    $normalize($value->now()),
+                ))
+                ->toSequence(),
+        );
         /** @psalm-suppress MixedArgument */
-        $optionals = $diff
-            ->flatMap(
-                fn($name, $value) => $this
-                    ->normalizeOptional
-                    ->get($name)
-                    ->map(static fn($normalize) => self::diffOptionals(
-                        $normalize($value->then()),
-                        $normalize($value->now()),
-                    ))
-                    ->match(
-                        static fn($value) => Map::of([$name, $value]),
-                        static fn() => Map::of(),
-                    ),
-            )
-            ->values()
-            ->toSet();
+        $optionals = $diff->flatMap(
+            fn($value) => $this
+                ->normalizeOptional
+                ->get($value->name())
+                ->map(static fn($normalize) => self::diffOptionals(
+                    $normalize($value->then()),
+                    $normalize($value->now()),
+                ))
+                ->toSequence(),
+        );
         /** @psalm-suppress MixedArgument */
-        $collections = $diff
-            ->flatMap(
-                fn($name, $value) => $this
-                    ->normalizeCollection
-                    ->get($name)
-                    ->map(static fn($normalize) => $normalize($value->now())) // TODO diff inside the collection
-                    ->match(
-                        static fn($value) => Map::of([$name, $value]),
-                        static fn() => Map::of(),
-                    ),
-            )
-            ->values()
-            ->toSet();
+        $collections = $diff->flatMap(
+            fn($value) => $this
+                ->normalizeCollection
+                ->get($value->name())
+                ->map(static fn($normalize) => $normalize($value->now()))
+                ->toSequence(),
+        );
 
         return Raw\Diff::of(
-            $id,
+            $normalizedId,
             $properties,
             $entities,
             $optionals,
@@ -259,12 +208,12 @@ final class Diff
     /**
      * @psalm-pure
      *
-     * @param Set<Raw\Aggregate\Property> $then
-     * @param Set<Raw\Aggregate\Property> $now
+     * @param Sequence<Raw\Aggregate\Property> $then
+     * @param Sequence<Raw\Aggregate\Property> $now
      *
-     * @return Set<Raw\Aggregate\Property>
+     * @return Sequence<Raw\Aggregate\Property>
      */
-    private static function diffProperties(Set $then, Set $now): Set
+    private static function diffProperties(Sequence $then, Sequence $now): Sequence
     {
         $nowProperties = Map::of(
             ...$now
@@ -276,8 +225,7 @@ final class Diff
             static fn($then) => $nowProperties
                 ->get($then->name())
                 ->filter(static fn($now) => $then->value() !== $now->value())
-                ->toSequence()
-                ->toSet(),
+                ->toSequence(),
         );
     }
 }

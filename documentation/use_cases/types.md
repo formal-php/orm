@@ -114,6 +114,9 @@ And there's nothing more to do, now when persisting the ORM will automatically t
 
 But if you noticed the property in `User` is nullable but we didn't handle this case in our type converter. The ORM automatically handles that for you via type composition.
 
+> [!TIP]
+> Your type class can also implement `Formal\ORM\Adapter\SQL\SQLType` or `Formal\ORM\Adapter\Elasticsearch\ElasticsearchType` to inform the adapter how to better persist your data.
+
 ## My object can't be stored to a single primitive value
 
 Then your object is what is called an Entity in this ORM. If this object is always present in your aggregate then you have nothing to do, the ORM will automatically consider this property as a required entity.

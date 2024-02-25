@@ -14,7 +14,6 @@ use Innmind\TimeContinuum\{
 };
 use Innmind\Type\{
     Type as Concrete,
-    Nullable,
     ClassName,
 };
 use Innmind\Immutable\Maybe;

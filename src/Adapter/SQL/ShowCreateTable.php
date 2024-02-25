@@ -3,14 +3,10 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Adapter\SQL;
 
-use Formal\ORM\Definition\{
-    Aggregates,
-    Type,
-};
+use Formal\ORM\Definition\Aggregates;
 use Formal\AccessLayer\{
     Query,
     Query\Constraint\ForeignKey,
-    Table,
 };
 use Innmind\Immutable\Sequence;
 
@@ -43,7 +39,18 @@ final class ShowCreateTable
                 ...$entity
                     ->columnsDefinition($this->mapType)
                     ->toList(),
-            )->primaryKey($entity->primaryKey()->name()))
+            )
+                ->constraint(
+                    ForeignKey::of(
+                        $entity->primaryKey()->name(),
+                        $mainTable->name()->name(),
+                        $mainTable->primaryKey()->name(),
+                    )
+                        ->onDeleteCascade()
+                        ->named($entity->name()->name()->toString()),
+                )
+                ->unique($entity->primaryKey()->name()),
+            )
             ->toList();
         $optionals = $mainTable
             ->optionals()
@@ -53,24 +60,40 @@ final class ShowCreateTable
                 ...$optional
                     ->columnsDefinition($this->mapType)
                     ->toList(),
-            )->primaryKey($optional->primaryKey()->name()))
+            )
+                ->constraint(
+                    ForeignKey::of(
+                        $optional->primaryKey()->name(),
+                        $mainTable->name()->name(),
+                        $mainTable->primaryKey()->name(),
+                    )
+                        ->onDeleteCascade()
+                        ->named($optional->name()->name()->toString()),
+                )
+                ->unique($optional->primaryKey()->name()),
+            )
             ->toList();
 
         $collections = $mainTable
             ->collections()
-            ->map(fn($collection) => Query\CreateTable::named(
-                $collection->name()->name(),
-                $collection->primaryKey(),
-                ...$collection
-                    ->columnsDefinition($this->mapType)
-                    ->toList(),
-            )->constraint(
-                ForeignKey::of(
-                    $collection->primaryKey()->name(),
-                    $mainTable->name()->name(),
-                    $mainTable->primaryKey()->name(),
-                )->onDeleteCascade(),
-            ))
+            ->map(
+                fn($collection) => Query\CreateTable::named(
+                    $collection->name()->name(),
+                    $collection->foreignKey(),
+                    ...$collection
+                        ->columnsDefinition($this->mapType)
+                        ->toList(),
+                )
+                    ->constraint(
+                        ForeignKey::of(
+                            $collection->foreignKey()->name(),
+                            $mainTable->name()->name(),
+                            $mainTable->primaryKey()->name(),
+                        )
+                            ->onDeleteCascade()
+                            ->named($collection->name()->name()->toString()),
+                    ),
+            )
             ->toList();
 
         $main = Query\CreateTable::named(
@@ -81,33 +104,10 @@ final class ShowCreateTable
                 ->toList(),
         )->primaryKey($mainTable->primaryKey()->name());
 
-        $main = $mainTable
-            ->entities()
-            ->reduce(
-                $main,
-                static fn(Query\CreateTable $main, $entity) => $main->foreignKey(
-                    $entity->foreignKey()->name(),
-                    $entity->name()->name(),
-                    $entity->primaryKey()->name(),
-                ),
-            );
-        $main = $mainTable
-            ->optionals()
-            ->reduce(
-                $main,
-                static fn(Query\CreateTable $main, $optional) => $main->constraint(
-                    ForeignKey::of(
-                        $optional->foreignKey()->name(),
-                        $optional->name()->name(),
-                        $optional->primaryKey()->name(),
-                    )->onDeleteSetNull(),
-                ),
-            );
-
         return Sequence::of(...[
+            $main,
             ...$entities,
             ...$optionals,
-            $main,
             ...$collections,
         ]);
     }

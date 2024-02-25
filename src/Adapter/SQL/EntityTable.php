@@ -7,17 +7,18 @@ use Formal\ORM\{
     Definition\Aggregate\Entity as Definition,
     Raw\Aggregate\Id,
     Raw\Aggregate\Property,
+    Specification,
 };
 use Formal\AccessLayer\{
     Table,
     Table\Column,
     Query,
     Query\Update,
-    Query\Select\Join,
     Row,
 };
+use Innmind\Specification\Sign;
 use Innmind\Immutable\{
-    Set,
+    Sequence,
     Maybe,
 };
 
@@ -29,10 +30,9 @@ final class EntityTable
 {
     /** @var Definition<T> */
     private Definition $definition;
-    private Table\Name\Aliased $main;
     private Table\Name\Aliased $name;
-    /** @var Set<Column\Name\Aliased> */
-    private Set $columns;
+    /** @var Sequence<Column\Name\Aliased> */
+    private Sequence $columns;
 
     /**
      * @param Definition<T> $definition
@@ -42,7 +42,6 @@ final class EntityTable
         Table\Name\Aliased $main,
     ) {
         $this->definition = $definition;
-        $this->main = $main;
         $this->name = Table\Name::of($main->name()->toString().'_'.$definition->name())->as($definition->name());
         $this->columns = $definition
             ->properties()
@@ -69,32 +68,24 @@ final class EntityTable
         return new self($definition, $main);
     }
 
-    public function primaryKey(): Table\Column
+    public function primaryKey(): Column
     {
-        return Table\Column::of(
-            Table\Column\Name::of('id'),
-            Table\Column\Type::varchar(36)->comment('UUID'),
-        );
-    }
-
-    public function foreignKey(): Table\Column
-    {
-        return Table\Column::of(
-            Table\Column\Name::of($this->definition->name()),
-            Table\Column\Type::varchar(36)->comment('UUID'),
+        return Column::of(
+            Column\Name::of('aggregateId'),
+            Column\Type::varchar(36)->comment('UUID'),
         );
     }
 
     /**
-     * @return Set<Column>
+     * @return Sequence<Column>
      */
-    public function columnsDefinition(MapType $mapType): Set
+    public function columnsDefinition(MapType $mapType): Sequence
     {
         return $this
             ->definition
             ->properties()
-            ->map(static fn($property) => Table\Column::of(
-                Table\Column\Name::of($property->name()),
+            ->map(static fn($property) => Column::of(
+                Column\Name::of($property->name()),
                 $mapType($property->type()),
             ));
     }
@@ -105,9 +96,9 @@ final class EntityTable
     }
 
     /**
-     * @return Set<Column\Name\Aliased>
+     * @return Sequence<Column\Name\Aliased>
      */
-    public function columns(): Set
+    public function columns(): Sequence
     {
         return $this->columns;
     }
@@ -115,10 +106,9 @@ final class EntityTable
     /**
      * @internal
      *
-     * @param non-empty-string $uuid
-     * @param Set<Property> $properties
+     * @param Sequence<Property> $properties
      */
-    public function insert(string $uuid, Set $properties): Query
+    public function insert(Id $id, Sequence $properties): Query
     {
         $table = $this->name->name();
 
@@ -126,8 +116,8 @@ final class EntityTable
             $table,
             new Row(
                 new Row\Value(
-                    Column\Name::of('id')->in($table),
-                    $uuid,
+                    Column\Name::of('aggregateId')->in($table),
+                    $id->value(),
                 ),
                 ...$properties
                     ->map(static fn($property) => new Row\Value(
@@ -142,11 +132,11 @@ final class EntityTable
     /**
      * @internal
      *
-     * @param Set<Property> $properties
+     * @param Sequence<Property> $properties
      *
      * @return Maybe<Query>
      */
-    public function update(Id $id, Set $properties): Maybe
+    public function update(Id $id, Sequence $properties): Maybe
     {
         return Maybe::just($properties)
             ->filter(static fn($properties) => !$properties->empty())
@@ -161,9 +151,10 @@ final class EntityTable
                             ))
                             ->toList(),
                     ),
-                )->join(Join::left($this->main)->on(
-                    Column\Name::of('id')->in($this->name),
-                    Column\Name::of($this->definition->name())->in($this->main),
+                )->where(Specification\Property::of(
+                    'aggregateId',
+                    Sign::equality,
+                    $id->value(),
                 )),
             );
     }

@@ -35,7 +35,7 @@ final class User
 
     public function changePassword(string $password): self
     {
-        return new self($this->id, $this->username, $this->password);
+        return new self($this->id, $this->username, $password);
     }
 }
 ```

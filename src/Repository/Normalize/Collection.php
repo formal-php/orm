@@ -9,10 +9,7 @@ use Formal\ORM\{
     Raw\Aggregate\Property,
 };
 use Innmind\Reflection\Extract;
-use Innmind\Immutable\{
-    Set,
-    Maybe,
-};
+use Innmind\Immutable\Set;
 
 /**
  * @internal
@@ -29,13 +26,16 @@ final class Collection
     /**
      * @param Definition<T> $definition
      */
-    private function __construct(Definition $definition, Extract $extract)
-    {
+    private function __construct(
+        Definition $definition,
+        Extract $extract,
+    ) {
         $this->definition = $definition;
         $this->extract = $extract;
         $this->properties = $definition
             ->properties()
-            ->map(static fn($property) => $property->name());
+            ->map(static fn($property) => $property->name())
+            ->toSet();
     }
 
     /**
@@ -44,30 +44,31 @@ final class Collection
     public function __invoke(Set $collection): Raw
     {
         $class = $this->definition->class();
-        $properties = $collection->map(
+        $entities = $collection->map(
             fn($object) => ($this->extract)($object, $this->properties)->match(
-                static fn($properties) => $properties,
+                static fn($entity) => $entity,
                 static fn() => throw new \LogicException("Failed to extract properties from '$class'"),
             ),
         );
 
         return Raw::of(
             $this->definition->name(),
-            $properties->map(
-                fn($properties) => $this
-                    ->definition
-                    ->properties()
-                    ->flatMap(
-                        static fn($property) => $properties
-                            ->get($property->name())
-                            ->map(static fn($value) => Property::of(
-                                $property->name(),
-                                $property->type()->normalize($value),
-                            ))
-                            ->toSequence()
-                            ->toSet(),
-                    ),
-            ),
+            $entities
+                ->map(
+                    fn($entity) => $this
+                        ->definition
+                        ->properties()
+                        ->flatMap(
+                            static fn($property) => $entity
+                                ->get($property->name())
+                                ->map(static fn($value) => Property::of(
+                                    $property->name(),
+                                    $property->type()->normalize($value),
+                                ))
+                                ->toSequence(),
+                        ),
+                )
+                ->map(Raw\Entity::of(...)),
         );
     }
 
@@ -79,8 +80,10 @@ final class Collection
      *
      * @return self<A>
      */
-    public static function of(Definition $definition, Extract $extract): self
-    {
+    public static function of(
+        Definition $definition,
+        Extract $extract,
+    ): self {
         return new self($definition, $extract);
     }
 }

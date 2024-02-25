@@ -9,7 +9,7 @@ use Formal\ORM\Raw\Aggregate\{
 };
 use Innmind\Immutable\{
     Maybe,
-    Set,
+    Sequence,
 };
 
 /**
@@ -45,7 +45,7 @@ final class BrandNew
     }
 
     /**
-     * @return Maybe<Set<Property>>
+     * @return Maybe<Sequence<Property>>
      */
     public function properties(): Maybe
     {

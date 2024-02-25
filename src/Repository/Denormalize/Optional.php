@@ -59,8 +59,7 @@ final class Optional
                                 ->get($property->name())
                                 ->map(static fn($definition): mixed => $definition->type()->denormalize($property->value()))
                                 ->map(static fn($value) => [$property->name(), $value])
-                                ->toSequence()
-                                ->toSet(),
+                                ->toSequence(),
                         )
                         ->toList(),
                 );
