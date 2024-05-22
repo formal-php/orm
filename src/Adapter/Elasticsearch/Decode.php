@@ -185,8 +185,7 @@ final class Decode
     private static function collection(Definition\Collection $collection): Constraint
     {
         /** @psalm-suppress MixedArgument Due to the array keys */
-        return Is::array()
-            ->and(Is::list())
+        return Is::list()
             ->and(Each::of(
                 self::properties($collection->properties())->map(
                     Aggregate\Collection\Entity::of(...),
