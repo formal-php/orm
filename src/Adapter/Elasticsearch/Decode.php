@@ -209,19 +209,17 @@ final class Decode
     {
         /** @var Constraint<mixed, Sequence<Aggregate\Property>> */
         return $properties->match(
-            static fn($property, $properties) => Is::array()->and(
-                $properties
-                    ->reduce(
-                        Shape::of($property->name(), self::property($property)),
-                        static fn(Shape $constraint, $property) => $constraint->with(
-                            $property->name(),
-                            self::property($property),
-                        ),
-                    )
-                    ->map(static fn(array $properties) => Sequence::of(
-                        ...\array_values($properties),
-                    )),
-            ),
+            static fn($property, $properties) => $properties
+                ->reduce(
+                    Shape::of($property->name(), self::property($property)),
+                    static fn(Shape $constraint, $property) => $constraint->with(
+                        $property->name(),
+                        self::property($property),
+                    ),
+                )
+                ->map(static fn(array $properties) => Sequence::of(
+                    ...\array_values($properties),
+                )),
             static fn() => Of::callable(static fn() => Validation::success(Sequence::of())),
         );
     }
