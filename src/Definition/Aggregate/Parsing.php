@@ -215,9 +215,13 @@ final class Parsing
         string $class,
         ReflectionProperty $property,
         Types $types,
+        bool $allowIdAsName = false,
     ): Maybe {
         return Maybe::just($property)
-            ->exclude(static fn($property) => $property->name() === 'id')
+            ->exclude(static fn($property) => match ($allowIdAsName) {
+                true => false,
+                false => $property->name() === 'id',
+            })
             ->flatMap(static fn($property) => $types(
                 $property->type()->type(),
                 $property
@@ -265,6 +269,7 @@ final class Parsing
                                 $property->type()->toString(),
                                 $innerProperty,
                                 $types,
+                                true,
                             )
                             ->toSequence(),
                     ),
@@ -305,6 +310,7 @@ final class Parsing
                                         $property->type()->toString(),
                                         $innerProperty,
                                         $types,
+                                        true,
                                     )
                                     ->toSequence(),
                             ),
@@ -351,6 +357,7 @@ final class Parsing
                                             $property->type()->toString(),
                                             $innerProperty,
                                             $types,
+                                            true,
                                         )
                                         ->toSequence(),
                                 ),
