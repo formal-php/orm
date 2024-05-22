@@ -100,8 +100,7 @@ final class Repository implements RepositoryInterface
                 'hits',
                 Is::array()->and(Shape::of(
                     'hits',
-                    Is::array()
-                        ->and(Is::list())
+                    Is::list()
                         ->and(Each::of(Shape::of(
                             '_source',
                             Is::array(),

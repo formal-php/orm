@@ -13,6 +13,7 @@ final class Address
      * the field being sorted on to be a keyword
      */
     private Sortable $sortable;
+    private ?int $id = null;
 
     private function __construct(string $value)
     {

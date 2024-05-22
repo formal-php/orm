@@ -44,12 +44,18 @@ return static function() {
                                 'value' => [
                                     'type' => 'text',
                                 ],
+                                'id' => [
+                                    'type' => 'long',
+                                ],
                             ],
                         ],
                         'billingAddress' => [
                             'properties' => [
                                 'value' => [
                                     'type' => 'text',
+                                ],
+                                'id' => [
+                                    'type' => 'long',
                                 ],
                             ],
                         ],
@@ -58,6 +64,9 @@ return static function() {
                             'properties' => [
                                 'value' => [
                                     'type' => 'text',
+                                ],
+                                'id' => [
+                                    'type' => 'long',
                                 ],
                             ],
                         ],
