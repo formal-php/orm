@@ -5,6 +5,12 @@
 ### Changed
 
 - Requires `innmind/immutable:~5.4`
+- Requires `formal/access-layer:~2.17`
+
+### Fixed
+
+- `false` values not being persisted
+- Silent insert failures of entities inside collections
 
 ## 2.0.1 - 2024-05-22
 
