@@ -219,7 +219,7 @@ final class User
             $this->name,
             $this->mainAddress,
             $this->billingAddress,
-            ($this->addresses)(User\Address::new($address)),
+            ($this->addresses)(User\Address::new($address)->disable()),
             $this->role,
             $this->roles,
         );

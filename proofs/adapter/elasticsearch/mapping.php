@@ -47,6 +47,9 @@ return static function() {
                                 'id' => [
                                     'type' => 'long',
                                 ],
+                                'enabled' => [
+                                    'type' => 'boolean',
+                                ],
                             ],
                         ],
                         'billingAddress' => [
@@ -56,6 +59,9 @@ return static function() {
                                 ],
                                 'id' => [
                                     'type' => 'long',
+                                ],
+                                'enabled' => [
+                                    'type' => 'boolean',
                                 ],
                             ],
                         ],
@@ -67,6 +73,9 @@ return static function() {
                                 ],
                                 'id' => [
                                     'type' => 'long',
+                                ],
+                                'enabled' => [
+                                    'type' => 'boolean',
                                 ],
                             ],
                         ],
