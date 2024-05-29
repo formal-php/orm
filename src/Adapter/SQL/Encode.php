@@ -112,13 +112,13 @@ final class Encode
                 fn($collection) => $this
                     ->mainTable
                     ->collection($collection->name())
+                    ->toSequence()
                     ->flatMap(
                         static fn($table) => $table->insert(
                             $data->id(),
                             $collection->entities(),
                         ),
-                    )
-                    ->toSequence(),
+                    ),
             );
     }
 }
