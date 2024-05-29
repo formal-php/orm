@@ -21,7 +21,6 @@ use Innmind\Specification\Sign;
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{
     Set,
-    Maybe,
     Sequence,
 };
 
@@ -134,37 +133,30 @@ final class CollectionTable
      *
      * @param Set<Entity> $collection
      *
-     * @return Maybe<Query>
+     * @return Sequence<Query>
      */
-    public function insert(Id $id, Set $collection): Maybe
+    public function insert(Id $id, Set $collection): Sequence
     {
         $table = $this->name->name();
 
-        /** @psalm-suppress InvalidScalarArgument Psalm doesn't understand the !empty() */
-        return Maybe::just($collection)
-            ->filter(static fn($collection) => !$collection->empty())
-            ->map(
-                static fn($collection) => Query\Insert::into(
-                    $table,
-                    ...$collection
-                        ->map(
-                            static fn($entity) => new Row(
-                                new Row\Value(
-                                    Column\Name::of('aggregateId')->in($table),
-                                    $id->value(),
-                                ),
-                                ...$entity
-                                    ->properties()
-                                    ->map(static fn($property) => new Row\Value(
-                                        Column\Name::of($property->name())->in($table),
-                                        $property->value(),
-                                    ))
-                                    ->toList(),
-                            ),
-                        )
+        return $collection
+            ->unsorted()
+            ->map(static fn($entity) => Query\Insert::into(
+                $table,
+                new Row(
+                    new Row\Value(
+                        Column\Name::of('aggregateId')->in($table),
+                        $id->value(),
+                    ),
+                    ...$entity
+                        ->properties()
+                        ->map(static fn($property) => new Row\Value(
+                            Column\Name::of($property->name())->in($table),
+                            $property->value(),
+                        ))
                         ->toList(),
                 ),
-            );
+            ));
     }
 
     /**
@@ -190,7 +182,6 @@ final class CollectionTable
             )),
             ...$this
                 ->insert($id, $entities)
-                ->toSequence()
                 ->toList(),
         );
     }
