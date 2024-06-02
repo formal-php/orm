@@ -5,6 +5,7 @@ By default this ORM comes with 3 `Adapter`s: Filesystem, SQL and Elasticsearch.
 ## Filesystem
 
 This adapter works with any object that implements `Innmind\Filesystem\Adapter`. This means you can:
+
 - use an in-memory filesystem for your tests
 - use a concrete filesystem to prototype a project in its early phase
 - use an S3 filesystem if you want to deploy a prototype via AWS's serverless lambdas

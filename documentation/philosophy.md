@@ -5,6 +5,7 @@ This ORM goal is to allow users to store data in long living processes (like a d
 The long living processes use case implies that the ORM must be memory efficient to avoid memory leaks that would crash your app. The asynchronous use case implies that the ORM must use an generic abstraction allowing it to not be aware if it's used in a synchronous or asynchronous context, this means that no code needs to be changed for this to work.
 
 This goal is achieved by:
+
 - using Monads
 - using Trees instead of a Graph
 - using immutable Aggregates
@@ -19,8 +20,8 @@ The `Maybe` monad is also used to wrap optional entities in your aggregates mean
 
 Collections of entities in an aggregate is achieved using the `Set` monad and works the same way as `Maybe`, no data fetched by default but once it is loaded it stays in memory.
 
-> [!NOTE]
-> the monads mentionned above come from [`innmind/immutable`](https://packagist.org/packages/innmind/immutable).
+!!! note ""
+    The monads mentionned above come from [`innmind/immutable`](https://innmind.github.io/Immutable/).
 
 ## Trees, not a Graph
 

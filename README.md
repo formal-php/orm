@@ -46,7 +46,7 @@ This simple example will retrieve from the database `50` elements (from index `1
 
 ## Documentation
 
-Full documentation available in the [documentation folder](documentation/).
+Full documentation available in the [here](https://formal-php.github.io/orm/).
 
 ## Benchmark
 

@@ -65,6 +65,19 @@ final class Id
     }
 
     /**
+     * @template A of object
+     * @psalm-pure
+     *
+     * @param class-string<A> $class
+     *
+     * @return pure-callable(non-empty-string): self<A>
+     */
+    public static function for(string $class): callable
+    {
+        return static fn(string $value) => self::of($class, $value);
+    }
+
+    /**
      * @param self<T> $other
      */
     public function equals(self $other): bool
