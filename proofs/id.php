@@ -22,9 +22,9 @@ return static function() {
             Set\Uuid::any(),
         ),
         static function($assert, $a, $b) {
-            $idA = Id::of(stdClass::class, $a);
-            $idABis = Id::of(stdClass::class, $a);
-            $idB = Id::of(stdClass::class, $b);
+            $idA = Id::for(stdClass::class)($a);
+            $idABis = Id::for(stdClass::class)($a);
+            $idB = Id::for(stdClass::class)($b);
 
             $assert->true($idA->equals($idA));
             $assert->true($idA->equals($idABis));
