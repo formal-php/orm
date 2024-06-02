@@ -1,3 +1,9 @@
+---
+hide:
+    - navigation
+    - toc
+---
+
 # Getting started
 
 This ORM allows you to store your objects via different adapters with almost no configuration.
