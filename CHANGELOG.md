@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `Formal\ORM\Id::for()`
+
 ## 2.0.2 - 2024-05-29
 
 ### Changed
