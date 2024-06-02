@@ -3,6 +3,7 @@
 ## Manager
 
 The `Manager` is the entrypoint to everything you can achieve with this ORM. It allows to:
+
 - access [repositories](#repository)
 - create [transactions](#transaction)
 
@@ -41,12 +42,13 @@ An `Entity` is a sub object solely owned by an `Aggregate` that needs to store p
 
 An entity can only contain properties, it can't contain other entities.
 
-> [!TIP]
-> You can use Enums as entities without the need to wrap them inside another class.
+!!! tip ""
+    You can use Enums as entities without the need to wrap them inside another class.
 
 ## Specification
 
 A `Specification` is the only way to retrieve a filtered `Sequence` from a repository. Conceptually it is a tree of objects where each can be:
+
 - a comparison
 - a negation
 - an `and` composition of 2 specifications

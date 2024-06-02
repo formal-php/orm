@@ -115,7 +115,7 @@ $_ = $sql
     );
 ```
 
-Then you can search these new aggregates [as any other](retrieve_aggregates.md)
+Then you can search these new aggregates [as any other](retrieve_aggregates.md).
 
 ## Managing the indexes for the aggregates
 
