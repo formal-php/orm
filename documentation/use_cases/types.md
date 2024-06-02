@@ -81,7 +81,9 @@ final class UrlType implements Type
     public static function of(Types $types, Concrete $type): Maybe
     {
         return Maybe::just($type)
-            ->filter(static fn($type) => $type->accepts(ClassName::of(Url::class)))
+            ->filter(static fn($type) => $type->accepts(
+                ClassName::of(Url::class),
+            ))
             ->map(static fn() => new self);
     }
 
@@ -114,8 +116,8 @@ And there's nothing more to do, now when persisting the ORM will automatically t
 
 But if you noticed the property in `User` is nullable but we didn't handle this case in our type converter. The ORM automatically handles that for you via type composition.
 
-> [!TIP]
-> Your type class can also implement `Formal\ORM\Adapter\SQL\SQLType` or `Formal\ORM\Adapter\Elasticsearch\ElasticsearchType` to inform the adapter how to better persist your data.
+!!! tip ""
+    Your type class can also implement `Formal\ORM\Adapter\SQL\SQLType` or `Formal\ORM\Adapter\Elasticsearch\ElasticsearchType` to inform the adapter how to better persist your data.
 
 ## My object can't be stored to a single primitive value
 

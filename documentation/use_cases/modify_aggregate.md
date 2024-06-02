@@ -54,6 +54,7 @@ $either = $manager->transactional(
 ```
 
 This example covers 2 possibles scenarii:
+
 - the user exists
 - the user doesn't exist
 

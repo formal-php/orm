@@ -7,6 +7,7 @@ For small sets of entities this is fine but can become quite time consuming if y
 ## Elasticsearch
 
 This adapter has 2 major limitations:
+
 - it does not support transactions
 - it can't list more than 10k aggregates
 
@@ -14,5 +15,5 @@ Elasticsearch have no concept of transactions. The adapter implementation do not
 
 The Elasticsearch api doesn't allow a pagination above 10k documents. This is a hardcoded behaviour on their part, this is a design choice as to not interpret an index as a database. This means that if you have more than 10k aggregates you won't be able to list them all.
 
-> [!CAUTION]
-> These limitations mean that you can't swap another adapter by this one without behaviours changes in your app.
+!!! warning ""
+    These limitations mean that you can't swap another adapter by this one without behaviours changes in your app.
