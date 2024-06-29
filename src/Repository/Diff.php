@@ -134,9 +134,9 @@ final class Diff
                 ))
                 ->toSequence(),
         );
-        // The extra filter applied allows to to re-persist the whole Set when
-        // nothing changed inside. This can happen if a user applies a map or
-        // a filter on the original Set but doesn't modify anything.
+        // The exclude allows to not re-persist the whole Set when nothing
+        // changed inside. This can happen if a user applies a map or a
+        // filter on the original Set but doesn't modify anything.
         /**
          * @psalm-suppress MixedArgument
          * @psalm-suppress MixedMethodCall
