@@ -36,6 +36,7 @@ final class Properties
             ContainsAggregate::class,
             RemoveUnknownAggregateDoesNothing::class,
             RemoveAggregate::class,
+            RemoveSpecification::class,
             Size::class,
             SizeWithSpecification::class,
             Any::class,
