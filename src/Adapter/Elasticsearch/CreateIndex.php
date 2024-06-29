@@ -63,6 +63,10 @@ final class CreateIndex
                 'mappings' => ($this->mapping)($definition),
             ])),
         ))
+            ->leftMap(function($error) {
+                var_dump($error);
+                die;
+            })
             ->maybe()
             ->map(static fn() => new SideEffect);
     }

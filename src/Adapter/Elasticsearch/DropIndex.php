@@ -53,6 +53,10 @@ final class DropIndex
             Method::delete,
             ProtocolVersion::v11,
         ))
+            ->leftMap(function($error) {
+                var_dump($error);
+                die;
+            })
             ->maybe()
             ->map(static fn() => new SideEffect);
     }
