@@ -22,9 +22,14 @@ final class Refresh implements Transport
 
     public function __invoke(Request $request): Either
     {
+        $path = Str::of($request->url()->path()->toString());
+
         if (
             !$request->method()->safe() &&
-            Str::of($request->url()->path()->toString())->matches('~[a-zA-Z0-9]{8}(-[a-zA-Z0-9]{4}){3}-[a-zA-Z0-9]{12}$~')
+            (
+                $path->matches('~[a-zA-Z0-9]{8}(-[a-zA-Z0-9]{4}){3}-[a-zA-Z0-9]{12}$~') ||
+                $path->endsWith('_delete_by_query')
+            )
         ) {
             $request = Request::of(
                 $request->url()->withQuery(Query::of('refresh=true')),
