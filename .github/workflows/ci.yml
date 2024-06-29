@@ -5,6 +5,9 @@ on: [push]
 jobs:
   blackbox:
     runs-on: ${{ matrix.os }}
+    concurrency:
+      group: ${{ matrix.covers }}
+      cancel-in-progress: false
     strategy:
       matrix:
         os: [ubuntu-latest]
