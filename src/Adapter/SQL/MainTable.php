@@ -268,9 +268,12 @@ final class MainTable
     /**
      * @internal
      */
-    public function delete(): Delete
+    public function delete(Specification $specification = null): Delete
     {
-        return $this->delete;
+        return match ($specification) {
+            null => $this->delete,
+            default => $this->delete->where($this->where($specification)),
+        };
     }
 
     /**

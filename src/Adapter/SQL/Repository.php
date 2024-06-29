@@ -30,7 +30,7 @@ use Innmind\Immutable\{
  * @template T of object
  * @implements RepositoryInterface<T>
  */
-final class Repository implements RepositoryInterface
+final class Repository implements RepositoryInterface, RepositoryInterface\MassRemoval
 {
     private Connection $connection;
     /** @var Definition<T> */
@@ -121,6 +121,13 @@ final class Repository implements RepositoryInterface
                 ->mainTable
                 ->delete()
                 ->where(Property::of($this->idColumn, Sign::equality, $id->value())),
+        );
+    }
+
+    public function removeAll(Specification $specification): void
+    {
+        $_ = ($this->connection)(
+            $this->mainTable->delete($specification),
         );
     }
 
