@@ -134,11 +134,20 @@ final class Diff
                 ))
                 ->toSequence(),
         );
-        /** @psalm-suppress MixedArgument */
+        // The exclude allows to not re-persist the whole Set when nothing
+        // changed inside. This can happen if a user applies a map or a
+        // filter on the original Set but doesn't modify anything.
+        /**
+         * @psalm-suppress MixedArgument
+         * @psalm-suppress MixedMethodCall
+         * @psalm-suppress MixedInferredReturnType
+         * @psalm-suppress MixedReturnStatement
+         */
         $collections = $diff->flatMap(
             fn($value) => $this
                 ->normalizeCollection
                 ->get($value->name())
+                ->exclude(static fn(): bool => $value->now()->equals($value->then()))
                 ->map(static fn($normalize) => $normalize($value->now()))
                 ->toSequence(),
         );
