@@ -24,6 +24,7 @@ enum Covers {
             'filesystem' => self::filesystem,
             'sql' => self::sql,
             'elasticsearch' => self::elasticsearch,
+            default => null,
         };
     }
 }
