@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `Formal\ORM\Adapter\Repository\MassRemoval`
+
 ### Changed
 
 - You can now pass a `Specification` to `Repository::remove()` to remove multiple aggregates at once
