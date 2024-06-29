@@ -45,5 +45,5 @@ return static function() {
                 ])
                 ->same($queries);
         },
-    );
+    )->tag(Covers::sql);
 };

@@ -44,7 +44,7 @@ return static function() {
 
             $assert->same($repository1, $repository2);
         },
-    );
+    )->tag(Covers::all);
     yield test(
         'Manager::repository() returns an instance per class',
         static function($assert) {
@@ -57,7 +57,7 @@ return static function() {
                 ->not()
                 ->same($repositoryB);
         },
-    );
+    )->tag(Covers::all);
 
     yield test(
         'Nested transactions are forbidden',
@@ -74,7 +74,7 @@ return static function() {
                 'Nested transactions not allowed',
             );
         },
-    );
+    )->tag(Covers::all);
 
     yield properties(
         'Filesystem properties',
@@ -86,7 +86,7 @@ return static function() {
                 SortableType::of(...),
             )),
         )),
-    );
+    )->tag(Covers::filesystem);
 
     foreach (Properties::alwaysApplicable() as $property) {
         yield property(
@@ -98,7 +98,9 @@ return static function() {
                     SortableType::of(...),
                 )),
             )),
-        )->named('Filesystem');
+        )
+            ->named('Filesystem')
+            ->tag(Covers::filesystem);
     }
 
     $os = Factory::build();
@@ -130,13 +132,15 @@ return static function() {
         'SQL properties',
         Properties::any(),
         Set\Call::of($setup),
-    );
+    )->tag(Covers::sql);
 
     foreach (Properties::alwaysApplicable() as $property) {
         yield property(
             $property,
             Set\Call::of($setup),
-        )->named('SQL');
+        )
+            ->named('SQL')
+            ->tag(Covers::sql);
     }
 
     $port = \getenv('ES_PORT') ?: '9200';
@@ -172,7 +176,7 @@ return static function() {
         'Elasticsearch properties',
         Properties::any(Properties::withoutTransactions()),
         Set\Call::of($setup),
-    );
+    )->tag(Covers::elasticsearch);
 
     foreach (Properties::alwaysApplicable() as $property) {
         if (\in_array(
@@ -186,6 +190,8 @@ return static function() {
         yield property(
             $property,
             Set\Call::of($setup),
-        )->named('Elasticsearch');
+        )
+            ->named('Elasticsearch')
+            ->tag(Covers::elasticsearch);
     }
 };

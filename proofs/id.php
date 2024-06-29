@@ -13,7 +13,7 @@ return static function() {
                 ->not()
                 ->same(Id::new(stdClass::class)->toString());
         },
-    );
+    )->tag(Covers::all);
 
     yield proof(
         'Id::equals()',
@@ -30,7 +30,7 @@ return static function() {
             $assert->true($idA->equals($idABis));
             $assert->false($idA->equals($idB));
         },
-    );
+    )->tag(Covers::all);
 
     yield proof(
         'Id::of() throws on invalid values',
@@ -38,5 +38,5 @@ return static function() {
         static function($assert, $value) {
             $assert->throws(static fn() => Id::of(stdClass::class, $value));
         },
-    );
+    )->tag(Covers::all);
 };

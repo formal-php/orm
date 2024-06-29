@@ -12,6 +12,7 @@ jobs:
         dependency-versions: ['lowest', 'highest']
         mariadb: ['10', '11']
         elasticsearch: ['7.17.18']
+        covers: ['filesystem', 'sql', 'elasticsearch']
     name: 'BlackBox'
     services:
       mariadb:
@@ -41,7 +42,7 @@ jobs:
         with:
           dependency-versions: ${{ matrix.dependencies }}
       - name: BlackBox
-        run: php blackbox.php
+        run: php blackbox.php all ${{ matrix.covers }}
         env:
           DB_PORT: ${{ job.services.mariadb.ports[3306] }}
           ES_PORT: ${{ job.services.elasticsearch.ports[9200] }}
