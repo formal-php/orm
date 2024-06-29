@@ -6,7 +6,7 @@ jobs:
   blackbox:
     runs-on: ${{ matrix.os }}
     concurrency:
-      group: ${{ matrix.covers }}
+      group: ${{ matrix.php-version }}-${{ matrix.dependency-versions }}-${{ matrix.mariadb }}
       cancel-in-progress: false
     strategy:
       matrix:
