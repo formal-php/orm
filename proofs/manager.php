@@ -44,7 +44,7 @@ return static function() {
 
             $assert->same($repository1, $repository2);
         },
-    )->tag(Covers::all);
+    )->tag(...Covers::cases());
     yield test(
         'Manager::repository() returns an instance per class',
         static function($assert) {
@@ -57,7 +57,7 @@ return static function() {
                 ->not()
                 ->same($repositoryB);
         },
-    )->tag(Covers::all);
+    )->tag(...Covers::cases());
 
     yield test(
         'Nested transactions are forbidden',
@@ -74,7 +74,7 @@ return static function() {
                 'Nested transactions not allowed',
             );
         },
-    )->tag(Covers::all);
+    )->tag(...Covers::cases());
 
     yield properties(
         'Filesystem properties',

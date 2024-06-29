@@ -42,7 +42,7 @@ jobs:
         with:
           dependency-versions: ${{ matrix.dependencies }}
       - name: BlackBox
-        run: php blackbox.php all ${{ matrix.covers }}
+        run: php blackbox.php ${{ matrix.covers }}
         env:
           DB_PORT: ${{ job.services.mariadb.ports[3306] }}
           ES_PORT: ${{ job.services.elasticsearch.ports[9200] }}

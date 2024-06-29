@@ -12,7 +12,6 @@ use Innmind\BlackBox\{
 };
 
 enum Covers {
-    case all;
     case filesystem;
     case sql;
     case elasticsearch;
@@ -20,7 +19,6 @@ enum Covers {
     public static function from(string $case): ?self
     {
         return match ($case) {
-            'all' => self::all,
             'filesystem' => self::filesystem,
             'sql' => self::sql,
             'elasticsearch' => self::elasticsearch,
