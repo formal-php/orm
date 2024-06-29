@@ -140,6 +140,8 @@ final class Diff
         /**
          * @psalm-suppress MixedArgument
          * @psalm-suppress MixedMethodCall
+         * @psalm-suppress MixedInferredReturnType
+         * @psalm-suppress MixedReturnStatement
          */
         $collections = $diff->flatMap(
             fn($value) => $this
