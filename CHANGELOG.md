@@ -5,6 +5,7 @@
 ### Added
 
 - `Formal\ORM\Adapter\Repository\MassRemoval`
+- You can match aggregates on optionals via `Formal\ORM\Specification\Just`
 
 ### Changed
 
