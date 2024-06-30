@@ -81,15 +81,13 @@ $users = $manager
 `$repository->matching()` returns the same kind of object as `$repository->all()` meaning you can as easily build a pagination system on filtered data.
 
 You can filter on an aggregate:
+
 - property by using its name as the specification property
 - entity property by using `Formal\ORM\Specification\Entity`, the properties don't need to be prefixed by the entity name
 - collection property by using `Formal\ORM\Specification\Child`, the properties don't need to be prefixed by the collection name
+- optional property by using `Formal\ORM\Specification\Just`, the properties don't need to be prefixed by the optional name
 
 When filtering on collections an aggregate will be returned as long as at least one child of the collection matches the specification.
-
-!!! warning ""
-    You can't filter on optional properties as it may rely on implicit behaviours (ie: checking if a property in an optional entity is null).
-
 
 ## Counting the number of aggregates inside a repository
 

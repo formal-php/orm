@@ -19,7 +19,10 @@ use Formal\AccessLayer\{
     Query\Select,
     Row,
 };
-use Innmind\Specification\Sign;
+use Innmind\Specification\{
+    Sign,
+    Specification,
+};
 use Innmind\Immutable\Sequence;
 
 /**
@@ -33,6 +36,7 @@ final class OptionalTable
     private Table\Name\Aliased $name;
     /** @var Sequence<Column\Name\Aliased> */
     private Sequence $columns;
+    private Column\Name\Namespaced $id;
     private Select $select;
 
     /**
@@ -51,8 +55,9 @@ final class OptionalTable
                     ->in($this->name)
                     ->as($definition->name().'_'.$property->name()),
             );
+        $this->id = Column\Name::of('aggregateId')->in($this->name);
         $this->select = Select::onDemand($this->name)->columns(
-            Column\Name::of('aggregateId')->in($this->name),
+            $this->id,
             ...$this->columns->toList(),
         );
     }
@@ -193,5 +198,12 @@ final class OptionalTable
                 )),
             ),
         );
+    }
+
+    public function where(Specification $specification): Query
+    {
+        return Select::from($this->name)
+            ->columns($this->id)
+            ->where($specification);
     }
 }
