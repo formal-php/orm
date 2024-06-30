@@ -11,6 +11,7 @@ use Formal\ORM\{
     Specification\Property,
     Specification\Entity,
     Specification\Child,
+    Specification\Just,
 };
 use Formal\AccessLayer\{
     Table,
@@ -358,6 +359,18 @@ final class MainTable
                     ->match(
                         static fn($collection) => $collection->where($specification->specification()),
                         static fn() => throw new \LogicException("Unkown collection '{$specification->collection()}'"),
+                    ),
+            );
+        }
+
+        if ($specification instanceof Just) {
+            return SubQuery::of(
+                \sprintf('entity.%s', $this->definition->id()->property()),
+                $this
+                    ->optional($specification->optional())
+                    ->match(
+                        static fn($optional) => $optional->where($specification->specification()),
+                        static fn() => throw new \LogicException("Unkown optional '{$specification->optional()}'"),
                     ),
             );
         }
