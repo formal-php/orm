@@ -4,12 +4,21 @@
 [![codecov](https://codecov.io/gh/formal-php/orm/branch/develop/graph/badge.svg)](https://codecov.io/gh/formal-php/orm)
 [![Type Coverage](https://shepherd.dev/github/formal-php/orm/coverage.svg)](https://shepherd.dev/github/formal-php/orm)
 
-This ORM (Object-Relational Mapping) is focused to work in long living processes and being able to work in an asynchronous context.
+This ORM focuses to simplify data manipulation.
 
 This is achieved by:
-- being memory efficient (objects are not kept in memory)
-- relying on the [Innmind](https://github.com/Innmind) platform
+
 - using immutable objects
+- each aggregate _owning_ the objects it references
+- using monads to fetch aggregates (from the [Innmind](https://github.com/Innmind) ecosystem)
+- using the specification pattern to match aggregates
+
+This allows:
+
+- simpler app design (as it can be [pure](https://innmind.github.io/documentation/philosophy/oop-fp/#purity))
+- memory efficiency (the ORM doesn't keep objects in memory)
+- long living processes (since there is no memory leaks)
+- to work asynchronously
 
 ## Installation
 
@@ -65,3 +74,5 @@ This means the ORM can load 1 aggregate in 0.1 millisecond.
 This was run on a MacbookPro 16" with a M1 Max with the mariadb running inside Docker.
 
 **Note**: If all the aggregates were to be stored in memory it would take around 2Go of RAM and 15 seconds to complete.
+
+*[ORM]: Object Relational Mapping
