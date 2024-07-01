@@ -10,18 +10,18 @@ This goal is achieved by:
 - using Trees instead of a Graph
 - using immutable Aggregates
 
+!!! abstract ""
+    By being strict in its design this ORM also prevents you from using it in a way that it doesn't support. It's intended to push you to find an alternative tool instead of letting you shoot yourself in the foot.
+
 ## Monads
 
-In order to be memory efficient we need to represent a collection of data that can be streamed. This is why this ORM uses the `Sequence` monad when fetching multiple aggregates.
+In order to be memory efficient we need to represent a collection of data that can be streamed. This is why this ORM uses the [`Sequence`](https://innmind.github.io/documentation/getting-started/handling-data/sequence/) monad when fetching multiple aggregates.
 
-For design consistency this ORM uses the `Maybe` monad when fetching an aggregate by id, instead of returning the aggregate or throwing an exception when no value is found. This also allows the retrieval to be deferred, meaning that if you never unwrap the monad there will be no call made to the storage.
+For design consistency this ORM uses the [`Maybe`](https://innmind.github.io/documentation/getting-started/handling-data/maybe/) monad when fetching an aggregate by id, instead of returning the aggregate or throwing an exception when no value is found. This also allows the retrieval to be deferred, meaning that if you never unwrap the monad there will be no call made to the storage.
 
 The `Maybe` monad is also used to wrap optional entities in your aggregates meaning that these entities are not fetched unless you need it to (and the eventual fetch from the storage is transparent in your code). But once loaded it stays in memory, as long as your aggregate is in memory.
 
-Collections of entities in an aggregate is achieved using the `Set` monad and works the same way as `Maybe`, no data fetched by default but once it is loaded it stays in memory.
-
-!!! note ""
-    The monads mentionned above come from [`innmind/immutable`](https://innmind.github.io/Immutable/).
+Collections of entities in an aggregate is achieved using the [`Set`](https://innmind.github.io/Immutable/structures/set/) monad and works the same way as `Maybe`, no data fetched by default but once it is loaded it stays in memory.
 
 ## Trees, not a Graph
 
@@ -31,7 +31,7 @@ The problem with this approach is that you may still reach a memory exhaustion b
 
 This ORM partly move away from the SQL model by using Trees. A tree is a tree of objects meaning a root object is the only _owner_ of the objects it references. This allows to safely free memory when you no longer use this root object as no other object has ownership of the relations.
 
-In this package a Tree is called an Aggregate and objects it references Entities. This terminology comes from the [Domain Driven Design](https://en.wikipedia.org/wiki/Domain-driven_design) concept.
+In this package a Tree is called an [Aggregate](terminology.md#aggregate) and objects it references [Entities](terminology.md#entity). This terminology comes from the [Domain Driven Design](https://en.wikipedia.org/wiki/Domain-driven_design) concept.
 
 This is because each Aggregate is independent and encapsulate ownership of data that we can stream them via the `Sequence` monad.
 

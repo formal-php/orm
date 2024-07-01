@@ -4,10 +4,9 @@ docs_dir: documentation/
 
 nav:
   - Home: index.md
-  - Introduction:
+  - Preface:
     - Philosophy: philosophy.md
     - Terminology: terminology.md
-    - Adapters: adapters.md
     - Limitations: limitations.md
   - Use cases:
     - Persist my first aggregate: use_cases/persist_first_aggregate.md
