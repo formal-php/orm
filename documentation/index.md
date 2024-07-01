@@ -4,34 +4,43 @@ hide:
     - toc
 ---
 
-# Getting started
+# Welcome to the Formal ORM
 
-This ORM allows you to store your objects via different adapters with almost no configuration.
+This ORM focuses to simplify data manipulation.
 
-## Installation
+This is achieved by:
 
-```sh
-composer require formal/orm
-```
+- using immutable objects
+- each aggregate _owning_ the objects it references
+- using monads to fetch aggregates (from the [Innmind](https://innmind.github.io/documentation/getting-started/handling-data/) ecosystem)
+- using the specification pattern to match aggregates
 
-## Usage example
+This allows:
 
-```php
-use Formal\ORM\{
-    Manager,
-    Sort,
-};
-use Formal\AccessLayer\Connection\PDO;
-use Innmind\Url\Url;
+- simpler app design (as it can be [pure](https://innmind.github.io/documentation/philosophy/oop-fp/#purity))
+- memory efficiency (the ORM doesn't keep objects in memory)
+- long living processes (since there is no memory leaks)
+- to work asynchronously
 
-$manager = Manager::sql(
-    PDO::of(Url::of('mysql://user:pwd@host:3306/database?charset=utf8mb4')),
-);
-$_ = $manager
-    ->repository(YourAggregate::class)
-    ->all()
-    ->sort('someProperty', Sort::asc)
-    ->drop(150)
-    ->take(50)
-    ->foreach(static fn($aggregate) => doStuff($aggregate));
-```
+??? example "Sneak peak"
+    ```php
+    use Formal\ORM\{
+        Manager,
+        Sort,
+    };
+    use Formal\AccessLayer\Connection\PDO;
+    use Innmind\Url\Url;
+
+    $manager = Manager::sql(
+        PDO::of(Url::of('mysql://user:pwd@host:3306/database?charset=utf8mb4')),
+    );
+    $_ = $manager
+        ->repository(YourAggregate::class)
+        ->all()
+        ->sort('someProperty', Sort::asc)
+        ->drop(150)
+        ->take(50)
+        ->foreach(static fn($aggregate) => doStuff($aggregate));
+    ```
+
+*[ORM]: Object Relational Mapping
