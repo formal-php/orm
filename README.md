@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/formal-php/orm/branch/develop/graph/badge.svg)](https://codecov.io/gh/formal-php/orm)
 [![Type Coverage](https://shepherd.dev/github/formal-php/orm/coverage.svg)](https://shepherd.dev/github/formal-php/orm)
 
-This ORM focuses to simplify data manipulation.
+This ORM[^1] focuses to simplify data manipulation.
 
 This is achieved by:
 
@@ -75,4 +75,4 @@ This was run on a MacbookPro 16" with a M1 Max with the mariadb running inside D
 
 **Note**: If all the aggregates were to be stored in memory it would take around 2Go of RAM and 15 seconds to complete.
 
-*[ORM]: Object Relational Mapping
+[^1]: Object Relational Mapping
