@@ -11,6 +11,7 @@
 
 - You can now pass a `Specification` to `Repository::remove()` to remove multiple aggregates at once
 - When a `Set` is modified in an aggregate but the resulting `Set` contains the same values the orm no longer re-persist the whole collection
+- The `Contains` attribute now enforce to only be used on properties
 
 ## 2.1.0 - 2024-06-02
 
