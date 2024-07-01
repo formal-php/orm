@@ -8,6 +8,33 @@ nav:
     - Philosophy: philosophy.md
     - Terminology: terminology.md
     - Limitations: limitations.md
+  - Getting started:
+    - getting-started/index.md
+    - Create an aggregate: getting-started/aggregate.md
+    - Persist an aggregate: getting-started/persist.md
+    - Retrieve an aggregate: getting-started/retrieve.md
+    - Update an aggregate: getting-started/update.md
+    - Remove an aggregate: getting-started/remove.md
+    - Count aggregates: getting-started/count.md
+  - Mapping:
+    - mapping/index.md
+    - Custom type: mapping/type.md
+    - Entities: mapping/entities.md
+    - Optional entities: mapping/optionals.md
+    - Collection of entities: mapping/collections.md
+  - Specifications:
+    - specifications/index.md
+    - Create first specification: specifications/custom.md
+    - Retrieve multiple aggregates: specifications/retrieve.md
+    - Remove multiple aggregates: specifications/remove.md
+  - Adapters:
+    - adapters/index.md
+    - Filesystem: adapters/filesystem.md
+    - SQL: adapters/sql.md
+    - Elasticsearch: adapters/elasticsearch.md
+  - Benchmark: benchmark.md
+  - Blog:
+    - blog/index.md
   - Use cases:
     - Persist my first aggregate: use_cases/persist_first_aggregate.md
     - Modify an existing aggregate: use_cases/modify_aggregate.md
