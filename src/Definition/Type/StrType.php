@@ -3,18 +3,8 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition\Type;
 
-use Formal\ORM\Definition\{
-    Type,
-    Types,
-};
-use Innmind\Type\{
-    Type as Concrete,
-    ClassName,
-};
-use Innmind\Immutable\{
-    Maybe,
-    Str,
-};
+use Formal\ORM\Definition\Type;
+use Innmind\Immutable\Str;
 
 /**
  * @psalm-immutable
