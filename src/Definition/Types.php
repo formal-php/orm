@@ -4,7 +4,10 @@ declare(strict_types = 1);
 namespace Formal\ORM\Definition;
 
 use Innmind\Type\Type as Concrete;
-use Innmind\Immutable\Maybe;
+use Innmind\Immutable\{
+    Maybe,
+    Str,
+};
 
 /**
  * @psalm-immutable
@@ -53,7 +56,10 @@ final class Types
             Type\NullableType::of(...),
             Type\MaybeType::of(...),
             Type\StringType::of(...),
-            Type\StrType::of(...),
+            Type\Support::class(
+                Str::class,
+                Type\StrType::new(),
+            ),
             Type\IntType::of(...),
             Type\BoolType::of(...),
             Type\IdType::of(...),
@@ -71,7 +77,10 @@ final class Types
             Type\NullableType::of(...),
             Type\MaybeType::of(...),
             Type\StringType::of(...),
-            Type\StrType::of(...),
+            Type\Support::class(
+                Str::class,
+                Type\StrType::new(),
+            ),
             Type\IntType::of(...),
             Type\BoolType::of(...),
             Type\IdType::of(...),

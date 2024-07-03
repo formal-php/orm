@@ -28,14 +28,10 @@ final class StrType implements Type
 
     /**
      * @psalm-pure
-     *
-     * @return Maybe<self>
      */
-    public static function of(Types $types, Concrete $type): Maybe
+    public static function new(): self
     {
-        return Maybe::just($type)
-            ->filter(static fn($type) => $type->accepts(ClassName::of(Str::class)))
-            ->map(static fn() => new self);
+        return new self;
     }
 
     public function normalize(mixed $value): null|string|int|bool
