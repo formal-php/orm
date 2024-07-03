@@ -17,4 +17,4 @@ $trueWhenTheresNoUser = $orm->repository(User::class)->none();
 ```
 
 ??? note
-    If you want to count the number of aggregates corresponding to a set of criteria head to the [Specification chapter](../specification/index.md).
+    If you want to count the number of aggregates corresponding to a set of criteria head to the [Specification chapter](../specifications/index.md).

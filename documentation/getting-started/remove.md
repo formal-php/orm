@@ -3,7 +3,7 @@
 In order to remove an aggregate you need 3 things:
 
 - an `Id` of the [aggregate](../terminology.md#aggregate)
-- a [repository](../terimonology.md#repository) in which to put the aggregate
+- a [repository](../terminology.md#repository) in which to put the aggregate
 - a [transaction](../terminology.md#transaction) to atomically persist the aggregate
 
 Translated into code this gives:
@@ -24,4 +24,4 @@ $result = $orm->transactional(
 If alice exists in the storage it will remove it and if it doesn't then nothing will happen. And like for [persisting](persist.md) the `Either::right(null)` will indicate to `transactional` to commit the transaction.
 
 ??? note
-    If you want to remove multiple aggregates at once corresponding to a set of criteria head to the [Specification chapter](../specification/index.md).
+    If you want to remove multiple aggregates at once corresponding to a set of criteria head to the [Specification chapter](../specifications/index.md).

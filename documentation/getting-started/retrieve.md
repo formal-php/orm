@@ -40,7 +40,7 @@ Here we use `alice-uuid` as the id value but this is a placeholder. You should r
 The `get` method returns a `Maybe<User>` as the corresponding user may not exist in the storage. Here we return `null` if alice doesn't exist but you can return or call any code you'd like.
 
 ??? note
-    If you want to learn how to retrieve mutliple aggregates corresponding to a set of criteria head to the [Specification chapter](../specification/index.md).
+    If you want to learn how to retrieve mutliple aggregates corresponding to a set of criteria head to the [Specification chapter](../specifications/index.md).
 
 ??? note
     Note that the monads are lazy evaluated when retrieving data. This means that it will hit the storage only when trying to extract data from them and will only load one aggregate at a time.

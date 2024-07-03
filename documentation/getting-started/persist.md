@@ -3,7 +3,7 @@
 In order to persist an aggregate you need 3 things:
 
 - an instance of the [aggregate](../terminology.md#aggregate)
-- a [repository](../terimonology.md#repository) in which to put the aggregate
+- a [repository](../terminology.md#repository) in which to put the aggregate
 - a [transaction](../terminology.md#transaction) to atomically persist the aggregate
 
 Translated into code this gives:
