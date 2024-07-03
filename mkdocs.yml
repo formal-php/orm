@@ -26,6 +26,7 @@ nav:
     - specifications/index.md
     - Create first specification: specifications/custom.md
     - Retrieve multiple aggregates: specifications/retrieve.md
+    - Count multiple aggregates: specifications/count.md
     - Remove multiple aggregates: specifications/remove.md
   - Adapters:
     - adapters/index.md
