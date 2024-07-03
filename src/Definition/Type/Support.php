@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace Formal\ORM\Definition\Type;
 
 use Formal\ORM\Definition\{
+    Contains,
     Type,
     Types,
 };
@@ -34,8 +35,11 @@ final class Support
     /**
      * @return Maybe<Type>
      */
-    public function __invoke(Types $types, Concrete $type): Maybe
-    {
+    public function __invoke(
+        Types $types,
+        Concrete $type,
+        Contains $contains = null,
+    ): Maybe {
         return Maybe::just($type)
             ->filter(fn($type) => $type->accepts(ClassName::of($this->class)))
             ->map(fn() => $this->via);
