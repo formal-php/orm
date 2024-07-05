@@ -109,6 +109,29 @@ $_ = $dropIndex(User::class)
 
 1. See [`innmind/operating-system`](https://innmind.github.io/documentation/getting-started/operating-system/).
 
+## Testing
+
+If you want to test your app with integration tests against a real instance of Elasticsearch you should the `Refresh` HTTP transport. This decorator force Elasticsearch to apply changes directly to the index.
+
+```php hl_lines="11-13"
+use Formal\ORM\{
+    Manager,
+    Adapter\Elasticsearch,
+};
+use Innmind\OperatingSystem\Factory;
+use Innmind\Url\Url;
+
+$os = Factory::build();
+$orm = Manager::of(
+    Elasticsearch::of(
+        Elasticsearch\Refresh::of(
+            $os->remote()->http(),
+        ),
+        Url::of('http://localhost:9200/'),
+    ),
+);
+```
+
 ## Limitations
 
 !!! warning ""
