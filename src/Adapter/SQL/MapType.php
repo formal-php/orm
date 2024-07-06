@@ -23,7 +23,7 @@ final class MapType
             $type instanceof Type\MaybeType => $this($type->inner())->nullable(),
             $type instanceof Type\BoolType => Table\Column\Type::tinyint(1)
                 ->comment('Boolean'),
-            $type instanceof Type\IdType => Table\Column\Type::varchar(36)
+            $type instanceof Type\IdType => Table\Column\Type::char(36)
                 ->comment('UUID'),
             $type instanceof Type\IntType => Table\Column\Type::bigint()
                 ->comment('TODO Adjust the size depending on your use case'),
