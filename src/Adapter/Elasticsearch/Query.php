@@ -98,14 +98,7 @@ final class Query
         }
 
         if ($specification instanceof Just) {
-            return $this->and(
-                [
-                    'exists' => [
-                        'field' => $specification->optional(),
-                    ],
-                ],
-                $this->visit($specification->specification(), $specification->optional().'.'),
-            );
+            return $this->visit($specification->specification(), $specification->optional().'.');
         }
 
         if ($specification instanceof Child) {
