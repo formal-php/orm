@@ -39,6 +39,7 @@ nav:
     - Export aggregates as a CSV: use-cases/export.md
     - Import aggregates from a CSV: use-cases/import.md
     - Search an aggregate via Elasticsearch: use-cases/elasticsearch.md
+  - Known issues: issues.md
   - Benchmark: benchmark.md
   - Blog:
     - blog/index.md
