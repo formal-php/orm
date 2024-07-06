@@ -81,7 +81,7 @@ final class CollectionTable
     {
         return Column::of(
             Column\Name::of('aggregateId'),
-            Column\Type::varchar(36)->comment('UUID'),
+            Column\Type::char(36)->comment('UUID'),
         );
     }
 

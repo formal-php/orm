@@ -155,7 +155,7 @@ final class MainTable
     {
         return Column::of(
             Column\Name::of($this->definition->id()->property()),
-            Column\Type::varchar(36)->comment('UUID'),
+            Column\Type::char(36)->comment('UUID'),
         );
     }
 
