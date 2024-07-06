@@ -27,7 +27,7 @@ final class MapType
                 ->comment('UUID'),
             $type instanceof Type\IntType => Table\Column\Type::bigint()
                 ->comment('TODO Adjust the size depending on your use case'),
-            $type instanceof Type\PointInTimeType => Table\Column\Type::varchar(32)
+            $type instanceof Type\PointInTimeType => Table\Column\Type::char(32)
                 ->comment('Date with timezone down to the microsecond'),
             default => Table\Column\Type::longtext()
                 ->comment('TODO adjust the type depending on your use case'),
