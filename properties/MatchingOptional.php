@@ -114,7 +114,7 @@ final class MatchingOptional implements Property
 
         $found = $repository
             ->matching(Just::of('billingAddress', AddressValue::of(
-                Sign::endsWith,
+                Sign::equality,
                 $this->name1,
             ))->not())
             ->map(static fn($user) => $user->id()->toString())
