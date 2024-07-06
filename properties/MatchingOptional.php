@@ -26,7 +26,6 @@ use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
 final class MatchingOptional implements Property
 {
     private $createdAt;
-    private string $prefix;
     private string $name1;
     private string $name2;
 
@@ -116,7 +115,7 @@ final class MatchingOptional implements Property
             ->matching(Just::of('billingAddress', AddressValue::of(
                 Sign::equality,
                 $this->name1,
-            ))->not())
+            )->not()))
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
@@ -129,6 +128,7 @@ final class MatchingOptional implements Property
             ->in($found);
         $assert
             ->expected($user3->id()->toString())
+            ->not()
             ->in($found);
 
         return $manager;
