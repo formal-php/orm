@@ -116,7 +116,7 @@ final class MatchingOptional implements Property
             ->matching(Just::of('billingAddress', AddressValue::of(
                 Sign::equality,
                 $this->name1,
-            ))->not())
+            )->not()))
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
