@@ -26,7 +26,6 @@ use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
 final class MatchingOptional implements Property
 {
     private $createdAt;
-    private string $prefix;
     private string $name1;
     private string $name2;
 
