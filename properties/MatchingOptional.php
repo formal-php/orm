@@ -129,6 +129,7 @@ final class MatchingOptional implements Property
             ->in($found);
         $assert
             ->expected($user3->id()->toString())
+            ->not()
             ->in($found);
 
         return $manager;
