@@ -3,18 +3,8 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition\Type;
 
-use Formal\ORM\Definition\{
-    Type,
-    Types,
-};
-use Innmind\Type\{
-    Type as Concrete,
-    ClassName,
-};
-use Innmind\Immutable\{
-    Maybe,
-    Str,
-};
+use Formal\ORM\Definition\Type;
+use Innmind\Immutable\Str;
 
 /**
  * @psalm-immutable
@@ -28,14 +18,10 @@ final class StrType implements Type
 
     /**
      * @psalm-pure
-     *
-     * @return Maybe<self>
      */
-    public static function of(Types $types, Concrete $type): Maybe
+    public static function new(): self
     {
-        return Maybe::just($type)
-            ->filter(static fn($type) => $type->accepts(ClassName::of(Str::class)))
-            ->map(static fn() => new self);
+        return new self;
     }
 
     public function normalize(mixed $value): null|string|int|bool

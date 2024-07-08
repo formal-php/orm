@@ -43,7 +43,7 @@ use Innmind\Immutable\{
  * @template T of object
  * @implements RepositoryInterface<T>
  */
-final class Repository implements RepositoryInterface
+final class Repository implements RepositoryInterface, RepositoryInterface\MassRemoval
 {
     private Transport $http;
     /** @var Definition<T> */
@@ -199,6 +199,24 @@ final class Repository implements RepositoryInterface
         ))->match(
             static fn() => null,
             static fn() => null,
+        );
+    }
+
+    public function removeAll(Specification $specification): void
+    {
+        $_ = ($this->http)(Request::of(
+            $this->url('_delete_by_query'),
+            Method::post,
+            ProtocolVersion::v11,
+            Headers::of(
+                ContentType::of('application', 'json'),
+            ),
+            Content::ofString(Json::encode([
+                'query' => ($this->query)($specification),
+            ])),
+        ))->match(
+            static fn() => null,
+            static fn() => throw new \RuntimeException('Unable to remove multiple aggregates'),
         );
     }
 

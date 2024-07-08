@@ -144,18 +144,41 @@ final class Repository
     }
 
     /**
-     * @param Id<T> $id
+     * @param Id<T>|Specification $criteria
      */
-    public function remove(Id $id): void
+    public function remove(Id|Specification $criteria): void
     {
         if (!($this->inTransaction)()) {
             throw new \LogicException('Mutation outside of a transaction');
         }
 
-        $this->adapter->remove(
-            $this->id->normalize($id),
-        );
-        $this->loaded->remove($id);
+        if (!($criteria instanceof Specification)) {
+            $this->adapter->remove(
+                $this->id->normalize($criteria),
+            );
+            $this->loaded->remove($criteria);
+
+            return;
+        }
+
+        if ($this->adapter instanceof Adapter\Repository\MassRemoval) {
+            $this->adapter->removeAll(
+                ($this->normalizeSpecification)($criteria),
+            );
+
+            return;
+        }
+
+        $this
+            ->adapter
+            ->fetch(
+                ($this->normalizeSpecification)($criteria),
+                null,
+                null,
+                null,
+            )
+            ->map(static fn($aggregate) => $aggregate->id())
+            ->foreach($this->adapter->remove(...));
     }
 
     /**

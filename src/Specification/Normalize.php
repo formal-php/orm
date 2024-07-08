@@ -35,6 +35,8 @@ final class Normalize
     /** @var Map<non-empty-string, Map<non-empty-string, Aggregate\Property>> */
     private Map $entities;
     /** @var Map<non-empty-string, Map<non-empty-string, Aggregate\Property>> */
+    private Map $optionals;
+    /** @var Map<non-empty-string, Map<non-empty-string, Aggregate\Property>> */
     private Map $collections;
 
     /**
@@ -81,6 +83,22 @@ final class Normalize
                 )
                 ->toList(),
         );
+        $this->optionals = Map::of(
+            ...$definition
+                ->optionals()
+                ->map(
+                    static fn($optional) => [
+                        $optional->name(),
+                        Map::of(
+                            ...$optional
+                                ->properties()
+                                ->map(static fn($property) => [$property->name(), $property])
+                                ->toList(),
+                        ),
+                    ],
+                )
+                ->toList(),
+        );
     }
 
     public function __invoke(Specification $specification): Specification
@@ -113,6 +131,23 @@ final class Normalize
                         $normalized,
                     ),
                     static fn() => throw new \LogicException("Unknown collection '{$specification->collection()}'"),
+                );
+        }
+
+        if ($specification instanceof Just) {
+            return $this
+                ->optionals
+                ->get($specification->optional())
+                ->map(fn($optional) => $this->child(
+                    $optional,
+                    $specification->specification(),
+                ))
+                ->match(
+                    static fn($normalized) => Just::of(
+                        $specification->optional(),
+                        $normalized,
+                    ),
+                    static fn() => throw new \LogicException("Unknown optional '{$specification->optional()}'"),
                 );
         }
 

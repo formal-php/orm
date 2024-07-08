@@ -7,6 +7,7 @@ use Formal\ORM\{
     Definition\Aggregate as Definition,
     Specification\Entity,
     Specification\Child,
+    Specification\Just,
 };
 use Innmind\Specification\{
     Specification,
@@ -78,22 +79,6 @@ final class Query
 
     public function __invoke(Specification $specification): array
     {
-        if ($specification instanceof Entity) {
-            return $this->visit($specification->specification(), $specification->entity().'.');
-        }
-
-        if ($specification instanceof Child) {
-            return [
-                'nested' => [
-                    'path' => $specification->collection(),
-                    'query' => $this->visit(
-                        $specification->specification(),
-                        $specification->collection().'.',
-                    ),
-                ],
-            ];
-        }
-
         return $this->visit($specification);
     }
 
@@ -108,6 +93,33 @@ final class Query
 
     private function visit(Specification $specification, string $prefix = ''): array
     {
+        if ($specification instanceof Entity) {
+            return $this->visit($specification->specification(), $specification->entity().'.');
+        }
+
+        if ($specification instanceof Just) {
+            return $this->and(
+                [
+                    'exists' => [
+                        'field' => $specification->optional(),
+                    ],
+                ],
+                $this->visit($specification->specification(), $specification->optional().'.'),
+            );
+        }
+
+        if ($specification instanceof Child) {
+            return [
+                'nested' => [
+                    'path' => $specification->collection(),
+                    'query' => $this->visit(
+                        $specification->specification(),
+                        $specification->collection().'.',
+                    ),
+                ],
+            ];
+        }
+
         if ($specification instanceof Composite) {
             $left = $this->visit($specification->left(), $prefix);
             $right = $this->visit($specification->right(), $prefix);

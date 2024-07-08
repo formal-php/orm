@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.2.0 - 2024-07-08
+
+### Added
+
+- `Formal\ORM\Adapter\Repository\MassRemoval`
+- You can match aggregates on optionals via `Formal\ORM\Specification\Just`
+- `Formal\ORM\Definition\Type\Support`
+
+### Changed
+
+- You can now pass a `Specification` to `Repository::remove()` to remove multiple aggregates at once
+- When a `Set` is modified in an aggregate but the resulting `Set` contains the same values the orm no longer re-persist the whole collection
+- The `Contains` attribute now enforce to only be used on properties
+
 ## 2.1.0 - 2024-06-02
 
 ### Added

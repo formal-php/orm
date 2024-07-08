@@ -8,7 +8,7 @@ use Innmind\Type\ClassName;
 /**
  * @psalm-immutable
  */
-#[\Attribute]
+#[\Attribute(\Attribute::TARGET_PROPERTY)]
 final class Contains
 {
     /** @var class-string */

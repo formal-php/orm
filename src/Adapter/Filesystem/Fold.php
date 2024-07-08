@@ -9,6 +9,7 @@ use Formal\ORM\{
     Specification\Property as PropertySpecification,
     Specification\Entity as EntitySpecification,
     Specification\Child as ChildSpecification,
+    Specification\Just as JustSpecification,
 };
 use Innmind\Specification\{
     Specification,
@@ -18,6 +19,7 @@ use Innmind\Specification\{
     Operator,
     Sign,
 };
+use Innmind\Immutable\Sequence;
 
 /**
  * @internal
@@ -65,7 +67,7 @@ final class Fold
                 ->entities()
                 ->find(static fn($entity) => $entity->name() === $specification->entity())
                 ->match(
-                    static fn($entity) => $filter($entity),
+                    static fn($entity) => $filter($entity->properties()),
                     static fn() => false,
                 );
         }
@@ -79,10 +81,24 @@ final class Fold
                 ->flatMap(
                     static fn($collection) => $collection
                         ->entities()
+                        ->map(static fn($entity) => $entity->properties())
                         ->find($filter),
                 )
                 ->match(
                     static fn() => true,
+                    static fn() => false,
+                );
+        }
+
+        if ($specification instanceof JustSpecification) {
+            $filter = $this->child($specification->specification());
+
+            return static fn(Aggregate $aggregate) => $aggregate
+                ->optionals()
+                ->find(static fn($optional) => $optional->name() === $specification->optional())
+                ->flatMap(static fn($optional) => $optional->properties())
+                ->match(
+                    static fn($properties) => $filter($properties),
                     static fn() => false,
                 );
         }
@@ -145,23 +161,24 @@ final class Fold
     }
 
     /**
-     * @return callable(Aggregate\Collection\Entity|Aggregate\Entity): bool
+     * @return callable(Sequence<Aggregate\Property>): bool
      */
     private function child(Specification $specification): callable
     {
         if ($specification instanceof Not) {
             $filter = $this->child($specification->specification());
 
-            return static fn(Aggregate\Collection\Entity|Aggregate\Entity $entity) => !$filter($entity);
+            return static fn(Sequence $properties) => !$filter($properties);
         }
 
         if ($specification instanceof Composite) {
             $left = $this->child($specification->left());
             $right = $this->child($specification->right());
 
+            /** @psalm-suppress MixedArgumentTypeCoercion */
             return match ($specification->operator()) {
-                Operator::and => static fn(Aggregate\Collection\Entity|Aggregate\Entity $entity) => $left($entity) && $right($entity),
-                Operator::or => static fn(Aggregate\Collection\Entity|Aggregate\Entity $entity) => $left($entity) || $right($entity),
+                Operator::and => static fn(Sequence $properties) => $left($properties) && $right($properties),
+                Operator::or => static fn(Sequence $properties) => $left($properties) || $right($properties),
             };
         }
 
@@ -173,8 +190,7 @@ final class Fold
 
         $filter = $this->filter($specification);
 
-        return static fn(Aggregate\Collection\Entity|Aggregate\Entity $entity) => $entity
-            ->properties()
+        return static fn(Sequence $properties) => $properties
             ->find(static fn($property) => $property->name() === $specification->property())
             ->match(
                 static fn($property) => $filter($property->value()),
