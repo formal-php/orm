@@ -143,7 +143,7 @@ final class EntityTable
                     $this->name,
                     Row::new(
                         ...$properties
-                            ->map(fn($property) => Row\Value::of(
+                            ->map(static fn($property) => Row\Value::of(
                                 Column\Name::of($property->name()),
                                 $property->value(),
                             ))

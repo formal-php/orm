@@ -5,7 +5,6 @@ namespace Properties\Formal\ORM;
 
 use Formal\ORM\{
     Manager,
-    Id,
     Specification\Child\Enum,
 };
 use Fixtures\Formal\ORM\{
