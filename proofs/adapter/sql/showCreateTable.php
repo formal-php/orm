@@ -8,6 +8,7 @@ use Formal\ORM\{
     Definition\Type,
     Definition\Types,
 };
+use Formal\AccessLayer\Driver;
 use Innmind\TimeContinuum\Earth\Clock;
 use Fixtures\Formal\ORM\User;
 
@@ -22,7 +23,7 @@ return static function() {
             );
 
             $queries = $show(User::class)
-                ->map(static fn($query) => $query->sql())
+                ->map(static fn($query) => $query->sql(Driver::mysql))
                 ->toList();
 
             $assert

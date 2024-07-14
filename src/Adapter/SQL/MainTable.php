@@ -221,13 +221,13 @@ final class MainTable
 
         return Query\Insert::into(
             $table,
-            new Row(
-                new Row\Value(
+            Row::new(
+                Row\Value::of(
                     Column\Name::of($this->definition->id()->property())->in($table),
                     $id->value(),
                 ),
                 ...$properties
-                    ->map(static fn($property) => new Row\Value(
+                    ->map(static fn($property) => Row\Value::of(
                         Column\Name::of($property->name())->in($table),
                         $property->value(),
                     ))
@@ -250,9 +250,9 @@ final class MainTable
             ->map(
                 fn($properties) => Update::set(
                     $table,
-                    new Row(
+                    Row::new(
                         ...$properties
-                            ->map(static fn($property) => new Row\Value(
+                            ->map(static fn($property) => Row\Value::of(
                                 Column\Name::of($property->name())->in($table),
                                 $property->value(),
                             ))

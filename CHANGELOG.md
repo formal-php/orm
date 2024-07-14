@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Requires `innmind/specification:~4.0`
+- Requires `formal/access-layer:~4.0`
+
 ## 2.2.0 - 2024-07-08
 
 ### Added

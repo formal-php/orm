@@ -136,13 +136,13 @@ final class OptionalTable
 
         return Query\Insert::into(
             $table,
-            new Row(
-                new Row\Value(
+            Row::new(
+                Row\Value::of(
                     Column\Name::of('aggregateId')->in($table),
                     $id->value(),
                 ),
                 ...$properties
-                    ->map(static fn($property) => new Row\Value(
+                    ->map(static fn($property) => Row\Value::of(
                         Column\Name::of($property->name())->in($table),
                         $property->value(),
                     ))
@@ -175,9 +175,9 @@ final class OptionalTable
             fn($properties) => Sequence::of(
                 Update::set(
                     $this->name,
-                    new Row(
+                    Row::new(
                         ...$properties
-                            ->map(fn($property) => new Row\Value(
+                            ->map(fn($property) => Row\Value::of(
                                 Column\Name::of($property->name())->in($this->name),
                                 $property->value(),
                             ))
