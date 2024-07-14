@@ -5,6 +5,7 @@
 ### Added
 
 - `Formal\ORM\Adapter\Repository::removeAll()`
+- `Formal\ORM\Specification\Child\Enum`
 
 ### Changed
 
