@@ -87,6 +87,7 @@ use Formal\ORM\{
     Definition\Type\Support,
     Adapter\SQL\ShowCreateTable,
 };
+use Formal\AccessLayer\Driver;
 use Innmind\OperatingSystem\Factory;
 
 $os = Factory::build(); //(1)
@@ -96,7 +97,7 @@ $aggregates = Aggregates::of(Types::of(
 $show = ShowCreateTable::of($aggregates);
 
 $_ = $show(User::class)->foreach(
-    static fn($query) => print($query->sql().";\n"),
+    static fn($query) => print($query->sql(Driver::mysql).";\n"),
 );
 ```
 
