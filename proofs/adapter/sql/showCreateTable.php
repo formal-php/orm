@@ -46,5 +46,5 @@ return static function() {
                 ])
                 ->same($queries);
         },
-    );
+    )->tag(Storage::sql);
 };

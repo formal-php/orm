@@ -11,6 +11,23 @@ use Innmind\BlackBox\{
     Runner\CodeCoverage,
 };
 
+enum Storage
+{
+    case filesystem;
+    case sql;
+    case elasticsearch;
+
+    public static function of(string $tag): ?self
+    {
+        return match ($tag) {
+            'fs', 'filesystem' => self::filesystem,
+            'sql' => self::sql,
+            'es', 'elasticsearch' => self::elasticsearch,
+            default => null,
+        };
+    }
+}
+
 Application::new($argv)
     ->codeCoverage(
         CodeCoverage::of(
@@ -25,6 +42,7 @@ Application::new($argv)
         false => 100,
         default => 1,
     })
+    ->parseTagWith(Storage::of(...))
     ->disableShrinking()
     ->tryToProve(Load::everythingIn(__DIR__.'/proofs/'))
     ->exit();

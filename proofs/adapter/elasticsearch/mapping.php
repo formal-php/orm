@@ -91,5 +91,5 @@ return static function() {
                 ])
                 ->same($mapping);
         },
-    );
+    )->tag(Storage::elasticsearch);
 };
