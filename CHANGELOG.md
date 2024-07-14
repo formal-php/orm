@@ -2,10 +2,18 @@
 
 ## [Unreleased]
 
+### Added
+
+- `Formal\ORM\Adapter\Repository::removeAll()`
+
 ### Changed
 
 - Requires `innmind/specification:~4.0`
 - Requires `formal/access-layer:~4.0`
+
+### Removed
+
+- `Formal\ORM\Adapter\Repository\MassRemoval`, its method has been merged into `Formal\ORM\Adapter\Repository`
 
 ### Fixed
 
