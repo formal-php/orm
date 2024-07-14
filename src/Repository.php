@@ -161,24 +161,9 @@ final class Repository
             return;
         }
 
-        if ($this->adapter instanceof Adapter\Repository\MassRemoval) {
-            $this->adapter->removeAll(
-                ($this->normalizeSpecification)($criteria),
-            );
-
-            return;
-        }
-
-        $this
-            ->adapter
-            ->fetch(
-                ($this->normalizeSpecification)($criteria),
-                null,
-                null,
-                null,
-            )
-            ->map(static fn($aggregate) => $aggregate->id())
-            ->foreach($this->adapter->remove(...));
+        $this->adapter->removeAll(
+            ($this->normalizeSpecification)($criteria),
+        );
     }
 
     /**

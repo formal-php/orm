@@ -18,57 +18,29 @@ This means you don't need to create [custom types](mapping/type.md) for each enu
     Formal uses the `case` name as the value persisted in the storage. Even when you use backed enums.
 
 !!! tip ""
-    In order to search aggregates having an enum case inside a collection your [specification](specifications/index.md) must look like this:
+    In order to search aggregates having an enum case inside a collection you can use this [specification](specifications/index.md):
 
-    ```php title="SeachByEnum.php" hl_lines="25"
-    use Innmind\Specification\{
-        Comparator,
-        Composable,
-        Sign,
-    };
+    === "Find one"
+        ```php
+        use Formal\ORM\Specification\Child\Enum;
 
-    /**
-     * @psalm-immutable
-     */
-    final readonly class SearchByEnum implements Comparator
-    {
-        use Composable;
+        Enum::any(
+            'collectionPropertyName',
+            YourEnum::someCase,
+        )
+        ```
 
-        private function __construct(
-            private string $name,
-        ) {}
+        This will return the aggregate if this case is present in the collection.
 
-        public static function of(YourEnum $case): self
-        {
-            return new self($case->name);
-        }
+    === "Find amongst many"
+        ```php
+        use Formal\ORM\Specification\Child\Enum;
 
-        public function property(): string
-        {
-            return 'name'; // This can't be changed! (1)
-        }
+        Enum::in(
+            'collectionPropertyName',
+            YourEnum::someCase,
+            YourEnum::someOtherCase,
+        )
+        ```
 
-        public function sign(): Sign
-        {
-            return Sign::equality;
-        }
-
-        public function value(): string
-        {
-            return $this->name;
-        }
-    }
-    ```
-
-    1. This is the name used internally to store the enum case name when inside a collection.
-
-    And you use it like this:
-
-    ```php
-    use Formal\ORM\Specification\Child;
-
-    Child::of(
-        'collectionPropertyName',
-        SearchByEnum::of(YourEnum::someCase),
-    );
-    ```
+        This will return the aggregate if one of the cases is present in the collection.

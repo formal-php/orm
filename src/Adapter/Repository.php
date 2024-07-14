@@ -27,6 +27,7 @@ interface Repository
     public function add(Aggregate $data): void;
     public function update(Diff $data): void;
     public function remove(Aggregate\Id $id): void;
+    public function removeAll(Specification $specification): void;
 
     /**
      * @param ?positive-int $drop

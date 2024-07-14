@@ -1,5 +1,25 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `Formal\ORM\Adapter\Repository::removeAll()`
+- `Formal\ORM\Specification\Child\Enum`
+
+### Changed
+
+- Requires `innmind/specification:~4.0`
+- Requires `formal/access-layer:~4.0`
+
+### Removed
+
+- `Formal\ORM\Adapter\Repository\MassRemoval`, its method has been merged into `Formal\ORM\Adapter\Repository`
+
+### Fixed
+
+- Ability to remove with a condition on an entity property
+
 ## 2.2.0 - 2024-07-08
 
 ### Added

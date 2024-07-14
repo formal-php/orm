@@ -21,9 +21,9 @@ final class MapType
             $type instanceof SQLType => $type->sqlType(),
             $type instanceof Type\NullableType,
             $type instanceof Type\MaybeType => $this($type->inner())->nullable(),
-            $type instanceof Type\BoolType => Table\Column\Type::tinyint(1)
+            $type instanceof Type\BoolType => Table\Column\Type::bool()
                 ->comment('Boolean'),
-            $type instanceof Type\IdType => Table\Column\Type::char(36)
+            $type instanceof Type\IdType => Table\Column\Type::uuid()
                 ->comment('UUID'),
             $type instanceof Type\IntType => Table\Column\Type::bigint()
                 ->comment('TODO Adjust the size depending on your use case'),
