@@ -17,14 +17,14 @@
     "require": {
         "php": "~8.2",
         "innmind/immutable": "~5.4",
-        "innmind/specification": "~3.0",
+        "innmind/specification": "~4.1",
         "ramsey/uuid": "~4.7",
         "innmind/reflection": "~5.1",
         "innmind/filesystem": "~7.4",
         "innmind/json": "~1.3",
         "innmind/time-continuum": "~3.3",
         "innmind/type": "~1.2",
-        "formal/access-layer": "~2.17",
+        "formal/access-layer": "~4.0",
         "innmind/http-transport": "~7.2",
         "innmind/url-template": "~3.1",
         "innmind/validation": "~1.4"
@@ -44,6 +44,6 @@
         "vimeo/psalm": "~5.13",
         "innmind/black-box": "~5.1",
         "innmind/coding-standard": "~2.0",
-        "innmind/operating-system": "~4.2"
+        "innmind/operating-system": "~5.2"
     }
 }

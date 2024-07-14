@@ -146,13 +146,8 @@ final class Fold
         /** @psalm-suppress MixedArgument */
         return match ($specification->sign()) {
             Sign::equality => static fn(null|string|int|bool $value): bool => $value === $specification->value(),
-            Sign::inequality => static fn(null|string|int|bool $value): bool => $value !== $specification->value(),
             Sign::lessThan => static fn(null|string|int|bool $value): bool => $value < $specification->value(),
             Sign::moreThan => static fn(null|string|int|bool $value): bool => $value > $specification->value(),
-            Sign::lessThanOrEqual => static fn(null|string|int|bool $value): bool => $value <= $specification->value(),
-            Sign::moreThanOrEqual => static fn(null|string|int|bool $value): bool => $value >= $specification->value(),
-            Sign::isNull => static fn(null|string|int|bool $value): bool => \is_null($value),
-            Sign::isNotNull => static fn(null|string|int|bool $value): bool => !\is_null($value),
             Sign::startsWith => static fn(null|string|int|bool $value): bool => \is_string($value) && \str_starts_with($value, $specification->value()),
             Sign::endsWith => static fn(null|string|int|bool $value): bool => \is_string($value) && \str_ends_with($value, $specification->value()),
             Sign::contains => static fn(null|string|int|bool $value): bool => \is_string($value) && \str_contains($value, $specification->value()),

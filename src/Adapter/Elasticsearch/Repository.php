@@ -43,7 +43,7 @@ use Innmind\Immutable\{
  * @template T of object
  * @implements RepositoryInterface<T>
  */
-final class Repository implements RepositoryInterface, RepositoryInterface\MassRemoval
+final class Repository implements RepositoryInterface
 {
     private Transport $http;
     /** @var Definition<T> */

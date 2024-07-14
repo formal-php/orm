@@ -98,14 +98,18 @@ final class Query
         }
 
         if ($specification instanceof Just) {
-            return $this->and(
-                [
-                    'exists' => [
-                        'field' => $specification->optional(),
+            return [
+                'bool' => [
+                    'must' => [
+                        [
+                            'exists' => [
+                                'field' => $specification->optional(),
+                            ],
+                        ],
+                        $this->visit($specification->specification(), $specification->optional().'.'),
                     ],
                 ],
-                $this->visit($specification->specification(), $specification->optional().'.'),
-            );
+            ];
         }
 
         if ($specification instanceof Child) {
@@ -121,17 +125,14 @@ final class Query
         }
 
         if ($specification instanceof Composite) {
-            $left = $this->visit($specification->left(), $prefix);
-            $right = $this->visit($specification->right(), $prefix);
-
             return match ($specification->operator()) {
-                Operator::and => $this->and($left, $right),
-                Operator::or => $this->or($left, $right),
+                Operator::and => $this->and($specification, $prefix),
+                Operator::or => $this->or($specification, $prefix),
             };
         }
 
         if ($specification instanceof Not) {
-            return $this->not($this->visit($specification->specification(), $prefix));
+            return $this->not($specification->specification(), $prefix);
         }
 
         if ($specification instanceof Comparator) {
@@ -143,29 +144,81 @@ final class Query
         throw new \LogicException("Unsupported specification '$class'");
     }
 
-    private function and(array $left, array $right): array
+    private function and(Composite $specification, string $prefix): array
     {
         return [
             'bool' => [
-                'must' => [$left, $right],
+                'must' => [
+                    $this->visit($specification->left(), $prefix),
+                    $this->visit($specification->right(), $prefix),
+                ],
             ],
         ];
     }
 
-    private function or(array $left, array $right): array
+    private function or(Composite $specification, string $prefix): array
     {
+        if (
+            $specification->left() instanceof Comparator &&
+            $specification->left()->sign() === Sign::moreThan &&
+            $specification->right() instanceof Comparator &&
+            $specification->right()->sign() === Sign::equality &&
+            $specification->left()->property() === $specification->right()->property() &&
+            $specification->left()->value() === $specification->right()->value()
+        ) {
+            return [
+                'range' => [
+                    $prefix.$specification->left()->property() => [
+                        'gte' => $specification->left()->value(),
+                    ],
+                ],
+            ];
+        }
+
+        if (
+            $specification->left() instanceof Comparator &&
+            $specification->left()->sign() === Sign::lessThan &&
+            $specification->right() instanceof Comparator &&
+            $specification->right()->sign() === Sign::equality &&
+            $specification->left()->property() === $specification->right()->property() &&
+            $specification->left()->value() === $specification->right()->value()
+        ) {
+            return [
+                'range' => [
+                    $prefix.$specification->left()->property() => [
+                        'lte' => $specification->left()->value(),
+                    ],
+                ],
+            ];
+        }
+
         return [
             'bool' => [
-                'should' => [$left, $right],
+                'should' => [
+                    $this->visit($specification->left(), $prefix),
+                    $this->visit($specification->right(), $prefix),
+                ],
             ],
         ];
     }
 
-    private function not(array $query): array
+    private function not(Specification $specification, string $prefix): array
     {
+        if (
+            $specification instanceof Comparator &&
+            $specification->sign() === Sign::equality &&
+            \is_null($specification->value())
+        ) {
+            return [
+                'exists' => [
+                    'field' => $prefix.$specification->property(),
+                ],
+            ];
+        }
+
         return [
             'bool' => [
-                'must_not' => [$query],
+                'must_not' => [$this->visit($specification, $prefix)],
             ],
         ];
     }
@@ -183,23 +236,27 @@ final class Query
 
     private function compareKeyword(string $property, Comparator $specification): array
     {
+        if (
+            $specification->sign() === Sign::equality &&
+            \is_null($specification->value())
+        ) {
+            return [
+                'bool' => [
+                    'must_not' => [[
+                        'exists' => [
+                            'field' => $property,
+                        ],
+                    ]],
+                ],
+            ];
+        }
+
         return match ($specification->sign()) {
             Sign::equality => [
                 'term' => [
                     $property => [
                         'value' => $specification->value(),
                     ],
-                ],
-            ],
-            Sign::inequality => [
-                'bool' => [
-                    'must_not' => [[
-                        'term' => [
-                            $property => [
-                                'value' => $specification->value(),
-                            ],
-                        ],
-                    ]],
                 ],
             ],
             Sign::lessThan => [
@@ -214,34 +271,6 @@ final class Query
                     $property => [
                         'gt' => $specification->value(),
                     ],
-                ],
-            ],
-            Sign::lessThanOrEqual => [
-                'range' => [
-                    $property => [
-                        'lte' => $specification->value(),
-                    ],
-                ],
-            ],
-            Sign::moreThanOrEqual => [
-                'range' => [
-                    $property => [
-                        'gte' => $specification->value(),
-                    ],
-                ],
-            ],
-            Sign::isNull => [
-                'bool' => [
-                    'must_not' => [[
-                        'exists' => [
-                            'field' => $property,
-                        ],
-                    ]],
-                ],
-            ],
-            Sign::isNotNull => [
-                'exists' => [
-                    'field' => $property,
                 ],
             ],
             Sign::startsWith => $this->compareText($property, $specification),
@@ -266,23 +295,8 @@ final class Query
                     ],
                 ],
             ],
-            Sign::inequality => [
-                'bool' => [
-                    'must_not' => [[
-                        'match_phrase' => [
-                            $property => [
-                                'query' => $specification->value(),
-                            ],
-                        ],
-                    ]],
-                ],
-            ],
             Sign::lessThan => $this->compareKeyword($property, $specification),
             Sign::moreThan => $this->compareKeyword($property, $specification),
-            Sign::lessThanOrEqual => $this->compareKeyword($property, $specification),
-            Sign::moreThanOrEqual => $this->compareKeyword($property, $specification),
-            Sign::isNull => $this->compareKeyword($property, $specification),
-            Sign::isNotNull => $this->compareKeyword($property, $specification),
             Sign::startsWith => [
                 'wildcard' => [
                     $property => [

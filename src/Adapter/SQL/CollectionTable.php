@@ -143,15 +143,15 @@ final class CollectionTable
             ->unsorted()
             ->map(static fn($entity) => Query\Insert::into(
                 $table,
-                new Row(
-                    new Row\Value(
-                        Column\Name::of('aggregateId')->in($table),
+                Row::new(
+                    Row\Value::of(
+                        Column\Name::of('aggregateId'),
                         $id->value(),
                     ),
                     ...$entity
                         ->properties()
-                        ->map(static fn($property) => new Row\Value(
-                            Column\Name::of($property->name())->in($table),
+                        ->map(static fn($property) => Row\Value::of(
+                            Column\Name::of($property->name()),
                             $property->value(),
                         ))
                         ->toList(),

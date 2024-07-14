@@ -111,6 +111,19 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    public function removeAll(Specification $specification): void
+    {
+        $this
+            ->fetch(
+                $specification,
+                null,
+                null,
+                null,
+            )
+            ->map(static fn($aggregate) => $aggregate->id())
+            ->foreach($this->remove(...));
+    }
+
     public function fetch(
         ?Specification $specification,
         null|Sort\Property|Sort\Entity $sort,
