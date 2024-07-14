@@ -23,7 +23,7 @@ use Properties\Formal\ORM\{
 };
 use Formal\AccessLayer\{
     Query\DropTable,
-    Query\SQL,
+    Query\Delete,
     Table,
 };
 use Innmind\OperatingSystem\Factory;
@@ -104,44 +104,55 @@ return static function() {
     }
 
     $os = Factory::build();
-
-    $port = \getenv('DB_PORT') ?: '3306';
-    $connection = $os->remote()->sql(Url::of("mysql://root:root@127.0.0.1:$port/example"));
     $aggregates = Aggregates::of(Types::of(
-        Type\PointInTimeType::of(new Clock),
+        Type\PointInTimeType::of($os->clock()),
         SortableType::of(...),
     ));
-    $connection(DropTable::ifExists(Table\Name::of('user_roles')));
-    $connection(DropTable::ifExists(Table\Name::of('user_addresses')));
-    $connection(DropTable::ifExists(Table\Name::of('user_mainAddress')));
-    $connection(DropTable::ifExists(Table\Name::of('user_billingAddress')));
-    $connection(DropTable::ifExists(Table\Name::of('user')));
-    $_ = Adapter\SQL\ShowCreateTable::of($aggregates)(User::class)->foreach($connection);
 
-    $setup = static function() use ($connection, $aggregates) {
-        $connection(SQL::of('DELETE FROM user_roles'));
-        $connection(SQL::of('DELETE FROM user_addresses'));
-        $connection(SQL::of('DELETE FROM user_mainAddress'));
-        $connection(SQL::of('DELETE FROM user_billingAddress'));
-        $connection(SQL::of('DELETE FROM user'));
+    $sql = static function(Url $dsn, string $driver) use ($os, $aggregates) {
+        $connection = $os->remote()->sql($dsn);
+        $connection(DropTable::ifExists(Table\Name::of('user_roles')));
+        $connection(DropTable::ifExists(Table\Name::of('user_addresses')));
+        $connection(DropTable::ifExists(Table\Name::of('user_mainAddress')));
+        $connection(DropTable::ifExists(Table\Name::of('user_billingAddress')));
+        $connection(DropTable::ifExists(Table\Name::of('user')));
+        $_ = Adapter\SQL\ShowCreateTable::of($aggregates)(User::class)->foreach($connection);
 
-        return Manager::sql($connection, $aggregates);
+        $setup = static function() use ($connection, $aggregates) {
+            $connection(Delete::from(Table\Name::of('user_roles')));
+            $connection(Delete::from(Table\Name::of('user_addresses')));
+            $connection(Delete::from(Table\Name::of('user_mainAddress')));
+            $connection(Delete::from(Table\Name::of('user_billingAddress')));
+            $connection(Delete::from(Table\Name::of('user')));
+
+            return Manager::sql($connection, $aggregates);
+        };
+
+        yield properties(
+            "SQL properties($driver)",
+            Properties::any(),
+            Set\Call::of($setup),
+        )->tag(Storage::sql);
+
+        foreach (Properties::alwaysApplicable() as $property) {
+            yield property(
+                $property,
+                Set\Call::of($setup),
+            )
+                ->named("SQL($driver)")
+                ->tag(Storage::sql);
+        }
     };
 
-    yield properties(
-        'SQL properties',
-        Properties::any(),
-        Set\Call::of($setup),
-    )->tag(Storage::sql);
+    $port = \getenv('DB_PORT') ?: '3306';
+    $dsn = Url::of("mysql://root:root@127.0.0.1:$port/example");
 
-    foreach (Properties::alwaysApplicable() as $property) {
-        yield property(
-            $property,
-            Set\Call::of($setup),
-        )
-            ->named('SQL')
-            ->tag(Storage::sql);
-    }
+    yield from $sql($dsn, 'mysql');
+
+    $port = \getenv('POSTGRES_DB_PORT') ?: '5432';
+    $dsn = Url::of("pgsql://root:root@127.0.0.1:$port/example");
+
+    yield from $sql($dsn, 'postgres');
 
     $port = \getenv('ES_PORT') ?: '9200';
     $url = Url::of("http://127.0.0.1:$port/");

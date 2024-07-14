@@ -216,18 +216,16 @@ final class MainTable
         Id $id,
         Sequence $properties,
     ): Query {
-        $table = $this->name->name();
-
         return Query\Insert::into(
-            $table,
+            $this->name->name(),
             Row::new(
                 Row\Value::of(
-                    Column\Name::of($this->definition->id()->property())->in($table),
+                    Column\Name::of($this->definition->id()->property()),
                     $id->value(),
                 ),
                 ...$properties
                     ->map(static fn($property) => Row\Value::of(
-                        Column\Name::of($property->name())->in($table),
+                        Column\Name::of($property->name()),
                         $property->value(),
                     ))
                     ->toList(),
@@ -252,7 +250,7 @@ final class MainTable
                     Row::new(
                         ...$properties
                             ->map(static fn($property) => Row\Value::of(
-                                Column\Name::of($property->name())->in($table),
+                                Column\Name::of($property->name()),
                                 $property->value(),
                             ))
                             ->toList(),

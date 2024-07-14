@@ -110,18 +110,16 @@ final class EntityTable
      */
     public function insert(Id $id, Sequence $properties): Query
     {
-        $table = $this->name->name();
-
         return Query\Insert::into(
-            $table,
+            $this->name->name(),
             Row::new(
                 Row\Value::of(
-                    Column\Name::of('aggregateId')->in($table),
+                    Column\Name::of('aggregateId'),
                     $id->value(),
                 ),
                 ...$properties
                     ->map(static fn($property) => Row\Value::of(
-                        Column\Name::of($property->name())->in($table),
+                        Column\Name::of($property->name()),
                         $property->value(),
                     ))
                     ->toList(),
@@ -146,7 +144,7 @@ final class EntityTable
                     Row::new(
                         ...$properties
                             ->map(fn($property) => Row\Value::of(
-                                Column\Name::of($property->name())->in($this->name),
+                                Column\Name::of($property->name()),
                                 $property->value(),
                             ))
                             ->toList(),

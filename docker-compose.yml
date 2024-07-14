@@ -12,3 +12,11 @@ services:
             discovery.type: single-node
         ports:
             - '9200:9200'
+    postgres:
+        image: postgres:16
+        environment:
+            POSTGRES_USER: root
+            POSTGRES_PASSWORD: root
+            POSTGRES_DB: example
+        ports:
+            - '5432:5432'
