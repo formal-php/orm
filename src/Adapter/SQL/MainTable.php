@@ -90,14 +90,15 @@ final class MainTable
                 ])
                 ->toList(),
         );
-        $select = $entities->reduce(
-            Select::onDemand($this->name),
-            fn(Select $select, $_, $table) => $select->join(
-                Join::left($table->name())->on(
-                    Column\Name::of($this->definition->id()->property())->in($this->name),
-                    $table->primaryKey()->name()->in($table->name()),
-                ),
+        $joins = $entities->values()->map(
+            fn($table) => Join::left($table->name())->on(
+                Column\Name::of($this->definition->id()->property())->in($this->name),
+                $table->primaryKey()->name()->in($table->name()),
             ),
+        );
+        $select = $joins->reduce(
+            Select::onDemand($this->name),
+            static fn(Select $select, $join) => $select->join($join),
         );
         $this->select = $select
             ->columns(
@@ -123,16 +124,14 @@ final class MainTable
             ->columns(Column\Name::of($definition->id()->property())->in($this->name));
         // No need for this query to be lazy as the result is directly collapsed
         // to an int
-        $this->count = $entities->reduce(
+        $this->count = $joins->reduce(
             Select::from($this->name)->count('count'),
-            fn(Select $select, $_, $table) => $select->join(
-                Join::left($table->name())->on(
-                    Column\Name::of($this->definition->id()->property())->in($this->name),
-                    $table->primaryKey()->name()->in($table->name()),
-                ),
-            ),
+            static fn(Select $select, $join) => $select->join($join),
         );
-        $this->delete = Delete::from($this->name);
+        $this->delete = $joins->reduce(
+            Delete::from($this->name),
+            static fn(Delete $delete, $join) => $delete->join($join),
+        );
         $this->entities = $entities;
         $this->optionals = $optionals;
         $this->collections = $collections;

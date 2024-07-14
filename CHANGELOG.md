@@ -7,6 +7,10 @@
 - Requires `innmind/specification:~4.0`
 - Requires `formal/access-layer:~4.0`
 
+### Fixed
+
+- Ability to remove with a condition on an entity property
+
 ## 2.2.0 - 2024-07-08
 
 ### Added
