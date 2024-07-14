@@ -104,3 +104,7 @@ Depending of the kind of entity you'd use this like this:
     `addresses` is the name of the property on `User`
 
     An aggregate will be matched as long as one address exist with this city.
+
+## `Sign::in`
+
+When using `Sign::in` the value of the specification must be either an `array`, a [`Set`](http://innmind.github.io/Immutable/structures/set/) or a [`Sequence`](http://innmind.github.io/Immutable/structures/sequence/) containing only values of the same type of the property. There **MUST** be at least one value.
