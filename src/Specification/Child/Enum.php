@@ -14,9 +14,12 @@ final class Enum
 {
     /**
      * @psalm-pure
+     *
+     * @param non-empty-string $collection
      */
     public static function any(string $collection, \UnitEnum $value): Child
     {
+        /** @psalm-suppress ImpurePropertyFetch The name of an enum can't change */
         return Child::of($collection, Property::of(
             'name',
             Sign::equality,
@@ -27,6 +30,8 @@ final class Enum
     /**
      * @psalm-pure
      * @no-named-arguments
+     *
+     * @param non-empty-string $collection
      */
     public static function in(
         string $collection,
