@@ -4,20 +4,37 @@ You should use this storage for production mainly.
 
 ## Setup
 
-```php
-use Formal\ORM\Manager;
-use Innmind\OperatingSystem\Factory;
-use Innmind\Url\Url;
+=== "MySQL/MariaDB"
+    ```php
+    use Formal\ORM\Manager;
+    use Innmind\OperatingSystem\Factory;
+    use Innmind\Url\Url;
 
-$os = Factory::build(); //(1)
-$orm = Manager::sql(
-    $os
-        ->remote()
-        ->sql(Url::of('mysql://user:password@127.0.0.1:3306/database_name')),
-);
-```
+    $os = Factory::build(); //(1)
+    $orm = Manager::sql(
+        $os
+            ->remote()
+            ->sql(Url::of('mysql://user:password@127.0.0.1:3306/database_name')),
+    );
+    ```
 
-1. See [`innmind/operating-system`](https://innmind.github.io/documentation/getting-started/operating-system/).
+    1. See [`innmind/operating-system`](https://innmind.github.io/documentation/getting-started/operating-system/).
+
+=== "PostgreSQL"
+    ```php
+    use Formal\ORM\Manager;
+    use Innmind\OperatingSystem\Factory;
+    use Innmind\Url\Url;
+
+    $os = Factory::build(); //(1)
+    $orm = Manager::sql(
+        $os
+            ->remote()
+            ->sql(Url::of('pgsql://user:password@127.0.0.1:5432/database_name')),
+    );
+    ```
+
+    1. See [`innmind/operating-system`](https://innmind.github.io/documentation/getting-started/operating-system/).
 
 ## Mapping
 
