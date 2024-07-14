@@ -4,53 +4,34 @@ Let's create a specification to target users by their name:
 
 ```php title="SearchByName.php"
 use Innmind\Specification\{
-    Comparator,
-    Composable,
+    Comparator\Property,
     Sign,
 };
 
-/**
- * @psalm-immutable
- */
-final readonly class SearchByName implements Comparator
+final class SearchByName
 {
-    use Composable; //(1)
-
-    private function __construct(
-        private Sign $sign,
-        private Name $name,
-    ) {}
-
-    public static function of(Name $name): self
+    public static function of(Name $name): Property
     {
-        return new self(Sign::equality, $name);
+        return Property::of(
+            'name', //(1)
+            Sign::equality,
+            $name, //(2)
+        );
     }
 
-    public static function startingWith(Name $name): self
+    public static function startingWith(Name $name): Property
     {
-        return new self(Sign::startsWith, $name);
-    }
-
-    public function property(): string
-    {
-        return 'name'; //(2)
-    }
-
-    public function sign(): Sign
-    {
-        return $this->sign;
-    }
-
-    public function value(): Name //(3)
-    {
-        return $this->name;
+        return Property::of(
+            'name',
+            Sign::startsWith,
+            $name,
+        );
     }
 }
 ```
 
-1. This trait automatically add the 3 _gates_ allowing you to compose this comparison.
-2. This the name of the property on the `User` class.
-3. The return type must be the same as the one declared on the Aggregate/Entity property.
+1. This is the name of the property on the `User` class.
+2. The value type must be the same as the one declared on the Aggregate/Entity property.
 
 With this class you can create the rule:
 
@@ -73,41 +54,15 @@ If you want to target users by city you'd have this specification:
 
 ```php title="SearchByCity.php"
 use Innmind\Specification\{
-    Comparator,
-    Composable,
+    Comparator\Property,
     Sign,
 };
 
-/**
- * @psalm-immutable
- */
-final readonly class SearchByCity implements Comparator
+final class SearchByCity
 {
-    use Composable;
-
-    private function __construct(
-        private Sign $sign,
-        private string $city,
-    ) {}
-
-    public static function of(string $city): self
+    public static function of(string $city): Property
     {
-        return new self(Sign::equality, $city);
-    }
-
-    public function property(): string
-    {
-        return 'city';
-    }
-
-    public function sign(): Sign
-    {
-        return $this->sign;
-    }
-
-    public function value(): string
-    {
-        return $this->city;
+        return Property::of('city', Sign::equality, $city);
     }
 }
 ```
