@@ -44,3 +44,50 @@ Thanks to immutability it guarantees that there is only one owner of any object.
 The ORM doesn't need to create proxies for your objects. This means you can declare all your classes `final` so no one can change their behaviour.
 
 Immutability also reduces the risk to persist partial modifications. Any modification of an aggregate returns a copy. This means you have to explicitly call the repository to apply a change.
+
+??? example
+    === "Mutable object"
+        ```php hl_lines="9-11"
+        final class User
+        {
+            public function __construct(
+                private string $name,
+            ) {}
+
+            public function rename(string $name): self
+            {
+                $this->name = $name;
+
+                return $this;
+            }
+        }
+        ```
+
+        ```php
+        $user1 = new User('foo');
+        $user2 = $user1->rename('bar');
+        ```
+
+        `$user1` and `$user2` reference the same object.
+
+    === "Immutable object"
+        ```php hl_lines="9"
+        final class User
+        {
+            public function __construct(
+                private string $name,
+            ) {}
+
+            public function rename(string $name): self
+            {
+                return new self($name);
+            }
+        }
+        ```
+
+        ```php
+        $user1 = new User('foo');
+        $user2 = $user1->rename('bar');
+        ```
+
+        `$user1` and `$user2` **DO NOT** reference the same object.
