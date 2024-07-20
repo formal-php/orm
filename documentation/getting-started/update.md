@@ -46,7 +46,7 @@ Since our aggregate is readonly we need to return a new instance. The only diffe
 
     In the end you may still be tempted to use `clone`. Know that this will work as it doesn't change a thing for the ORM. Yet this practice is frowned upon by this project as it favors [implicits](https://innmind.github.io/documentation/philosophy/explicit/).
 
-And to then apply our change:
+And then apply our change:
 
 ```php
 use Formal\ORM\Id;
