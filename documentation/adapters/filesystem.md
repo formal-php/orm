@@ -6,8 +6,6 @@ You can use any implementation of the `Innmind\Filesystem\Adapter` interface pro
 
 ## In memory
 
-This is probably the adapter you've used while going through this documentation.
-
 It allows to quickly iterate on some code and see if it works, and move later on on a more persistent storage.
 
 This adapter is also useful when testing an application. By using an in memory storage your tests can run faster as it doesn't have to persist anything to the filesystem.

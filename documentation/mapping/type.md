@@ -110,6 +110,6 @@ $orm = Manager::of(
 1. See the [Adapters](../adapters/index.md) chapter to see all the adapters you can use.
 
 !!! success ""
-    If in an aggregate you want to use the type `?Name` on a property you don't need to support the `null` case in `NameType`.
+    With this you can also use the `?Name` type on a property.
 
-    Formal automatically handles that for you!
+    Formal handles the `null` case for you!

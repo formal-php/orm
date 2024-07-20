@@ -6,7 +6,7 @@ hide:
 
 # Welcome to the Formal ORM
 
-This ORM focuses to simplify data manipulation.
+This ORM focuses on simplifying data manipulation.
 
 This is achieved by:
 

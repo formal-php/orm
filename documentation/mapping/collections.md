@@ -62,7 +62,7 @@ The `Set` monad represents an unordered collection of unique values.
     ```php
     $address = new Address('foo', 'bar', 'baz');
     $set1 = Set::of($address, $address);
-    $et2 = Set::of(
+    $set2 = Set::of(
         new Address('foo', 'bar', 'baz'),
         new Address('foo', 'bar', 'baz'),
     );

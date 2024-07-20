@@ -6,7 +6,7 @@ At some point you may need to count the number of aggregates stored. You can do 
 $count = $orm->repository(User::class)->size();
 ```
 
-This will return `0` or above.
+This will return `0` or more.
 
 And sometime you may need to simply know if there's at least one aggregate or none. For this case you **should not** use the `size` method as it overfetches data. Instead you can do:
 

@@ -135,4 +135,4 @@ $orm = Manager::of(
 ## Limitations
 
 !!! warning ""
-    While this storage as its usages don't forget about [its limitations](../limitations.md#elasticsearch).
+    While this storage has its usages don't forget about [its limitations](../limitations.md#elasticsearch).

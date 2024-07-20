@@ -2,7 +2,7 @@
 
 This ORM goal is to allow users to store data in long living processes (like a daemon or a queue consumer) and asynchronous apps.
 
-The long living processes use case implies that the ORM must be memory efficient to avoid memory leaks that would crash your app. The asynchronous use case implies that the ORM must use an generic abstraction allowing it to not be aware if it's used in a synchronous or asynchronous context, this means that no code needs to be changed for this to work.
+The long living processes use case implies that the ORM must be memory efficient to avoid memory leaks that would crash your app. The asynchronous use case implies that the ORM must be agnostic of the context in which it's run, this means that no code needs to be changed for this to work.
 
 This goal is achieved by:
 
@@ -15,13 +15,13 @@ This goal is achieved by:
 
 ## Monads
 
-In order to be memory efficient we need to represent a collection of data that can be streamed. This is why this ORM uses the [`Sequence`](https://innmind.github.io/documentation/getting-started/handling-data/sequence/) monad when fetching multiple aggregates.
+To be memory efficient we need to represent a collection of data that can be streamed. This is why this ORM uses the [`Sequence`](https://innmind.github.io/documentation/getting-started/handling-data/sequence/) monad when fetching aggregates.
 
-For design consistency this ORM uses the [`Maybe`](https://innmind.github.io/documentation/getting-started/handling-data/maybe/) monad when fetching an aggregate by id, instead of returning the aggregate or throwing an exception when no value is found. This also allows the retrieval to be deferred, meaning that if you never unwrap the monad there will be no call made to the storage.
+For design consistency this ORM uses the [`Maybe`](https://innmind.github.io/documentation/getting-started/handling-data/maybe/) monad when fetching an aggregate by id. Instead of returning the aggregate or throwing an exception when no value is found. This also allows the retrieval to be deferred. Meaning that if you never unwrap the monad there will be no call made to the storage.
 
-The `Maybe` monad is also used to wrap optional entities in your aggregates meaning that these entities are not fetched unless you need it to (and the eventual fetch from the storage is transparent in your code). But once loaded it stays in memory, as long as your aggregate is in memory.
+The `Maybe` monad is also used to wrap optional entities in your aggregates. Meaning that these entities are not fetched unless you need it to. The eventual fetch from the storage is transparent in your code. But once loaded it stays in memory, as long as your aggregate is in memory.
 
-Collections of entities in an aggregate is achieved using the [`Set`](https://innmind.github.io/Immutable/structures/set/) monad and works the same way as `Maybe`, no data fetched by default but once it is loaded it stays in memory.
+The [`Set`](https://innmind.github.io/Immutable/structures/set/) monad is used to represent collections of entities and works the same way as `Maybe`. No data fetched by default but once it is loaded it stays in memory.
 
 ## Trees, not a Graph
 
@@ -37,10 +37,10 @@ This is because each Aggregate is independent and encapsulate ownership of data 
 
 ## Immutability
 
-In order to make sure an Aggregate is the only owner of the data it's supposed to encapsulate an Aggregate **MUST** be immutable. This means that if you want to update your aggregate data you must create a copy of this aggregate with the data modified.
+To make sure an Aggregate is the only owner of the data it's supposed to encapsulate it **MUST** be immutable. This means that if you want to update its data you must create a copy with the data modified.
 
-It is thanks to immutability that it is guaranteed that there is only one owner of any object AND that the ORM is able to compute a diff to only update the data that changed since when you fetched the aggregate.
+Thanks to immutability it guarantees that there is only one owner of any object. The ORM is then able to compute a diff to only update the data that changed since when you fetched the aggregate.
 
-Since the ORM doesn't need to create proxies for your objects you can declare all your classes `final` so no one can change their behaviour.
+The ORM doesn't need to create proxies for your objects. This means you can declare all your classes `final` so no one can change their behaviour.
 
-Immutability also reduces the risk that you start modifying an aggregate that is accidently persisted to your database when some code ask to flush all changes. Since aggregates are immutable you have to explicitly call your repository with the new aggregate version.
+Immutability also reduces the risk to persist partial modifications. Any modification of an aggregate returns a copy. This means you have to explicitly call the repository to apply a change.

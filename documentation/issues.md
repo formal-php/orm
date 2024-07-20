@@ -16,4 +16,4 @@ Internally this search uses the [`wildcard` query](https://www.elastic.co/guide/
 If you really need to do this kind of search you could add an extra property on your aggregate with the string being in reversed order from the original one. You can then do a search on this property with `Sign::startsWith` and reversing the string used as argument.
 
 !!! warning ""
-    Bear in mind that `startsWith` also uses the `wildcard` query and may slower that you'd want or even not return the results you'd expect.
+    Bear in mind that `startsWith` also uses the `wildcard` query and may be slower that you'd want or even not return the results you'd expect.

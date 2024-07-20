@@ -19,18 +19,76 @@ But if you're building a HTTP API you don't want to return all the aggregates fr
 
 This is very simple with Formal:
 
-```php
-use Formal\ORM\Sort;
+=== "Page 0"
+    ```php
+    use Formal\ORM\Sort;
 
-$usersArray = $orm
-    ->repository(User::class)
-    ->all()
-    ->sort('name', Sort::asc)
-    ->drop(1_000)
-    ->take(100)
-    ->sequence()
-    ->toList();
-```
+    $usersArray = $orm
+        ->repository(User::class)
+        ->all()
+        ->sort('name', Sort::asc)
+        ->take(100)
+        ->sequence()
+        ->toList();
+    ```
+
+=== "Page 1"
+    ```php
+    use Formal\ORM\Sort;
+
+    $usersArray = $orm
+        ->repository(User::class)
+        ->all()
+        ->sort('name', Sort::asc)
+        ->drop(100)
+        ->take(100)
+        ->sequence()
+        ->toList();
+    ```
+
+=== "Page 2"
+    ```php
+    use Formal\ORM\Sort;
+
+    $usersArray = $orm
+        ->repository(User::class)
+        ->all()
+        ->sort('name', Sort::asc)
+        ->drop(200)
+        ->take(100)
+        ->sequence()
+        ->toList();
+    ```
+
+=== "Page 3"
+    ```php
+    use Formal\ORM\Sort;
+
+    $usersArray = $orm
+        ->repository(User::class)
+        ->all()
+        ->sort('name', Sort::asc)
+        ->drop(300)
+        ->take(100)
+        ->sequence()
+        ->toList();
+    ```
+
+=== "etc..."
+    ```php
+    use Formal\ORM\Sort;
+
+    $page = 4;
+    $pageSize = 100;
+    $usersArray = $orm
+        ->repository(User::class)
+        ->all()
+        ->sort('name', Sort::asc)
+        ->drop($page * $pageSize)
+        ->take($pageSize)
+        ->sequence()
+        ->toList();
+    ```
 
 !!! tip ""
     This also works with `->repository()->matching()`.
@@ -48,12 +106,14 @@ The sort allows the pagination to be _stable_ (the same query will return the sa
         ```php
         use Formal\ORM\Sort;
 
+        $page = 1;
+        $pageSize = 100;
         $usersArray = $orm
             ->repository(User::class)
             ->all()
             ->sort('name', Sort::asc)
-            ->drop(1_000)
-            ->take(100)
+            ->drop($page * $pageSize)
+            ->take($pageSize)
             ->sequence()
             ->toList();
         ```
@@ -62,12 +122,14 @@ The sort allows the pagination to be _stable_ (the same query will return the sa
         ```php
         use Formal\ORM\Sort;
 
+        $page = 1;
+        $pageSize = 100;
         $usersArray = $orm
             ->repository(User::class)
             ->all()
             ->sort('name', Sort::asc)
             ->sequence()
-            ->drop(1_000)
-            ->take(100)
+            ->drop($page * $pageSize)
+            ->take($pageSize)
             ->toList();
         ```

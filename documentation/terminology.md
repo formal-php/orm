@@ -50,11 +50,13 @@ An entity can only contain properties, it can't contain other entities.
 
 ## Specification
 
-A `Specification` is the only way to represent multiple aggregates inside a repository. Conceptually it is a tree of objects where each can be:
+A `Specification` is the mechanism to create a filter. It's used to retrieve aggregates or remove them.
+
+It uses objects to represent:
 
 - a comparison
 - a negation
 - an `and` composition of 2 specifications
 - an `or` composition of 2 specifications
 
-This concept allows to express any condition and impose the expression of the precedence of operations (thus no implicits between `and`, `or` and `not`).
+In essence this boolean logic represented via objects. With them you can create almost any filter. And it enforces the precedence of operations (thus no implicits).
