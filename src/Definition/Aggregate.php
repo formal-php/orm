@@ -74,7 +74,7 @@ final class Aggregate
         string $class,
     ): self {
         /** @var callable(class-string): non-empty-string */
-        $mapName = static fn(string $class): string =>  Str::of($class)
+        $mapName ??= static fn(string $class): string =>  Str::of($class)
             ->split('\\')
             ->takeEnd(1)
             ->fold(new Concat)
