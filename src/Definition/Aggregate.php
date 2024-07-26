@@ -19,6 +19,8 @@ final class Aggregate
 {
     /** @var class-string<T> */
     private string $class;
+    /** @var non-empty-string */
+    private string $name;
     /** @var Aggregate\Identity<T> */
     private Aggregate\Identity $id;
     /** @var Sequence<Aggregate\Property<T, mixed>> */
@@ -32,6 +34,7 @@ final class Aggregate
 
     /**
      * @param class-string<T> $class
+     * @param non-empty-string $name
      * @param Aggregate\Identity<T> $id
      * @param Sequence<Aggregate\Property<T, mixed>> $properties
      * @param Sequence<Aggregate\Entity> $entities
@@ -40,6 +43,7 @@ final class Aggregate
      */
     private function __construct(
         string $class,
+        string $name,
         Aggregate\Identity $id,
         Sequence $properties,
         Sequence $entities,
@@ -47,6 +51,7 @@ final class Aggregate
         Sequence $collections,
     ) {
         $this->class = $class;
+        $this->name = $name;
         $this->id = $id;
         $this->properties = $properties;
         $this->entities = $entities;
@@ -58,12 +63,23 @@ final class Aggregate
      * @internal
      * @template A
      *
+     * @param callable(class-string): non-empty-string $mapName
      * @param class-string<A> $class
      *
      * @return self<A>
      */
-    public static function of(Types $types, string $class): self
-    {
+    public static function of(
+        Types $types,
+        ?callable $mapName,
+        string $class,
+    ): self {
+        /** @var callable(class-string): non-empty-string */
+        $mapName ??= static fn(string $class): string =>  Str::of($class)
+            ->split('\\')
+            ->takeEnd(1)
+            ->fold(new Concat)
+            ->toLower()
+            ->toString();
         /** @var Parsing<A> Type lost due to the reduce */
         $parsed = ReflectionClass::of($class)
             ->properties()
@@ -75,6 +91,7 @@ final class Aggregate
         return $parsed->id()->match(
             static fn($id) => new self(
                 $class,
+                $mapName($class),
                 $id,
                 $parsed->properties(),
                 $parsed->entities(),
@@ -98,13 +115,7 @@ final class Aggregate
      */
     public function name(): string
     {
-        /** @var non-empty-string */
-        return Str::of($this->class)
-            ->split('\\')
-            ->takeEnd(1)
-            ->fold(new Concat)
-            ->toLower()
-            ->toString();
+        return $this->name;
     }
 
     /**
