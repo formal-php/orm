@@ -5,6 +5,43 @@ hide:
 
 # Known issues
 
+## Mapping
+
+### Aggregate name collision
+
+By default the ORM translate an Aggregate class to a simple name in the [adapter](adapters/index.md). For example the class `App\Domain\User` is translated to `user`. This allows to simplify reading the storage folders/tables/indexes.
+
+For small projects this is fine. But for larger projects names collision may arise.
+
+For example you may have the aggregates `App\Domain\Shipping\Product` and `App\Domain\Billing\Product` that would result in the same `product` name in the storage.
+
+You can fix it like this:
+
+```php
+use Formal\ORM\{
+    Manager,
+    Definition\Aggregates,
+    Definition\Types,
+};
+
+$orm = Manager::of(
+    /* your storage adapter (1) */,
+    Aggregates::of(
+        Types::default(),
+    )->mapName(static fn(string $class) {
+        \App\Domain\Shipping\Product::class => 'shippingProduct',
+        \App\Domain\Billing\Product::class => 'billingProduct',
+    }),
+);
+```
+
+1. see [Adapters](adapters/index.md)
+
+!!! info ""
+    This also allows to fix the default casing of names. For example the class `App\Domain\DocumentTemplate` result in the name `documenttemplate`. Which is not very readable.
+
+    This behaviour won't be change for the time being to not break existing projects. But you can gradually fix this via the `mapName` method.
+
 ## Elasticsearch
 
 ### Searching with `endsWith`

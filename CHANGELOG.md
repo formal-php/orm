@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.1.0 - 2024-07-26
+
+### Added
+
+- `Formal\ORM\Definition\Aggregagtes::mapName()`
+
 ## 3.0.0 - 2024-07-14
 
 ### Added
