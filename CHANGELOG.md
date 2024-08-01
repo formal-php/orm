@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Psalm was complaining of a missing argument when using `PointInTimeType::of()`
+
 ## 3.1.0 - 2024-07-26
 
 ### Added

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace Formal\ORM\Definition\Type;
 
 use Formal\ORM\Definition\{
+    Contains,
     Type,
     Types,
     Type\PointInTimeType\Format,
@@ -34,7 +35,7 @@ final class PointInTimeType implements Type
     /**
      * @psalm-pure
      *
-     * @return callable(Types, Concrete): Maybe<self>
+     * @return callable(Types, Concrete, ?Contains): Maybe<self>
      */
     public static function of(Clock $clock): callable
     {
