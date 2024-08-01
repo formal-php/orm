@@ -8,7 +8,10 @@ use Formal\ORM\{
     Definition\Type,
     Definition\Types,
 };
-use Innmind\TimeContinuum\Earth\Clock;
+use Innmind\TimeContinuum\{
+    Earth\Clock,
+    PointInTime,
+};
 use Fixtures\Formal\ORM\User;
 
 return static function() {
@@ -16,7 +19,10 @@ return static function() {
         'Define Elasticsearch index mapping for the User fixture',
         static function($assert) {
             $aggregates = Aggregates::of(Types::of(
-                Type\PointInTimeType::of(new Clock),
+                Type\Support::class(
+                    PointInTime::class,
+                    Type\PointInTimeType::new(new Clock),
+                ),
             ));
 
             $mapping = Mapping::new()($aggregates->get(User::class));

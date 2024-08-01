@@ -9,7 +9,10 @@ use Formal\ORM\{
     Definition\Types,
 };
 use Formal\AccessLayer\Driver;
-use Innmind\TimeContinuum\Earth\Clock;
+use Innmind\TimeContinuum\{
+    Earth\Clock,
+    PointInTime,
+};
 use Fixtures\Formal\ORM\User;
 
 return static function() {
@@ -18,7 +21,10 @@ return static function() {
         static function($assert) {
             $show = ShowCreateTable::of(
                 Aggregates::of(Types::of(
-                    Type\PointInTimeType::of(new Clock),
+                    Type\Support::class(
+                        PointInTime::class,
+                        Type\PointInTimeType::new(new Clock),
+                    ),
                 )),
             );
 
@@ -53,7 +59,10 @@ return static function() {
         static function($assert) {
             $show = ShowCreateTable::of(
                 Aggregates::of(Types::of(
-                    Type\PointInTimeType::of(new Clock),
+                    Type\Support::class(
+                        PointInTime::class,
+                        Type\PointInTimeType::new(new Clock),
+                    ),
                 ))->mapName(static fn($string) => match ($string) {
                     User::class => 'some_user',
                 }),
