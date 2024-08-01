@@ -85,10 +85,7 @@ return static function() {
         Set\Call::of(static fn() => Manager::filesystem(
             InMemory::emulateFilesystem(),
             Aggregates::of(Types::of(
-                Type\Support::class(
-                    PointInTime::class,
-                    Type\PointInTimeType::new(new Clock),
-                ),
+                Type\PointInTimeType::of(new Clock),
                 SortableType::of(...),
             )),
         )),
