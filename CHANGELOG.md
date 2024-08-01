@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## 3.1.1 - 2024-08-01
 
 ### Added
 
