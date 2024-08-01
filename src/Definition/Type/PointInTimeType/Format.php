@@ -17,6 +17,9 @@ final class Format implements FormatInterface
      */
     private string $format = 'Y:m:d\TH:i:s.uP';
 
+    /**
+     * @psalm-pure
+     */
     public static function new(): self
     {
         $self = new self;
