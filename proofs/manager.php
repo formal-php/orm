@@ -28,7 +28,10 @@ use Formal\AccessLayer\{
 };
 use Innmind\OperatingSystem\Factory;
 use Innmind\Filesystem\Adapter\InMemory;
-use Innmind\TimeContinuum\Earth\Clock;
+use Innmind\TimeContinuum\{
+    Earth\Clock,
+    PointInTime,
+};
 use Innmind\Url\Url;
 use Innmind\Immutable\Either;
 use Innmind\BlackBox\Set;
@@ -94,7 +97,10 @@ return static function() {
             Set\Call::of(static fn() => Manager::filesystem(
                 InMemory::emulateFilesystem(),
                 Aggregates::of(Types::of(
-                    Type\PointInTimeType::of(new Clock),
+                    Type\Support::class(
+                        PointInTime::class,
+                        Type\PointInTimeType::new(new Clock),
+                    ),
                     SortableType::of(...),
                 )),
             )),
@@ -105,7 +111,10 @@ return static function() {
 
     $os = Factory::build();
     $aggregates = Aggregates::of(Types::of(
-        Type\PointInTimeType::of($os->clock()),
+        Type\Support::class(
+            PointInTime::class,
+            Type\PointInTimeType::new($os->clock()),
+        ),
         SortableType::of(...),
     ));
 
