@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Added
+
+- `Formal\ORM\Definition\Type\PointInTimeType::new()`
+
+### Deprecated
+
+- `Formal\ORM\Definition\Type\PointInTimeType::of()` as it uses a non standard string format. Use `::new()` instead, but don't forget to migrate your data.
+
 ### Fixed
 
 - Psalm was complaining of a missing argument when using `PointInTimeType::of()`
