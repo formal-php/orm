@@ -102,7 +102,7 @@ Depending of the kind of entity you'd use this like this:
     Has::an('address');
     ```
 
-    And if you want to match aggregates that do not have an entity: `Has::an('address')->not()`.
+    And if you want to match aggregates that do not have an entity: `#!php Has::an('address')->not()`.
 
 === "Entity colleciton"
     ```php
