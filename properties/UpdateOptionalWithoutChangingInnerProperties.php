@@ -5,7 +5,6 @@ namespace Properties\Formal\ORM;
 
 use Formal\ORM\Manager;
 use Fixtures\Formal\ORM\User;
-use Innmind\Specification\Sign;
 use Innmind\BlackBox\{
     Set,
     Property,
