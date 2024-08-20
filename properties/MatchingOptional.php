@@ -89,23 +89,6 @@ final class MatchingOptional implements Property
             ->in($found);
 
         $found = $repository
-            ->matching(Has::an('billingAddress')->not()) // use the other named constructor for code coverage
-            ->map(static fn($user) => $user->id()->toString())
-            ->toList();
-
-        $assert
-            ->expected($user1->id()->toString())
-            ->not()
-            ->in($found);
-        $assert
-            ->expected($user2->id()->toString())
-            ->not()
-            ->in($found);
-        $assert
-            ->expected($user3->id()->toString())
-            ->in($found);
-
-        $found = $repository
             ->matching(Just::of('billingAddress', AddressValue::of(
                 Sign::equality,
                 $this->name1,

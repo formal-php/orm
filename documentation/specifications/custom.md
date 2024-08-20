@@ -89,11 +89,6 @@ Depending of the kind of entity you'd use this like this:
 
     If the aggregate doesn't have an address specified then it won't be matched.
 
-    ??? warning
-        You **MUST NOT** negate a `Just` specification as it may not produce the results you'd expect. However you can negate the specification inside the `Just`.
-
-        This is due to a behaviour inconsistency in [Elasticsearch](../adapters/elasticsearch.md).
-
     If you only need to know if an entity exist you can use `Has`:
 
     ```php
@@ -102,7 +97,10 @@ Depending of the kind of entity you'd use this like this:
     Has::an('address');
     ```
 
-    And if you want to match aggregates that do not have an entity: `#!php Has::an('address')->not()`.
+    ??? warning
+        You **MUST NOT** negate a `Just` or a `Has` specification as it may not produce the results you'd expect. However you can negate the specification inside the `Just`.
+
+        This is due to a behaviour inconsistency in [Elasticsearch](../adapters/elasticsearch.md).
 
 === "Entity colleciton"
     ```php
