@@ -94,6 +94,16 @@ Depending of the kind of entity you'd use this like this:
 
         This is due to a behaviour inconsistency in [Elasticsearch](../adapters/elasticsearch.md).
 
+    If you only need to know if an entity exist you can use `Has`:
+
+    ```php
+    use Formal\ORM\Specification\Has;
+
+    Has::an('address');
+    ```
+
+    And if you want to match aggregates that do not have an entity: `Has::an('address')->not()`.
+
 === "Entity colleciton"
     ```php
     use Formal\ORM\Specification\Just;

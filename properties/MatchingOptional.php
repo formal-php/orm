@@ -6,6 +6,7 @@ namespace Properties\Formal\ORM;
 use Formal\ORM\{
     Manager,
     Specification\Just,
+    Specification\Has,
 };
 use Fixtures\Formal\ORM\{
     User,
@@ -70,6 +71,39 @@ final class MatchingOptional implements Property
                 return Either::right(null);
             },
         );
+
+        $found = $repository
+            ->matching(Has::a('billingAddress'))
+            ->map(static fn($user) => $user->id()->toString())
+            ->toList();
+
+        $assert
+            ->expected($user1->id()->toString())
+            ->in($found);
+        $assert
+            ->expected($user2->id()->toString())
+            ->in($found);
+        $assert
+            ->expected($user3->id()->toString())
+            ->not()
+            ->in($found);
+
+        $found = $repository
+            ->matching(Has::a('billingAddress')->not())
+            ->map(static fn($user) => $user->id()->toString())
+            ->toList();
+
+        $assert
+            ->expected($user1->id()->toString())
+            ->not()
+            ->in($found);
+        $assert
+            ->expected($user2->id()->toString())
+            ->not()
+            ->in($found);
+        $assert
+            ->expected($user3->id()->toString())
+            ->in($found);
 
         $found = $repository
             ->matching(Just::of('billingAddress', AddressValue::of(

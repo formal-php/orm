@@ -8,6 +8,7 @@ use Formal\ORM\{
     Specification\Entity,
     Specification\Child,
     Specification\Just,
+    Specification\Has,
 };
 use Innmind\Specification\{
     Specification,
@@ -108,6 +109,14 @@ final class Query
                         ],
                         $this->visit($specification->specification(), $specification->optional().'.'),
                     ],
+                ],
+            ];
+        }
+
+        if ($specification instanceof Has) {
+            return [
+                'exists' => [
+                    'field' => $specification->optional(),
                 ],
             ];
         }
