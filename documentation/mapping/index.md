@@ -33,14 +33,19 @@ By default Formal also supports:
         Manager,
         Definition\Aggregates,
         Definition\Types,
-        Definition\Type\PointInTime,
-    }
+        Definition\Type\Support,
+        Definition\Type\PointInTimeType,
+    };
+    use Innmind\TimeContinuum\PointInTime;
 
     $orm = Manager::of(
         /* any adapter (1) */,
         Aggregates::of(
             Types::of(
-                PointInTimeType::of($os->clock()),
+                Support::class(
+                    PointInTime::class,
+                    PointInTimeType::new($os->clock()),
+                ),
             ),
         ),
     );
