@@ -170,24 +170,27 @@ final class OptionalTable
         }
 
         return $optional->properties()->match(
-            fn($properties) => Sequence::of(
-                Update::set(
-                    $this->name,
-                    Row::new(
-                        ...$properties
-                            ->map(static fn($property) => Row\Value::of(
-                                Column\Name::of($property->name()),
-                                $property->value(),
-                            ))
-                            ->toList(),
-                    ),
-                )
-                    ->where(PropertySpecification::of(
-                        'aggregateId',
-                        Sign::equality,
-                        $id->value(),
-                    )),
-            ),
+            fn($properties) => match ($properties->empty()) {
+                true => Sequence::of(),
+                false => Sequence::of(
+                    Update::set(
+                        $this->name,
+                        Row::new(
+                            ...$properties
+                                ->map(static fn($property) => Row\Value::of(
+                                    Column\Name::of($property->name()),
+                                    $property->value(),
+                                ))
+                                ->toList(),
+                        ),
+                    )
+                        ->where(PropertySpecification::of(
+                            'aggregateId',
+                            Sign::equality,
+                            $id->value(),
+                        )),
+                ),
+            },
             fn() => Sequence::of(
                 Delete::from($this->name)->where(PropertySpecification::of(
                     'aggregateId',
@@ -203,5 +206,10 @@ final class OptionalTable
         return Select::from($this->name)
             ->columns($this->id)
             ->where($specification);
+    }
+
+    public function whereAny(): Query
+    {
+        return Select::from($this->name)->columns($this->id);
     }
 }

@@ -1,5 +1,35 @@
 # Changelog
 
+## 3.2.0 - 2024-08-20
+
+### Added
+
+- `Formal\ORM\Specification\Has`
+
+### Fixed
+
+- Updating an optional entity resulting in no property change no longer raised an exception when stored via SQL nor it generates an invalid document in Elasticsearch
+
+## 3.1.1 - 2024-08-01
+
+### Added
+
+- `Formal\ORM\Definition\Type\PointInTimeType::new()`
+
+### Deprecated
+
+- `Formal\ORM\Definition\Type\PointInTimeType::of()` as it uses a non standard string format. Use `::new()` instead, but don't forget to migrate your data.
+
+### Fixed
+
+- Psalm was complaining of a missing argument when using `PointInTimeType::of()`
+
+## 3.1.0 - 2024-07-26
+
+### Added
+
+- `Formal\ORM\Definition\Aggregagtes::mapName()`
+
 ## 3.0.0 - 2024-07-14
 
 ### Added

@@ -12,6 +12,7 @@ use Formal\ORM\{
     Specification\Entity,
     Specification\Child,
     Specification\Just,
+    Specification\Has,
 };
 use Formal\AccessLayer\{
     Table,
@@ -367,6 +368,18 @@ final class MainTable
                     ->optional($specification->optional())
                     ->match(
                         static fn($optional) => $optional->where($specification->specification()),
+                        static fn() => throw new \LogicException("Unkown optional '{$specification->optional()}'"),
+                    ),
+            );
+        }
+
+        if ($specification instanceof Has) {
+            return SubQuery::of(
+                \sprintf('entity.%s', $this->definition->id()->property()),
+                $this
+                    ->optional($specification->optional())
+                    ->match(
+                        static fn($optional) => $optional->whereAny(),
                         static fn() => throw new \LogicException("Unkown optional '{$specification->optional()}'"),
                     ),
             );

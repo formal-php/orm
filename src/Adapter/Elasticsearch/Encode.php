@@ -25,12 +25,17 @@ final class Encode
         $properties = $this->properties($data->properties());
         $entities = $data
             ->entities()
+            ->exclude(static fn($entity) => $entity->properties()->empty())
             ->map(fn($entity) => [
                 $entity->name() => $this->properties($entity->properties()),
             ])
             ->toList();
         $optionals = $data
             ->optionals()
+            ->exclude(static fn($optional) => $optional->properties()->match(
+                static fn($properties) => $properties->empty(),
+                static fn() => false, // force setting the property to null below
+            ))
             ->map(fn($optional) => [
                 $optional->name() => $optional->properties()->match(
                     $this->properties(...),

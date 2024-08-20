@@ -10,6 +10,7 @@ use Formal\ORM\{
     Specification\Entity as EntitySpecification,
     Specification\Child as ChildSpecification,
     Specification\Just as JustSpecification,
+    Specification\Has as HasSpecification,
 };
 use Innmind\Specification\{
     Specification,
@@ -99,6 +100,17 @@ final class Fold
                 ->flatMap(static fn($optional) => $optional->properties())
                 ->match(
                     static fn($properties) => $filter($properties),
+                    static fn() => false,
+                );
+        }
+
+        if ($specification instanceof HasSpecification) {
+            return static fn(Aggregate $aggregate) => $aggregate
+                ->optionals()
+                ->find(static fn($optional) => $optional->name() === $specification->optional())
+                ->flatMap(static fn($optional) => $optional->properties())
+                ->match(
+                    static fn() => true,
                     static fn() => false,
                 );
         }

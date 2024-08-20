@@ -9,7 +9,10 @@ use Formal\ORM\{
     Definition\Types,
 };
 use Formal\AccessLayer\Driver;
-use Innmind\TimeContinuum\Earth\Clock;
+use Innmind\TimeContinuum\{
+    Earth\Clock,
+    PointInTime,
+};
 use Fixtures\Formal\ORM\User;
 
 return static function() {
@@ -18,7 +21,10 @@ return static function() {
         static function($assert) {
             $show = ShowCreateTable::of(
                 Aggregates::of(Types::of(
-                    Type\PointInTimeType::of(new Clock),
+                    Type\Support::class(
+                        PointInTime::class,
+                        Type\PointInTimeType::new(new Clock),
+                    ),
                 )),
             );
 
@@ -45,6 +51,37 @@ return static function() {
                     SQL,
                 ])
                 ->same($queries);
+        },
+    )->tag(Storage::sql);
+
+    yield test(
+        'Aggregate table name can be changed',
+        static function($assert) {
+            $show = ShowCreateTable::of(
+                Aggregates::of(Types::of(
+                    Type\Support::class(
+                        PointInTime::class,
+                        Type\PointInTimeType::new(new Clock),
+                    ),
+                ))->mapName(static fn($string) => match ($string) {
+                    User::class => 'some_user',
+                }),
+            );
+
+            // the match above allows to make sure the map is only applied to
+            // aggregate classes and not entities or pproperties
+
+            $queries = $show(User::class)
+                ->map(static fn($query) => $query->sql(Driver::mysql))
+                ->toList();
+
+            $assert
+                ->expected(
+                    <<<SQL
+                    CREATE TABLE  `some_user` (`id` char(36) NOT NULL  COMMENT 'UUID', `createdAt` char(32) NOT NULL  COMMENT 'Date with timezone down to the microsecond', `name` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', `nameStr` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', `role` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', PRIMARY KEY (`id`))
+                    SQL,
+                )
+                ->in($queries);
         },
     )->tag(Storage::sql);
 };
