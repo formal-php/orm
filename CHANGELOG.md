@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Updating an optional entity resulting in no property change no longer raised an exception when stored via SQL nor it generates an invalid document in Elasticsearch
+
 ## 3.1.1 - 2024-08-01
 
 ### Added
