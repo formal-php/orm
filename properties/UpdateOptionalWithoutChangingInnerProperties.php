@@ -3,14 +3,8 @@ declare(strict_types = 1);
 
 namespace Properties\Formal\ORM;
 
-use Formal\ORM\{
-    Manager,
-    Specification\Just,
-};
-use Fixtures\Formal\ORM\{
-    User,
-    AddressValue,
-};
+use Formal\ORM\Manager;
+use Fixtures\Formal\ORM\User;
 use Innmind\Specification\Sign;
 use Innmind\BlackBox\{
     Set,
