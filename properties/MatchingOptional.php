@@ -89,7 +89,7 @@ final class MatchingOptional implements Property
             ->in($found);
 
         $found = $repository
-            ->matching(Has::a('billingAddress')->not())
+            ->matching(Has::an('billingAddress')->not()) // use the other named constructor for code coverage
             ->map(static fn($user) => $user->id()->toString())
             ->toList();
 
