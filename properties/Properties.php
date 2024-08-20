@@ -66,6 +66,7 @@ final class Properties
             IncrementallyAddElementsToACollection::class,
             AddElementToCollections::class,
             ListingAggregatesUseConstantMemory::class,
+            UpdateOptionalWithoutChangingInnerProperties::class,
         ];
     }
 
@@ -128,6 +129,7 @@ final class Properties
             DroppingMoreElementsThanWasTakenReturnsNothing::class,
             AddingOutsideOfTransactionIsNotAllowed::class,
             IncrementallyAddElementsToACollection::class,
+            UpdateOptionalWithoutChangingInnerProperties::class,
         ];
     }
 }

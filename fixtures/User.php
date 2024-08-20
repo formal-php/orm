@@ -194,6 +194,23 @@ final class User
         );
     }
 
+    /**
+     * @param callable(User\Address): User\Address $map
+     */
+    public function mapBillingAddress(callable $map): self
+    {
+        return new self(
+            $this->id,
+            $this->createdAt,
+            $this->name,
+            $this->mainAddress,
+            $this->billingAddress->map($map),
+            $this->addresses,
+            $this->role,
+            $this->roles,
+        );
+    }
+
     public function removeBillingAddress(): self
     {
         /** @var Maybe<User\Address> */

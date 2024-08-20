@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Updating an optional entity resulting in no property change no longer raised an exception when stored via SQL
+
 ## 3.0.0 - 2024-07-14
 
 ### Added
