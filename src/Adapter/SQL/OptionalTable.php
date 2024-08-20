@@ -207,4 +207,9 @@ final class OptionalTable
             ->columns($this->id)
             ->where($specification);
     }
+
+    public function whereAny(): Query
+    {
+        return Select::from($this->name)->columns($this->id);
+    }
 }

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `Formal\ORM\Specification\Has`
+
 ### Fixed
 
 - Updating an optional entity resulting in no property change no longer raised an exception when stored via SQL nor it generates an invalid document in Elasticsearch

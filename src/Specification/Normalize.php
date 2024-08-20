@@ -151,6 +151,16 @@ final class Normalize
                 );
         }
 
+        if ($specification instanceof Has) {
+            return $this
+                ->optionals
+                ->get($specification->optional())
+                ->match(
+                    static fn() => $specification,
+                    static fn() => throw new \LogicException("Unknown optional '{$specification->optional()}'"),
+                );
+        }
+
         if ($specification instanceof Entity) {
             return $this
                 ->entities
