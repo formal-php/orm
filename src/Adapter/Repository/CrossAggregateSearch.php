@@ -10,6 +10,8 @@ use Innmind\Immutable\Maybe;
 interface CrossAggregateSearch
 {
     /**
+     * @psalm-mutation-free
+     *
      * @param ?positive-int $drop
      * @param ?positive-int $take
      *

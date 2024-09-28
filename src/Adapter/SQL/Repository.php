@@ -178,6 +178,9 @@ final class Repository implements RepositoryInterface, CrossAggregateSearch
         return $aggregates;
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function crossAggregateSearch(
         ?Specification $specification,
         null|Sort\Property|Sort\Entity $sort,
