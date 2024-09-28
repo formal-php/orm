@@ -44,6 +44,9 @@ return static function() {
                     CREATE TABLE  `user_billingAddress` (`aggregateId` char(36) NOT NULL  COMMENT 'UUID', `value` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', `id` bigint  DEFAULT NULL COMMENT 'TODO Adjust the size depending on your use case', `enabled` tinyint(1) NOT NULL  COMMENT 'Boolean', CONSTRAINT `FK_user_billingAddress` FOREIGN KEY (`aggregateId`) REFERENCES `user`(`id`) ON DELETE CASCADE, UNIQUE (`aggregateId`))
                     SQL,
                     <<<SQL
+                    CREATE TABLE  `user_sibling` (`aggregateId` char(36) NOT NULL  COMMENT 'UUID', `id` char(36) NOT NULL  COMMENT 'UUID', CONSTRAINT `FK_user_sibling` FOREIGN KEY (`aggregateId`) REFERENCES `user`(`id`) ON DELETE CASCADE, UNIQUE (`aggregateId`))
+                    SQL,
+                    <<<SQL
                     CREATE TABLE  `user_addresses` (`aggregateId` char(36) NOT NULL  COMMENT 'UUID', `value` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', `id` bigint  DEFAULT NULL COMMENT 'TODO Adjust the size depending on your use case', `enabled` tinyint(1) NOT NULL  COMMENT 'Boolean', CONSTRAINT `FK_user_addresses` FOREIGN KEY (`aggregateId`) REFERENCES `user`(`id`) ON DELETE CASCADE)
                     SQL,
                     <<<SQL

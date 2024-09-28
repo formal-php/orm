@@ -41,6 +41,9 @@ final class User
     /** @var Set<Role> */
     #[Contains(Role::class)]
     private Set $roles;
+    /** @var Maybe<Sibling> */
+    #[Contains(Sibling::class)]
+    private Maybe $sibling;
 
     /**
      * @param Id<self> $id
@@ -48,6 +51,7 @@ final class User
      * @param Set<User\Address> $addresses
      * @param Maybe<Role> $role
      * @param Set<Role> $roles
+     * @param Maybe<Sibling> $sibling
      */
     private function __construct(
         Id $id,
@@ -58,6 +62,7 @@ final class User
         Set $addresses,
         Maybe $role,
         Set $roles,
+        Maybe $sibling,
     ) {
         $this->id = $id;
         $this->createdAt = $createdAt;
@@ -69,6 +74,7 @@ final class User
         $this->addresses = $addresses;
         $this->role = $role;
         $this->roles = $roles;
+        $this->sibling = $sibling;
     }
 
     public static function new(
@@ -79,6 +85,8 @@ final class User
         $billingAddress = Maybe::nothing();
         /** @var Maybe<Role> */
         $role = Maybe::nothing();
+        /** @var Maybe<Sibling> */
+        $sibling = Maybe::nothing();
 
         return new self(
             Id::new(self::class),
@@ -89,6 +97,7 @@ final class User
             Set::of(),
             $role,
             Set::of(),
+            $sibling,
         );
     }
 
@@ -163,6 +172,7 @@ final class User
             $this->addresses,
             $this->role,
             $this->roles,
+            $this->sibling,
         );
     }
 
@@ -177,6 +187,7 @@ final class User
             $this->addresses,
             $this->role,
             $this->roles,
+            $this->sibling,
         );
     }
 
@@ -191,6 +202,7 @@ final class User
             $this->addresses,
             $this->role,
             $this->roles,
+            $this->sibling,
         );
     }
 
@@ -208,6 +220,7 @@ final class User
             $this->addresses,
             $this->role,
             $this->roles,
+            $this->sibling,
         );
     }
 
@@ -225,6 +238,7 @@ final class User
             $this->addresses,
             $this->role,
             $this->roles,
+            $this->sibling,
         );
     }
 
@@ -239,6 +253,7 @@ final class User
             ($this->addresses)(User\Address::new($address)->disable()),
             $this->role,
             $this->roles,
+            $this->sibling,
         );
     }
 
@@ -253,6 +268,7 @@ final class User
             $this->addresses->filter(static fn($existing) => $existing->toString() !== $address),
             $this->role,
             $this->roles,
+            $this->sibling,
         );
     }
 
@@ -267,6 +283,7 @@ final class User
             $this->addresses,
             Maybe::just($role),
             $this->roles,
+            $this->sibling,
         );
     }
 
@@ -284,6 +301,25 @@ final class User
             $this->addresses,
             $this->role,
             Set::of(...$roles),
+            $this->sibling,
+        );
+    }
+
+    /**
+     * @param Id<self> $sibling
+     */
+    public function isSiblingOf(Id $sibling): self
+    {
+        return new self(
+            $this->id,
+            $this->createdAt,
+            $this->name,
+            $this->mainAddress,
+            $this->billingAddress,
+            $this->addresses,
+            $this->role,
+            $this->roles,
+            Maybe::just(Sibling::of($sibling)),
         );
     }
 }
