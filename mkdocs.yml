@@ -28,6 +28,7 @@ nav:
     - Retrieve multiple aggregates: specifications/retrieve.md
     - Count multiple aggregates: specifications/count.md
     - Remove multiple aggregates: specifications/remove.md
+    - Matching across aggregates: specifications/cross-matching.md
   - Enums: enums.md
   - Pagination: pagination.md
   - Adapters:
