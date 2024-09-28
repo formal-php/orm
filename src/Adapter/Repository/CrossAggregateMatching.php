@@ -7,7 +7,7 @@ use Formal\ORM\Sort;
 use Innmind\Specification\Specification;
 use Innmind\Immutable\Maybe;
 
-interface CrossAggregateSearch
+interface CrossAggregateMatching
 {
     /**
      * @psalm-mutation-free
@@ -17,7 +17,7 @@ interface CrossAggregateSearch
      *
      * @return Maybe<SubMatch>
      */
-    public function crossAggregateSearch(
+    public function crossAggregateMatching(
         ?Specification $specification,
         null|Sort\Property|Sort\Entity $sort,
         ?int $drop,

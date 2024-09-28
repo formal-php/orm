@@ -10,7 +10,7 @@ use Formal\ORM\{
     Repository\Denormalize,
     Repository\Instanciate,
     Repository\Sort,
-    Adapter\Repository\CrossAggregateSearch,
+    Adapter\Repository\CrossAggregateMatching,
     Adapter\Repository\SubMatch,
     Specification\Normalize,
 };
@@ -438,7 +438,7 @@ final class Matching
      *
      * @return SubMatch|Sequence<Id<T>>
      */
-    public function crossAggregateSearch(Repository\Context $context): SubMatch|Sequence
+    public function crossAggregateMatching(Repository\Context $context): SubMatch|Sequence
     {
         $take = $this->take;
 
@@ -459,8 +459,8 @@ final class Matching
         return Maybe::just($this->context)
             ->filter($context->same(...))
             ->map(fn() => $this->adapter)
-            ->keep(Instance::of(CrossAggregateSearch::class))
-            ->flatMap(fn($adapter) => $adapter->crossAggregateSearch(
+            ->keep(Instance::of(CrossAggregateMatching::class))
+            ->flatMap(fn($adapter) => $adapter->crossAggregateMatching(
                 $specification,
                 $this->sorted,
                 $this->drop,

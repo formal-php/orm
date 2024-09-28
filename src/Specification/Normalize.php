@@ -338,7 +338,7 @@ final class Normalize
 
         $value = $specification
             ->value()
-            ->crossAggregateSearch($this->context);
+            ->crossAggregateMatching($this->context);
 
         if (!($value instanceof SubMatch)) {
             return Either::left($value);

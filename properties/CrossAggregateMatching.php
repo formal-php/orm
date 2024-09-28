@@ -29,7 +29,7 @@ use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
 /**
  * @implements Property<Manager>
  */
-final class CrossAggregateSearch implements Property
+final class CrossAggregateMatching implements Property
 {
     private $createdAt;
     private string $name1;

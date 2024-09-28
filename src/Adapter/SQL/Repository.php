@@ -5,7 +5,7 @@ namespace Formal\ORM\Adapter\SQL;
 
 use Formal\ORM\{
     Adapter\Repository as RepositoryInterface,
-    Adapter\Repository\CrossAggregateSearch,
+    Adapter\Repository\CrossAggregateMatching,
     Adapter\Repository\SubMatch,
     Definition\Aggregate as Definition,
     Raw\Aggregate,
@@ -32,7 +32,7 @@ use Innmind\Immutable\{
  * @template T of object
  * @implements RepositoryInterface<T>
  */
-final class Repository implements RepositoryInterface, CrossAggregateSearch
+final class Repository implements RepositoryInterface, CrossAggregateMatching
 {
     private Connection $connection;
     /** @var Definition<T> */
@@ -181,7 +181,7 @@ final class Repository implements RepositoryInterface, CrossAggregateSearch
     /**
      * @psalm-mutation-free
      */
-    public function crossAggregateSearch(
+    public function crossAggregateMatching(
         ?Specification $specification,
         null|Sort\Property|Sort\Entity $sort,
         ?int $drop,
