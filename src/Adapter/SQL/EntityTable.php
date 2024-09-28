@@ -72,7 +72,7 @@ final class EntityTable
     {
         return Column::of(
             Column\Name::of('aggregateId'),
-            Column\Type::char(36)->comment('UUID'),
+            Column\Type::uuid()->comment('UUID'),
         );
     }
 

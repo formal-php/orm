@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- SQL columns storing `Formal\ORM\Id`s now use the `uuid` type. To use the _Cross Aggregate Match_ feature with PostgreSQL you must migrate your schema.
+
 ## 3.2.0 - 2024-08-20
 
 ### Added
