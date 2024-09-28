@@ -178,7 +178,7 @@ final class Repository implements RepositoryInterface, CrossAggregateSearch
     }
 
     public function crossAggregateSearch(
-        Specification $specification,
+        ?Specification $specification,
         null|Sort\Property|Sort\Entity $sort,
         ?int $drop,
         ?int $take,

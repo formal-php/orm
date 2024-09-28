@@ -16,7 +16,7 @@ interface CrossAggregateSearch
      * @return Maybe<mixed>
      */
     public function crossAggregateSearch(
-        Specification $specification,
+        ?Specification $specification,
         null|Sort\Property|Sort\Entity $sort,
         ?int $drop,
         ?int $take,

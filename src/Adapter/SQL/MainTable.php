@@ -192,15 +192,19 @@ final class MainTable
     /**
      * @internal
      */
-    public function search(Specification $specification): Select
+    public function search(Specification $specification = null): Select
     {
-        return $this
+        $select = $this
             ->select
             ->columns(
                 Column\Name::of($this->definition->id()->property())
                     ->in($this->name),
-            )
-            ->where($this->where($specification));
+            );
+
+        return match ($specification) {
+            null => $select,
+            default => $select->where($this->where($specification)),
+        };
     }
 
     /**
