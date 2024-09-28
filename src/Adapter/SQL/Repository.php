@@ -15,6 +15,7 @@ use Formal\ORM\{
 };
 use Formal\AccessLayer\{
     Connection,
+    Query\Select,
     Query\Select\Direction,
     Table,
 };
