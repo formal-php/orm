@@ -229,6 +229,9 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching
             );
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     private function sort(
         Select $select,
         Sort\Property|Sort\Entity $sort,
