@@ -6,6 +6,7 @@ namespace Formal\ORM\Adapter\SQL;
 use Formal\ORM\{
     Adapter\Repository as RepositoryInterface,
     Adapter\Repository\CrossAggregateSearch,
+    Adapter\Repository\SubMatch,
     Definition\Aggregate as Definition,
     Raw\Aggregate,
     Raw\Diff,
@@ -187,6 +188,7 @@ final class Repository implements RepositoryInterface, CrossAggregateSearch
             // SQL doesn't allow to create an offset without a limit. This means
             // this search can't be optimised. Returning nothing will tell the
             // ORM to do the `in` search in memory.
+            /** @var Maybe<SubMatch> */
             return Maybe::nothing();
         }
 
@@ -214,7 +216,7 @@ final class Repository implements RepositoryInterface, CrossAggregateSearch
             $select = $select->limit($take, $drop);
         }
 
-        return Maybe::just($select);
+        return Maybe::just(SubMatch::of($select));
     }
 
     public function size(Specification $specification = null): int

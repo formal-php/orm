@@ -13,7 +13,7 @@ interface CrossAggregateSearch
      * @param ?positive-int $drop
      * @param ?positive-int $take
      *
-     * @return Maybe<mixed>
+     * @return Maybe<SubMatch>
      */
     public function crossAggregateSearch(
         ?Specification $specification,
