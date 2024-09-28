@@ -192,6 +192,20 @@ final class MainTable
     /**
      * @internal
      */
+    public function search(Specification $specification): Select
+    {
+        return $this
+            ->select
+            ->columns(
+                Column\Name::of($this->definition->id()->property())
+                    ->in($this->name),
+            )
+            ->where($this->where($specification));
+    }
+
+    /**
+     * @internal
+     */
     public function contains(): Select
     {
         return $this->contains;

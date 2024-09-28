@@ -5,6 +5,7 @@ namespace Formal\ORM\Adapter\SQL;
 
 use Formal\ORM\{
     Adapter\Repository as RepositoryInterface,
+    Adapter\Repository\CrossAggregateSearch,
     Definition\Aggregate as Definition,
     Raw\Aggregate,
     Raw\Diff,
@@ -30,7 +31,7 @@ use Innmind\Immutable\{
  * @template T of object
  * @implements RepositoryInterface<T>
  */
-final class Repository implements RepositoryInterface
+final class Repository implements RepositoryInterface, CrossAggregateSearch
 {
     private Connection $connection;
     /** @var Definition<T> */
@@ -174,6 +175,46 @@ final class Repository implements RepositoryInterface
         }
 
         return $aggregates;
+    }
+
+    public function crossAggregateSearch(
+        Specification $specification,
+        null|Sort\Property|Sort\Entity $sort,
+        ?int $drop,
+        ?int $take,
+    ): Maybe {
+        if (\is_int($drop) && \is_null($take)) {
+            // SQL doesn't allow to create an offset without a limit. This means
+            // this search can't be optimised. Returning nothing will tell the
+            // ORM to do the `in` search in memory.
+            return Maybe::nothing();
+        }
+
+        $select = $this->mainTable->search($specification);
+
+        if ($sort) {
+            $column = match (true) {
+                $sort instanceof Sort\Property => Table\Column\Name::of($sort->name())->in(
+                    $this->mainTable->name(),
+                ),
+                $sort instanceof Sort\Entity => Table\Column\Name::of($sort->property()->name())->in(
+                    Table\Name::of($sort->name()),
+                ),
+            };
+            $select = $select->orderBy(
+                $column,
+                match ($sort->direction()) {
+                    Sort::asc => Direction::asc,
+                    Sort::desc => Direction::desc,
+                },
+            );
+        }
+
+        if (\is_int($take)) {
+            $select = $select->limit($take, $drop);
+        }
+
+        return Maybe::just($select);
     }
 
     public function size(Specification $specification = null): int
