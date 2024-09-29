@@ -71,6 +71,13 @@ return static function() {
                                 ],
                             ],
                         ],
+                        'sibling' => [
+                            'properties' => [
+                                'id' => [
+                                    'type' => 'keyword',
+                                ],
+                            ],
+                        ],
                         'addresses' => [
                             'type' => 'nested',
                             'properties' => [

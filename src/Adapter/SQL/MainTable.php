@@ -155,7 +155,7 @@ final class MainTable
     {
         return Column::of(
             Column\Name::of($this->definition->id()->property()),
-            Column\Type::char(36)->comment('UUID'),
+            Column\Type::uuid()->comment('UUID'),
         );
     }
 
@@ -186,6 +186,24 @@ final class MainTable
         return match ($specification) {
             null => $this->select,
             default => $this->select->where($this->where($specification)),
+        };
+    }
+
+    /**
+     * @internal
+     */
+    public function search(Specification $specification = null): Select
+    {
+        $select = $this
+            ->select
+            ->columns(
+                Column\Name::of($this->definition->id()->property())
+                    ->in($this->name),
+            );
+
+        return match ($specification) {
+            null => $select,
+            default => $select->where($this->where($specification)),
         };
     }
 

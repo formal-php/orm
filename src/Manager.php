@@ -17,6 +17,7 @@ final class Manager
     private Aggregates $aggregates;
     private Repository\Active $repositories;
     private bool $inTransaction;
+    private Repository\Context $context;
 
     private function __construct(Adapter $adapter, Aggregates $aggregates)
     {
@@ -24,6 +25,7 @@ final class Manager
         $this->aggregates = $aggregates;
         $this->repositories = Repository\Active::new();
         $this->inTransaction = false;
+        $this->context = new Repository\Context;
     }
 
     public static function of(
@@ -69,6 +71,7 @@ final class Manager
                         $this->adapter->repository($definition),
                         $definition,
                         fn() => $this->inTransaction,
+                        $this->context,
                     );
                     $this->repositories->register($class, $repository);
 

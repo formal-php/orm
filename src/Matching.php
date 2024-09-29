@@ -4,11 +4,14 @@ declare(strict_types = 1);
 namespace Formal\ORM;
 
 use Formal\ORM\{
+    Definition\Aggregate\Identity,
     Sort as SortedBy,
     Repository\Loaded,
     Repository\Denormalize,
     Repository\Instanciate,
     Repository\Sort,
+    Adapter\Repository\CrossAggregateMatching,
+    Adapter\Repository\SubMatch,
     Specification\Normalize,
 };
 use Innmind\Specification\Specification;
@@ -16,6 +19,7 @@ use Innmind\Immutable\{
     Sequence,
     Maybe,
     SideEffect,
+    Predicate\Instance,
 };
 
 /**
@@ -27,6 +31,9 @@ final class Matching
     private Repository $repository;
     /** @var Adapter\Repository<T> */
     private Adapter\Repository $adapter;
+    /** @var Identity<T> */
+    private Identity $identity;
+    private Repository\Context $context;
     /** @var Denormalize<T> */
     private Denormalize $denormalize;
     /** @var Instanciate<T> */
@@ -47,6 +54,7 @@ final class Matching
     /**
      * @param Repository<T> $repository
      * @param Adapter\Repository<T> $adapter
+     * @param Identity<T> $identity
      * @param Denormalize<T> $denormalize
      * @param Instanciate<T> $instanciate
      * @param ?Normalize<T> $normalizeSpecification
@@ -58,6 +66,8 @@ final class Matching
     private function __construct(
         Repository $repository,
         Adapter\Repository $adapter,
+        Identity $identity,
+        Repository\Context $context,
         Denormalize $denormalize,
         Instanciate $instanciate,
         ?Normalize $normalizeSpecification,
@@ -70,6 +80,8 @@ final class Matching
     ) {
         $this->repository = $repository;
         $this->adapter = $adapter;
+        $this->identity = $identity;
+        $this->context = $context;
         $this->denormalize = $denormalize;
         $this->instanciate = $instanciate;
         $this->normalizeSpecification = $normalizeSpecification;
@@ -87,6 +99,7 @@ final class Matching
      *
      * @param Repository<A> $repository
      * @param Adapter\Repository<A> $adapter
+     * @param Identity<A> $identity
      * @param Denormalize<A> $denormalize
      * @param Instanciate<A> $instanciate
      * @param Normalize<A> $normalizeSpecification
@@ -98,6 +111,8 @@ final class Matching
     public static function of(
         Repository $repository,
         Adapter\Repository $adapter,
+        Identity $identity,
+        Repository\Context $context,
         Denormalize $denormalize,
         Instanciate $instanciate,
         Normalize $normalizeSpecification,
@@ -108,6 +123,8 @@ final class Matching
         return new self(
             $repository,
             $adapter,
+            $identity,
+            $context,
             $denormalize,
             $instanciate,
             $normalizeSpecification,
@@ -126,6 +143,7 @@ final class Matching
      *
      * @param Repository<A> $repository
      * @param Adapter\Repository<A> $adapter
+     * @param Identity<A> $identity
      * @param Denormalize<A> $denormalize
      * @param Instanciate<A> $instanciate
      * @param Loaded<A> $loaded
@@ -136,6 +154,8 @@ final class Matching
     public static function all(
         Repository $repository,
         Adapter\Repository $adapter,
+        Identity $identity,
+        Repository\Context $context,
         Denormalize $denormalize,
         Instanciate $instanciate,
         Loaded $loaded,
@@ -144,6 +164,8 @@ final class Matching
         return new self(
             $repository,
             $adapter,
+            $identity,
+            $context,
             $denormalize,
             $instanciate,
             null,
@@ -172,6 +194,8 @@ final class Matching
         return new self(
             $this->repository,
             $this->adapter,
+            $this->identity,
+            $this->context,
             $this->denormalize,
             $this->instanciate,
             $this->normalizeSpecification,
@@ -203,6 +227,8 @@ final class Matching
         return new self(
             $this->repository,
             $this->adapter,
+            $this->identity,
+            $this->context,
             $this->denormalize,
             $this->instanciate,
             $this->normalizeSpecification,
@@ -237,6 +263,8 @@ final class Matching
         return new self(
             $this->repository,
             $this->adapter,
+            $this->identity,
+            $this->context,
             $this->denormalize,
             $this->instanciate,
             $this->normalizeSpecification,
@@ -402,5 +430,45 @@ final class Matching
     public function find(callable $predicate): Maybe
     {
         return $this->sequence()->find($predicate);
+    }
+
+    /**
+     * @internal
+     * @psalm-mutation-free
+     *
+     * @return SubMatch|Sequence<Id<T>>
+     */
+    public function crossAggregateMatching(Repository\Context $context): SubMatch|Sequence
+    {
+        $take = $this->take;
+
+        if ($take === 0) {
+            return Sequence::of();
+        }
+
+        $specification = null;
+
+        if ($this->normalizeSpecification && $this->specification) {
+            $specification = ($this->normalizeSpecification)($this->specification);
+        }
+
+        /**
+         * @psalm-suppress InvalidArgument Psalm doesn't understant the object passed to the id extraction for some reason
+         * @var SubMatch|Sequence<Id<T>>
+         */
+        return Maybe::just($this->context)
+            ->filter($context->same(...))
+            ->map(fn() => $this->adapter)
+            ->keep(Instance::of(CrossAggregateMatching::class))
+            ->flatMap(fn($adapter) => $adapter->crossAggregateMatching(
+                $specification,
+                $this->sorted,
+                $this->drop,
+                $take,
+            ))
+            ->match(
+                static fn($subQuery) => $subQuery,
+                fn() => $this->map($this->identity->extract(...)),
+            );
     }
 }
