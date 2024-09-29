@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Ability to use the comparison `in Matching` in a specification. This allows to build complex queries across different aggregates.
+
+### Changed
+
+- SQL columns storing `Formal\ORM\Id`s now use the `uuid` type. To use the _Cross Aggregate Matching_ feature with PostgreSQL you must migrate your schema.
+
 ## 3.2.0 - 2024-08-20
 
 ### Added

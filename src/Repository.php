@@ -24,6 +24,7 @@ final class Repository
 {
     /** @var Adapter\Repository<T> */
     private Adapter\Repository $adapter;
+    private Repository\Context $context;
     /** @var Aggregate\Identity<T> */
     private Aggregate\Identity $id;
     /** @var \Closure(): bool */
@@ -55,11 +56,13 @@ final class Repository
         Adapter\Repository $adapter,
         Aggregate $definition,
         \Closure $inTransaction,
+        Repository\Context $context,
     ) {
         $this->adapter = $adapter;
+        $this->context = $context;
         $this->id = $definition->id();
         $this->inTransaction = $inTransaction;
-        $this->normalizeSpecification = NormalizeSpecification::of($definition);
+        $this->normalizeSpecification = NormalizeSpecification::of($definition, $context);
         $this->loaded = Loaded::of($repositories, $definition);
         $this->normalize = Normalize::of($definition);
         $this->denormalize = Denormalize::of($definition);
@@ -84,8 +87,15 @@ final class Repository
         Adapter\Repository $adapter,
         Aggregate $definition,
         \Closure $inTransaction,
+        Repository\Context $context,
     ): self {
-        return new self($repositories, $adapter, $definition, $inTransaction);
+        return new self(
+            $repositories,
+            $adapter,
+            $definition,
+            $inTransaction,
+            $context,
+        );
     }
 
     /**
@@ -174,6 +184,8 @@ final class Repository
         return Matching::of(
             $this,
             $this->adapter,
+            $this->id,
+            $this->context,
             $this->denormalize,
             $this->instanciate,
             $this->normalizeSpecification,
@@ -215,6 +227,8 @@ final class Repository
         return Matching::all(
             $this,
             $this->adapter,
+            $this->id,
+            $this->context,
             $this->denormalize,
             $this->instanciate,
             $this->loaded,

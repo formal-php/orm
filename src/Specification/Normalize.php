@@ -5,7 +5,10 @@ namespace Formal\ORM\Specification;
 
 use Formal\ORM\{
     Definition\Aggregate,
+    Repository\Context,
     Id,
+    Matching,
+    Adapter\Repository\SubMatch,
 };
 use Innmind\Specification\{
     Specification,
@@ -13,11 +16,13 @@ use Innmind\Specification\{
     Composite,
     Not,
     Operator,
+    Sign,
 };
 use Innmind\Immutable\{
     Set,
     Sequence,
     Map,
+    Either,
     Predicate\Instance,
 };
 
@@ -30,6 +35,7 @@ final class Normalize
 {
     /** @var Aggregate<T> */
     private Aggregate $definition;
+    private Context $context;
     /** @var Map<non-empty-string, Aggregate\Property<T, mixed>> */
     private Map $properties;
     /** @var Map<non-empty-string, Map<non-empty-string, Aggregate\Property>> */
@@ -42,9 +48,12 @@ final class Normalize
     /**
      * @param Aggregate<T> $definition
      */
-    private function __construct(Aggregate $definition)
-    {
+    private function __construct(
+        Aggregate $definition,
+        Context $context,
+    ) {
         $this->definition = $definition;
+        $this->context = $context;
         $this->properties = Map::of(
             ...$definition
                 ->properties()
@@ -196,45 +205,48 @@ final class Normalize
      *
      * @return self<A>
      */
-    public static function of(Aggregate $definition): self
-    {
-        return new self($definition);
+    public static function of(
+        Aggregate $definition,
+        Context $context,
+    ): self {
+        return new self($definition, $context);
     }
 
-    private function normalize(Comparator $specification): Property
+    private function normalize(Comparator $specification): Specification
     {
-        $property = $specification->property();
-        /** @var mixed */
-        $value = $specification->value();
-
-        /**
-         * @psalm-suppress MixedArgument
-         * @psalm-suppress MixedMethodCall
-         * @psalm-suppress MixedInferredReturnType
-         * @psalm-suppress MixedReturnStatement
-         */
-        return Property::of(
-            $property,
-            $specification->sign(),
-            match ($property) {
-                $this->definition->id()->property() => match (true) {
-                    \is_array($value) => \array_values(\array_map(
-                        static fn($value): string => $value->toString(),
-                        $value,
-                    )),
-                    $value instanceof Set, $value instanceof Sequence => $value
-                        ->keep(Instance::of(Id::class))
-                        ->map(static fn($value) => $value->toString())
-                        ->toList(),
-                    default => $value->toString(),
-                },
-                default => $this->normalizeProperty(
-                    $this->properties,
-                    $property,
-                    $value,
+        return $this
+            ->subMatch($specification)
+            ->match(
+                static fn($specification) => $specification,
+                /**
+                 * @psalm-suppress MixedArgument
+                 * @psalm-suppress MixedMethodCall
+                 * @psalm-suppress MixedInferredReturnType
+                 * @psalm-suppress MixedReturnStatement
+                 */
+                fn(mixed $value) => Property::of(
+                    $specification->property(),
+                    $specification->sign(),
+                    match ($specification->property()) {
+                        $this->definition->id()->property() => match (true) {
+                            \is_array($value) => \array_values(\array_map(
+                                static fn($value): string => $value->toString(),
+                                $value,
+                            )),
+                            $value instanceof Set, $value instanceof Sequence => $value
+                                ->keep(Instance::of(Id::class))
+                                ->map(static fn($value) => $value->toString())
+                                ->toList(),
+                            default => $value->toString(),
+                        },
+                        default => $this->normalizeProperty(
+                            $this->properties,
+                            $specification->property(),
+                            $value,
+                        ),
+                    },
                 ),
-            },
-        );
+            );
     }
 
     /**
@@ -295,14 +307,46 @@ final class Normalize
             throw new \LogicException("Unsupported specification '$class'");
         }
 
-        return Property::of(
+        return $this
+            ->subMatch($specification)
+            ->match(
+                static fn($specification) => $specification,
+                fn($value) => Property::of(
+                    $specification->property(),
+                    $specification->sign(),
+                    $this->normalizeProperty(
+                        $properties,
+                        $specification->property(),
+                        $value,
+                    ),
+                ),
+            );
+    }
+
+    /**
+     * @return Either<mixed, Specification>
+     */
+    private function subMatch(Comparator $specification): Either
+    {
+        if ($specification->sign() !== Sign::in) {
+            return Either::left($specification->value());
+        }
+
+        if (!($specification->value() instanceof Matching)) {
+            return Either::left($specification->value());
+        }
+
+        $value = $specification
+            ->value()
+            ->crossAggregateMatching($this->context);
+
+        if (!($value instanceof SubMatch)) {
+            return Either::left($value);
+        }
+
+        return Either::right(CrossMatch::of(
             $specification->property(),
-            $specification->sign(),
-            $this->normalizeProperty(
-                $properties,
-                $specification->property(),
-                $specification->value(),
-            ),
-        );
+            $value,
+        ));
     }
 }
