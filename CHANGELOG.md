@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `Formal\ORM\Adapter\SQL\ShowCreateTable::ifNotExists()`
+
 ## 3.3.0 - 2024-09-29
 
 ### Added
