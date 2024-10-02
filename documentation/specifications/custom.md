@@ -104,7 +104,7 @@ Depending of the kind of entity you'd use this like this:
 
 === "Entity colleciton"
     ```php
-    use Formal\ORM\Specification\Just;
+    use Formal\ORM\Specification\Child;
 
     Child::of('addresses', SearchByCity::of('Paris'));
     ```
