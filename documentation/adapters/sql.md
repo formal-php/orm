@@ -110,6 +110,9 @@ CREATE TABLE  `user` (`id` varchar(36) NOT NULL  COMMENT 'UUID', `name` varchar(
 CREATE TABLE  `user_addresses` (`aggregateId` varchar(36) NOT NULL  COMMENT 'UUID', `street` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', `zipCode` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', `city` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', CONSTRAINT `FK_user_addresses` FOREIGN KEY (`aggregateId`) REFERENCES `user`(`id`) ON DELETE CASCADE);
 ```
 
+??? tip
+    You can call `#!php $show->ifNotExists()(User::class)` to instead generate `CREATE TABLE IF NOT EXISTS` queries.
+
 Instead of printing the queries you can execute them directly like this:
 
 ```php title="show_create_tables.php" hl_lines="8 15-17 19"
