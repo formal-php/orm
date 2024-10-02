@@ -7,6 +7,8 @@ use Formal\ORM\Definition\Aggregates;
 use Formal\AccessLayer\{
     Query,
     Query\Constraint\ForeignKey,
+    Table\Name,
+    Table\Column,
 };
 use Innmind\Immutable\Sequence;
 
@@ -14,11 +16,19 @@ final class ShowCreateTable
 {
     private Aggregates $aggregates;
     private MapType $mapType;
+    private bool $ifNotExists;
 
-    private function __construct(Aggregates $aggregates)
-    {
+    /**
+     * @psalm-mutation-free
+     */
+    private function __construct(
+        Aggregates $aggregates,
+        MapType $mapType,
+        bool $ifNotExists,
+    ) {
         $this->aggregates = $aggregates;
-        $this->mapType = MapType::new();
+        $this->mapType = $mapType;
+        $this->ifNotExists = $ifNotExists;
     }
 
     /**
@@ -30,10 +40,19 @@ final class ShowCreateTable
     {
         $definition = $this->aggregates->get($class);
         $mainTable = MainTable::of($definition);
+        /** @psalm-suppress NamedArgumentNotAllowed */
+        $create = match ($this->ifNotExists) {
+            true => static fn(Name $name, Column $first, Column ...$rest) => Query\CreateTable::ifNotExists(
+                $name, $first, ...$rest,
+            ),
+            false => static fn(Name $name, Column $first, Column ...$rest) => Query\CreateTable::named(
+                $name, $first, ...$rest,
+            ),
+        };
 
         $entities = $mainTable
             ->entities()
-            ->map(fn($entity) => Query\CreateTable::named(
+            ->map(fn($entity) => $create(
                 $entity->name()->name(),
                 $entity->primaryKey(),
                 ...$entity
@@ -54,7 +73,7 @@ final class ShowCreateTable
             ->toList();
         $optionals = $mainTable
             ->optionals()
-            ->map(fn($optional) => Query\CreateTable::named(
+            ->map(fn($optional) => $create(
                 $optional->name()->name(),
                 $optional->primaryKey(),
                 ...$optional
@@ -77,7 +96,7 @@ final class ShowCreateTable
         $collections = $mainTable
             ->collections()
             ->map(
-                fn($collection) => Query\CreateTable::named(
+                fn($collection) => $create(
                     $collection->name()->name(),
                     $collection->foreignKey(),
                     ...$collection
@@ -96,7 +115,7 @@ final class ShowCreateTable
             )
             ->toList();
 
-        $main = Query\CreateTable::named(
+        $main = $create(
             $mainTable->name()->name(),
             $mainTable->primaryKey(),
             ...$mainTable
@@ -114,6 +133,24 @@ final class ShowCreateTable
 
     public static function of(Aggregates $aggregates): self
     {
-        return new self($aggregates);
+        return new self(
+            $aggregates,
+            MapType::new(),
+            false,
+        );
+    }
+
+    /**
+     * This will add the "IF NOT EXIST" to the sql queries
+     *
+     * @psalm-mutation-free
+     */
+    public function ifNotExists(): self
+    {
+        return new self(
+            $this->aggregates,
+            $this->mapType,
+            true,
+        );
     }
 }
