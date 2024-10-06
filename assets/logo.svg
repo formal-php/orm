@@ -1,0 +1,22 @@
+<svg height="500" width="500"  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="none">
+  <rect width="500" height="500" rx="50" fill="rgb(48,48,48)" />
+  <defs>
+    <g id="main" filter="url(#shadow)">
+      <path d="m 100 500 v -300 q 0 -130 130 -130 h 115 q -35 35 0 70 h -105 q -65 0 -65 65 v 300" fill="rgb(52,140,255)" />
+      <path d="m 345 135 q -30 -30 0 -60 h 35 q -30 30 0 60" fill="rgb(255, 94, 77)" />
+      <path d="m 380 130 q -25 -25 0 -50 h 5 q 25 25 0 50" stroke="rgb(0, 0, 0)" stroke-width="2" fill="rgb(255, 255, 255, 0.8)" />
+    </g>
+    <g id="little" filter="url(#shadow)">
+      <path d="m 160 330 q -20 -90 90 -90 h 40 q -35 35 0 70 h -40 q -90 0 -90 120" fill="rgb(52,140,255)" />
+      <path d="m 290 305 q -30 -30 0 -60 h 25 q -30 30 0 60" fill="rgb(211, 255, 25)" />
+      <path d="m 315 300 q -25 -25 0 -50 h 5 q 25 25 0 50" stroke="rgb(0, 0, 0)" stroke-width="2" fill="rgb(255, 255, 255, 0.8)" />
+    </g>
+    <filter id="shadow" x="0" y="0" width="100%" height="100%">
+      <feOffset result="offOut" in="SourceAlpha" dx="2" dy="5" />
+      <feGaussianBlur result="blurOut" in="offOut" stdDeviation="100" />
+      <feBlend in="SourceGraphic" in2="offOut" mode="normal" />
+    </filter>
+  </defs>
+  <use xlink:href="#little" />
+  <use xlink:href="#main" />
+</svg>
