@@ -141,4 +141,4 @@ $_ = $show(User::class)->foreach($connection);
 
 While you still develop your app you can destroy and recreate your database when the schema change. But when you go to production you should use a migration tool to only update what's changed since the last deployment.
 
-Unfortunately Formal doesn't have such tool _yet_. For now you can use [`doctrine/migrations`](https://packagist.org/packages/doctrine/migrations).
+You can use [`formal/migrations`](https://formal-php.github.io/migrations/) for this ([and more](https://formal-php.github.io/migrations/commands/)).
