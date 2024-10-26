@@ -30,12 +30,12 @@ final class Update
      */
     public function __invoke(Diff $data): Sequence
     {
+        $mainTable = $this->mainTable;
         $main = $this->mainTable->update($data)->toSequence();
         $entities = $data
             ->entities()
             ->flatMap(
-                fn($entity) => $this
-                    ->mainTable
+                static fn($entity) => $mainTable
                     ->entity($entity->name())
                     ->flatMap(
                         static fn($table) => $table->update(
@@ -48,8 +48,7 @@ final class Update
         $optionals = $data
             ->optionals()
             ->flatMap(
-                fn($optional) => $this
-                    ->mainTable
+                static fn($optional) => $mainTable
                     ->optional($optional->name())
                     ->toSequence()
                     ->flatMap(static fn($table) => $table->update(
@@ -60,8 +59,7 @@ final class Update
         $collections = $data
             ->collections()
             ->flatMap(
-                fn($collection) => $this
-                    ->mainTable
+                static fn($collection) => $mainTable
                     ->collection($collection->name())
                     ->toSequence()
                     ->flatMap(static fn($table) => $table->update(

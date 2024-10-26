@@ -74,16 +74,17 @@ final class Collection
         }
 
         $class = $this->definition->class();
+        $properties = $this->properties;
+        $instanciate = $this->instanciate;
 
         return $collection
             ->entities()
-            ->map(function($entity) use ($class) {
+            ->map(static function($entity) use ($class, $properties, $instanciate) {
                 $entity = Map::of(
                     ...$entity
                         ->properties()
                         ->flatMap(
-                            fn($property) => $this
-                                ->properties
+                            static fn($property) => $properties
                                 ->get($property->name())
                                 ->map(static fn($definition): mixed => $definition->type()->denormalize($property->value()))
                                 ->map(static fn($value) => [$property->name(), $value])
@@ -93,7 +94,7 @@ final class Collection
                 );
 
                 /** @var T */
-                return ($this->instanciate)($class, $entity)->match(
+                return $instanciate($class, $entity)->match(
                     static fn($object) => $object,
                     static fn() => throw new \RuntimeException("Unable to denormalize collection of type '$class'"),
                 );

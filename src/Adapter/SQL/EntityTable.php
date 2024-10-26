@@ -136,11 +136,13 @@ final class EntityTable
      */
     public function update(Id $id, Sequence $properties): Maybe
     {
+        $name = $this->name;
+
         return Maybe::just($properties)
             ->filter(static fn($properties) => !$properties->empty())
             ->map(
-                fn($properties) => Update::set(
-                    $this->name,
+                static fn($properties) => Update::set(
+                    $name,
                     Row::new(
                         ...$properties
                             ->map(static fn($property) => Row\Value::of(

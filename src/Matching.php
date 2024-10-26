@@ -306,6 +306,9 @@ final class Matching
             $specification = ($this->normalizeSpecification)($this->specification);
         }
 
+        $loaded = $this->loaded;
+        $repository = $this->repository;
+
         return $this
             ->adapter
             ->fetch(
@@ -315,8 +318,8 @@ final class Matching
                 $this->take,
             )
             ->map($denormalize)
-            ->map(fn($denormalized) => $this->loaded->add(
-                $this->repository,
+            ->map(static fn($denormalized) => $loaded->add(
+                $repository,
                 $denormalized,
             ))
             ->map($this->instanciate);

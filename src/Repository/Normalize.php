@@ -68,6 +68,9 @@ final class Normalize
     public function __invoke(Denormalized $denormalized): Aggregate
     {
         $properties = $denormalized->properties();
+        $normalizeEntity = $this->normalizeEntity;
+        $normalizeOptional = $this->normalizeOptional;
+        $normalizeCollection = $this->normalizeCollection;
 
         /** @psalm-suppress MixedArgument Due to the collection normalization */
         return Aggregate::of(
@@ -88,8 +91,7 @@ final class Normalize
                 ->definition
                 ->entities()
                 ->flatMap(
-                    fn($entity) => $this
-                        ->normalizeEntity
+                    static fn($entity) => $normalizeEntity
                         ->get($entity)
                         ->flatMap(
                             static fn($normalize) => $properties
@@ -102,8 +104,7 @@ final class Normalize
                 ->definition
                 ->optionals()
                 ->flatMap(
-                    fn($optional) => $this
-                        ->normalizeOptional
+                    static fn($optional) => $normalizeOptional
                         ->get($optional)
                         ->flatMap(
                             static fn($normalize) => $properties
@@ -116,8 +117,7 @@ final class Normalize
                 ->definition
                 ->collections()
                 ->flatMap(
-                    fn($collection) => $this
-                        ->normalizeCollection
+                    static fn($collection) => $normalizeCollection
                         ->get($collection)
                         ->flatMap(
                             static fn($normalize) => $properties
