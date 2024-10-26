@@ -89,9 +89,20 @@ final class Denormalize
             default => static fn(Aggregate\Id $_) => $id,
         };
 
-        return fn(Aggregate $data) => Denormalized::of(
+        $properties = $this->properties;
+        $entities = $this->entities;
+        $optionals = $this->optionals;
+        $collections = $this->collections;
+
+        return static fn(Aggregate $data) => Denormalized::of(
             $denormalize($data->id()),
-            $this->properties($data),
+            self::properties(
+                $data,
+                $properties,
+                $entities,
+                $optionals,
+                $collections,
+            ),
         );
     }
 
@@ -109,16 +120,25 @@ final class Denormalize
     }
 
     /**
+     * @param Map<non-empty-string, Property> $properties
+     * @param Map<non-empty-string, Denormalize\Entity> $entities
+     * @param Map<non-empty-string, Denormalize\Optional> $optionals
+     * @param Map<non-empty-string, Denormalize\Collection> $collections
+     *
      * @return Map<non-empty-string, mixed>
      */
-    private function properties(Aggregate $data): Map
-    {
+    private static function properties(
+        Aggregate $data,
+        Map $properties,
+        Map $entities,
+        Map $optionals,
+        Map $collections,
+    ): Map {
         return Map::of(
             ...$data
                 ->properties()
                 ->flatMap(
-                    fn($property) => $this
-                        ->properties
+                    static fn($property) => $properties
                         ->get($property->name())
                         ->map(static fn($definition): mixed => $definition->type()->denormalize($property->value()))
                         ->map(static fn($value) => [$property->name(), $value])
@@ -128,8 +148,7 @@ final class Denormalize
             ...$data
                 ->entities()
                 ->flatMap(
-                    fn($entity) => $this
-                        ->entities
+                    static fn($entity) => $entities
                         ->get($entity->name())
                         ->map(static fn($denormalize): object => $denormalize($entity))
                         ->map(static fn($value) => [$entity->name(), $value])
@@ -139,8 +158,7 @@ final class Denormalize
             ...$data
                 ->optionals()
                 ->flatMap(
-                    fn($optional) => $this
-                        ->optionals
+                    static fn($optional) => $optionals
                         ->get($optional->name())
                         ->map(static fn($denormalize): Maybe => $denormalize($optional))
                         ->map(static fn($value) => [$optional->name(), $value])
@@ -150,8 +168,7 @@ final class Denormalize
             ...$data
                 ->collections()
                 ->flatMap(
-                    fn($collection) => $this
-                        ->collections
+                    static fn($collection) => $collections
                         ->get($collection->name())
                         ->map(static fn($denormalize): Set => $denormalize($collection))
                         ->map(static fn($value) => [$collection->name(), $value])

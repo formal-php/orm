@@ -44,9 +44,11 @@ final class Transaction implements TransactionInterface
      */
     public function commit(): callable
     {
-        return function(mixed $value) {
+        $connection = $this->connection;
+
+        return static function(mixed $value) use ($connection) {
             // memoize to force unwrap the monad
-            $_ = ($this->connection)(new Commit)->memoize();
+            $_ = $connection(new Commit)->memoize();
 
             return $value;
         };
@@ -59,9 +61,11 @@ final class Transaction implements TransactionInterface
      */
     public function rollback(): callable
     {
-        return function(mixed $value) {
+        $connection = $this->connection;
+
+        return static function(mixed $value) use ($connection) {
             // memoize to force unwrap the monad
-            $_ = ($this->connection)(new Rollback)->memoize();
+            $_ = $connection(new Rollback)->memoize();
 
             return $value;
         };

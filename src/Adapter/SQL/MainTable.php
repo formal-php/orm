@@ -260,11 +260,12 @@ final class MainTable
     public function update(Diff $data): Maybe
     {
         $table = $this->name->name();
+        $id = $this->definition->id()->property();
 
         return Maybe::just($data->properties())
             ->filter(static fn($properties) => !$properties->empty())
             ->map(
-                fn($properties) => Update::set(
+                static fn($properties) => Update::set(
                     $table,
                     Row::new(
                         ...$properties
@@ -275,7 +276,7 @@ final class MainTable
                             ->toList(),
                     ),
                 )->where(Property::of(
-                    $this->definition->id()->property(),
+                    $id,
                     Sign::equality,
                     $data->id()->value(),
                 )),

@@ -80,34 +80,34 @@ final class Repository implements RepositoryInterface
 
     public function add(Aggregate $data): void
     {
+        $encoded = Directory::named($this->definition->name())->add(
+            ($this->encode)($data),
+        );
+
         $this->transaction->mutate(
-            fn($adapter) => $adapter->add(
-                Directory::named($this->definition->name())->add(
-                    ($this->encode)($data),
-                ),
-            ),
+            static fn($adapter) => $adapter->add($encoded),
         );
     }
 
     public function update(Diff $data): void
     {
+        $encoded = Directory::named($this->definition->name())->add(
+            ($this->encode)($data),
+        );
+
         $this->transaction->mutate(
-            fn($adapter) => $adapter->add(
-                Directory::named($this->definition->name())->add(
-                    ($this->encode)($data),
-                ),
-            ),
+            static fn($adapter) => $adapter->add($encoded),
         );
     }
 
     public function remove(Aggregate\Id $id): void
     {
+        $mutated = Directory::named($this->definition->name())->remove(
+            Name::of($id->value()),
+        );
+
         $this->transaction->mutate(
-            fn($adapter) => $adapter->add(
-                Directory::named($this->definition->name())->remove(
-                    Name::of($id->value()),
-                ),
-            ),
+            static fn($adapter) => $adapter->add($mutated),
         );
     }
 

@@ -81,6 +81,11 @@ final class Diff
         $then = $then->properties();
         $now = $now->properties();
 
+        $definition = $this->definition;
+        $normalizeEntity = $this->normalizeEntity;
+        $normalizeOptional = $this->normalizeOptional;
+        $normalizeCollection = $this->normalizeCollection;
+
         // Diffing on denormalized values that has to be immutable we allow to
         // not unwrap monads (such as Maybe for optionals) unless necessary,
         // thus avoiding possible roundtrips to the storage adapter
@@ -102,8 +107,7 @@ final class Diff
             ->values();
 
         $properties = $diff->flatMap(
-            fn($value) => $this
-                ->definition
+            static fn($value) => $definition
                 ->properties()
                 ->find(static fn($property) => $property->name() === $value->name())
                 ->map(static fn($property) => Raw\Aggregate\Property::of(
@@ -114,8 +118,7 @@ final class Diff
         );
         /** @psalm-suppress MixedArgument */
         $entities = $diff->flatMap(
-            fn($value) => $this
-                ->normalizeEntity
+            static fn($value) => $normalizeEntity
                 ->get($value->name())
                 ->map(static fn($normalize) => self::diffEntities(
                     $normalize($value->then()),
@@ -125,8 +128,7 @@ final class Diff
         );
         /** @psalm-suppress MixedArgument */
         $optionals = $diff->flatMap(
-            fn($value) => $this
-                ->normalizeOptional
+            static fn($value) => $normalizeOptional
                 ->get($value->name())
                 ->map(static fn($normalize) => self::diffOptionals(
                     $normalize($value->then()),
@@ -144,8 +146,7 @@ final class Diff
          * @psalm-suppress MixedReturnStatement
          */
         $collections = $diff->flatMap(
-            fn($value) => $this
-                ->normalizeCollection
+            static fn($value) => $normalizeCollection
                 ->get($value->name())
                 ->exclude(static fn(): bool => $value->now()->equals($value->then()))
                 ->map(static fn($normalize) => $normalize($value->now()))

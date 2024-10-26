@@ -136,7 +136,12 @@ final class Repository implements RepositoryInterface
     public function get(Aggregate\Id $id): Maybe
     {
         return ($this->http)(Request::of(
-            $this->url('_source', $id->value()),
+            self::url(
+                $this->url,
+                $this->path,
+                '_source',
+                $id->value(),
+            ),
             Method::get,
             ProtocolVersion::v11,
         ))
@@ -149,7 +154,12 @@ final class Repository implements RepositoryInterface
     public function contains(Aggregate\Id $id): bool
     {
         return ($this->http)(Request::of(
-            $this->url('_doc', $id->value()),
+            self::url(
+                $this->url,
+                $this->path,
+                '_doc',
+                $id->value(),
+            ),
             Method::head,
             ProtocolVersion::v11,
         ))->match(
@@ -161,7 +171,12 @@ final class Repository implements RepositoryInterface
     public function add(Aggregate $data): void
     {
         $_ = ($this->http)(Request::of(
-            $this->url('_doc', $data->id()->value()),
+            self::url(
+                $this->url,
+                $this->path,
+                '_doc',
+                $data->id()->value(),
+            ),
             Method::put,
             ProtocolVersion::v11,
             Headers::of(
@@ -177,7 +192,12 @@ final class Repository implements RepositoryInterface
     public function update(Diff $data): void
     {
         $_ = ($this->http)(Request::of(
-            $this->url('_update', $data->id()->value()),
+            self::url(
+                $this->url,
+                $this->path,
+                '_update',
+                $data->id()->value(),
+            ),
             Method::post,
             ProtocolVersion::v11,
             Headers::of(
@@ -193,7 +213,12 @@ final class Repository implements RepositoryInterface
     public function remove(Aggregate\Id $id): void
     {
         $_ = ($this->http)(Request::of(
-            $this->url('_doc', $id->value()),
+            self::url(
+                $this->url,
+                $this->path,
+                '_doc',
+                $id->value(),
+            ),
             Method::delete,
             ProtocolVersion::v11,
         ))->match(
@@ -205,7 +230,11 @@ final class Repository implements RepositoryInterface
     public function removeAll(Specification $specification): void
     {
         $_ = ($this->http)(Request::of(
-            $this->url('_delete_by_query'),
+            self::url(
+                $this->url,
+                $this->path,
+                '_delete_by_query',
+            ),
             Method::post,
             ProtocolVersion::v11,
             Headers::of(
@@ -258,7 +287,19 @@ final class Repository implements RepositoryInterface
             return $this->stream($drop ?? 0, $normalizedSort, $query);
         }
 
-        return $this->search($drop ?? 0, $take, $normalizedSort, $query);
+        $decode = ($this->decode)();
+
+        return self::search(
+            $this->http,
+            $decode,
+            $this->pluckHits,
+            $this->url,
+            $this->path,
+            $drop ?? 0,
+            $take,
+            $normalizedSort,
+            $query,
+        );
     }
 
     public function size(Specification $specification = null): int
@@ -271,7 +312,11 @@ final class Repository implements RepositoryInterface
         }
 
         return ($this->http)(Request::of(
-            $this->url('_count'),
+            self::url(
+                $this->url,
+                $this->path,
+                '_count',
+            ),
             match ($content) {
                 null => Method::get,
                 default => Method::post,
@@ -309,14 +354,17 @@ final class Repository implements RepositoryInterface
      * @param non-empty-string $action
      * @param non-empty-string|null $id
      */
-    private function url(string $action, string $id = null): Url
-    {
+    private static function url(
+        Url $url,
+        Template $path,
+        string $action,
+        string $id = null,
+    ): Url {
         /** @var Map<non-empty-string, non-empty-string> */
         $map = Map::of(['action', $action]);
 
-        return $this->url->withPath(
-            $this
-                ->path
+        return $url->withPath(
+            $path
                 ->expand(match ($id) {
                     null => $map,
                     default => ($map)('id', $id),
@@ -331,7 +379,22 @@ final class Repository implements RepositoryInterface
      */
     private function stream(int $drop, ?array $sort, ?array $query): Sequence
     {
-        return Sequence::lazy(function() use ($drop, $sort, $query) {
+        $http = $this->http;
+        $decode = ($this->decode)();
+        $pluckHits = $this->pluckHits;
+        $url = $this->url;
+        $path = $this->path;
+
+        return Sequence::lazy(static function() use (
+            $http,
+            $decode,
+            $pluckHits,
+            $url,
+            $path,
+            $drop,
+            $sort,
+            $query,
+        ) {
             // This loop will break when reaching 10k documents (see
             // self::search()). The user SHOULD be aware of this limitation
             // after reading the documentation.
@@ -339,7 +402,17 @@ final class Repository implements RepositoryInterface
             // more than 10k documents will crash the app (thus making the user
             // aware of this limitation).
             while (true) {
-                $hits = $this->search($drop, 100, $sort, $query);
+                $hits = self::search(
+                    $http,
+                    $decode,
+                    $pluckHits,
+                    $url,
+                    $path,
+                    $drop,
+                    100,
+                    $sort,
+                    $query,
+                );
 
                 yield $hits;
 
@@ -356,12 +429,19 @@ final class Repository implements RepositoryInterface
     }
 
     /**
+     * @param callable(mixed): Maybe<Aggregate> $decode
+     * @param Constraint<mixed, Sequence<array>> $pluckHits
      * @param 0|positive-int $drop
      * @param positive-int $take
      *
      * @return Sequence<Aggregate>
      */
-    private function search(
+    private static function search(
+        Transport $http,
+        callable $decode,
+        Constraint $pluckHits,
+        Url $url,
+        Template $path,
         int $drop,
         int $take,
         ?array $sort,
@@ -385,10 +465,12 @@ final class Repository implements RepositoryInterface
             $payload['query'] = $query;
         }
 
-        $decode = ($this->decode)();
-
-        return ($this->http)(Request::of(
-            $this->url('_search'),
+        return $http(Request::of(
+            self::url(
+                $url,
+                $path,
+                '_search',
+            ),
             Method::post,
             ProtocolVersion::v11,
             Headers::of(
@@ -399,7 +481,7 @@ final class Repository implements RepositoryInterface
             ->map(static fn($success) => $success->response()->body()->toString())
             ->map(Json::decode(...))
             ->maybe()
-            ->flatMap(fn($content) => ($this->pluckHits)($content)->maybe())
+            ->flatMap(static fn($content) => $pluckHits($content)->maybe())
             ->toSequence()
             ->flatMap(static fn($hits) => $hits)
             ->flatMap(static fn($hit) => $decode($hit)->toSequence());

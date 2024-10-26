@@ -53,33 +53,37 @@ final class Decode
      */
     public function __invoke(Aggregate\Id $id = null): callable
     {
+        $idName = $this->id;
         /** @psalm-suppress MixedArgument */
         $id = match ($id) {
-            null => fn(Row $row) => $row
-                ->column($this->id)
+            null => static fn(Row $row) => $row
+                ->column($idName)
                 ->filter(\is_string(...))
-                ->map(fn($id) => Aggregate\Id::of(
-                    $this->id,
+                ->map(static fn($id) => Aggregate\Id::of(
+                    $idName,
                     $id,
                 )),
             default => static fn(Row $row) => Maybe::just($id),
         };
 
+        $entityPrefix = $this->entityPrefix;
+        $mainTable = $this->mainTable;
+        $connection = $this->connection;
+
         /**
          * @psalm-suppress MixedArgument
          * @psalm-suppress ArgumentTypeCoercion
          */
-        return fn(Row $row) => $id($row)->map(fn($id) => Aggregate::of(
+        return static fn(Row $row) => $id($row)->map(static fn($id) => Aggregate::of(
             $id,
             $row
                 ->values()
-                ->filter(fn($value) => Str::of($value->column()->toString())->startsWith($this->entityPrefix))
+                ->filter(static fn($value) => Str::of($value->column()->toString())->startsWith($entityPrefix))
                 ->map(static fn($value) => Aggregate\Property::of(
                     Str::of($value->column()->toString())->drop(7)->toString(),
                     $value->value(),
                 )),
-            $this
-                ->mainTable
+            $mainTable
                 ->entities()
                 ->map(
                     static fn($entity) => Aggregate\Entity::of(
@@ -87,13 +91,12 @@ final class Decode
                         self::properties($row, $entity->columns()),
                     ),
                 ),
-            $this
-                ->mainTable
+            $mainTable
                 ->optionals()
-                ->map(fn($optional) => Aggregate\Optional::of(
+                ->map(static fn($optional) => Aggregate\Optional::of(
                     $optional->name()->alias(),
                     Maybe::defer(
-                        fn() => ($this->connection)($optional->select($id))
+                        static fn() => $connection($optional->select($id))
                             ->first()
                             ->map(static fn($row) => self::properties(
                                 $row,
@@ -101,19 +104,18 @@ final class Decode
                             )),
                     ),
                 )),
-            $this
-                ->mainTable
+            $mainTable
                 ->collections()
-                ->map(fn($collection) => Aggregate\Collection::of(
+                ->map(static fn($collection) => Aggregate\Collection::of(
                     $collection->name()->alias(),
                     Set::defer(
-                        (function() use ($collection, $id) {
+                        (static function() use ($connection, $collection, $id) {
                             // Wrapping this call in a deferred Set allows to
                             // not immediately make the request but only when
                             // asked.
                             // The memoize is here to make sure the user can't
                             // work with a partially loaded collection
-                            $entities = ($this->connection)($collection->select($id))
+                            $entities = $connection($collection->select($id))
                                 ->map(static fn($row) => Aggregate\Collection\Entity::of(
                                     self::properties(
                                         $row,

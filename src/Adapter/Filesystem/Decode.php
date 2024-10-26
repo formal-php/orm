@@ -41,10 +41,11 @@ final class Decode
      */
     public function __invoke(Aggregate\Id $id = null): callable
     {
+        $property = $this->definition->id()->property();
         /** @psalm-suppress ArgumentTypeCoercion */
         $id = match ($id) {
-            null => fn(Directory $directory) => Aggregate\Id::of(
-                $this->definition->id()->property(),
+            null => static fn(Directory $directory) => Aggregate\Id::of(
+                $property,
                 $directory->name()->toString(),
             ),
             default => static fn(Directory $directory) => $id,
@@ -59,10 +60,12 @@ final class Decode
             $directory
                 ->get(Name::of('properties'))
                 ->keep(Instance::of(Directory::class))
+                ->memoize()
                 ->map(
                     static fn($properties) => $properties
                         ->all()
                         ->keep(Instance::of(File::class))
+                        ->memoize()
                         ->map(static fn($file) => Aggregate\Property::of(
                             $file->name()->toString(),
                             Json::decode($file->content()->toString()),
@@ -71,16 +74,19 @@ final class Decode
             $directory
                 ->get(Name::of('entities'))
                 ->keep(Instance::of(Directory::class))
+                ->memoize()
                 ->map(
                     static fn($entities) => $entities
                         ->all()
                         ->keep(Instance::of(Directory::class))
+                        ->memoize()
                         ->map(
                             static fn($entity) => Aggregate\Entity::of(
                                 $entity->name()->toString(),
                                 $entity
                                     ->all()
                                     ->keep(Instance::of(File::class))
+                                    ->memoize()
                                     ->map(static fn($property) => Aggregate\Property::of(
                                         $property->name()->toString(),
                                         Json::decode($property->content()->toString()),
@@ -91,20 +97,24 @@ final class Decode
             $directory
                 ->get(Name::of('optionals'))
                 ->keep(Instance::of(Directory::class))
+                ->memoize()
                 ->map(
                     static fn($optionals) => $optionals
                         ->all()
                         ->keep(Instance::of(Directory::class))
+                        ->memoize()
                         ->map(
                             static fn($optional) => Aggregate\Optional::of(
                                 $optional->name()->toString(),
                                 $optional
                                     ->get(Name::of('just'))
                                     ->keep(Instance::of(Directory::class))
+                                    ->memoize()
                                     ->map(
                                         static fn($just) => $just
                                             ->all()
                                             ->keep(Instance::of(File::class))
+                                            ->memoize()
                                             ->map(static fn($property) => Aggregate\Property::of(
                                                 $property->name()->toString(),
                                                 Json::decode($property->content()->toString()),
@@ -116,10 +126,12 @@ final class Decode
             $directory
                 ->get(Name::of('collections'))
                 ->keep(Instance::of(Directory::class))
+                ->memoize()
                 ->map(
                     static fn($collections) => $collections
                         ->all()
                         ->keep(Instance::of(File::class))
+                        ->memoize()
                         ->map(
                             static fn($collection) => Aggregate\Collection::of(
                                 $collection->name()->toString(),

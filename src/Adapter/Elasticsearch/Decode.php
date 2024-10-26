@@ -128,12 +128,17 @@ final class Decode
             default => Of::callable(static fn() => Validation::success($id)),
         };
 
-        return fn(mixed $content) => Maybe::all(
+        $properties = $this->properties;
+        $entities = $this->entities;
+        $optionals = $this->optionals;
+        $collections = $this->collections;
+
+        return static fn(mixed $content) => Maybe::all(
             Is::array()->and($id)($content)->maybe(),
-            ($this->properties)($content)->maybe(),
-            Is::array()->and($this->entities)($content)->maybe(),
-            Is::array()->and($this->optionals)($content)->maybe(),
-            Is::array()->and($this->collections)($content)->maybe(),
+            $properties($content)->maybe(),
+            Is::array()->and($entities)($content)->maybe(),
+            Is::array()->and($optionals)($content)->maybe(),
+            Is::array()->and($collections)($content)->maybe(),
         )->map(Aggregate::of(...));
     }
 

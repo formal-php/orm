@@ -26,8 +26,8 @@ final class Encode
         $entities = $data
             ->entities()
             ->exclude(static fn($entity) => $entity->properties()->empty())
-            ->map(fn($entity) => [
-                $entity->name() => $this->properties($entity->properties()),
+            ->map(static fn($entity) => [
+                $entity->name() => self::properties($entity->properties()),
             ])
             ->toList();
         $optionals = $data
@@ -36,20 +36,20 @@ final class Encode
                 static fn($properties) => $properties->empty(),
                 static fn() => false, // force setting the property to null below
             ))
-            ->map(fn($optional) => [
+            ->map(static fn($optional) => [
                 $optional->name() => $optional->properties()->match(
-                    $this->properties(...),
+                    self::properties(...),
                     static fn() => null,
                 ),
             ])
             ->toList();
         $collections = $data
             ->collections()
-            ->map(fn($collection) => [
+            ->map(static fn($collection) => [
                 $collection->name() => $collection
                     ->entities()
                     ->unsorted()
-                    ->map(fn($entity) => $this->properties($entity->properties()))
+                    ->map(static fn($entity) => self::properties($entity->properties()))
                     ->toList(),
             ])
             ->toList();
@@ -77,7 +77,7 @@ final class Encode
     /**
      * @param Sequence<Aggregate\Property> $properties
      */
-    private function properties(Sequence $properties): array
+    private static function properties(Sequence $properties): array
     {
         return \array_merge(
             ...$properties

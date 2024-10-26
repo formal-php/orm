@@ -60,11 +60,12 @@ final class Encode
      */
     private function entities(Aggregate $data): Sequence
     {
+        $mainTable = $this->mainTable;
+
         return $data
             ->entities()
             ->flatMap(
-                fn($entity) => $this
-                    ->mainTable
+                static fn($entity) => $mainTable
                     ->entity($entity->name())
                     ->map(
                         static fn($table) => $table->insert($data->id(), $entity->properties()),
@@ -78,11 +79,12 @@ final class Encode
      */
     private function optionals(Aggregate $data): Sequence
     {
+        $mainTable = $this->mainTable;
+
         return $data
             ->optionals()
             ->flatMap(
-                fn($optional) => $this
-                    ->mainTable
+                static fn($optional) => $mainTable
                     ->optional($optional->name())
                     ->flatMap(
                         static fn($table) => $optional->properties()->map(
@@ -106,11 +108,12 @@ final class Encode
      */
     private function collections(Aggregate $data): Sequence
     {
+        $mainTable = $this->mainTable;
+
         return $data
             ->collections()
             ->flatMap(
-                fn($collection) => $this
-                    ->mainTable
+                static fn($collection) => $mainTable
                     ->collection($collection->name())
                     ->toSequence()
                     ->flatMap(
