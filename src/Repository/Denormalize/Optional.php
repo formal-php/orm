@@ -47,15 +47,16 @@ final class Optional
     public function __invoke(Raw $optional): Maybe
     {
         $class = $this->definition->class();
+        $props = $this->properties;
+        $instanciate = $this->instanciate;
 
         return $optional
             ->properties()
-            ->map(function($properties) use ($class) {
+            ->map(static function($properties) use ($class, $props, $instanciate) {
                 $properties = Map::of(
                     ...$properties
                         ->flatMap(
-                            fn($property) => $this
-                                ->properties
+                            static fn($property) => $props
                                 ->get($property->name())
                                 ->map(static fn($definition): mixed => $definition->type()->denormalize($property->value()))
                                 ->map(static fn($value) => [$property->name(), $value])
@@ -65,7 +66,7 @@ final class Optional
                 );
 
                 /** @var T */
-                return ($this->instanciate)($class, $properties)->match(
+                return $instanciate($class, $properties)->match(
                     static fn($optional) => $optional,
                     static fn() => throw new \RuntimeException("Unable to denormalize optional of type '$class'"),
                 );

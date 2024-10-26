@@ -132,20 +132,10 @@ final class OptionalTable
      */
     public function insert(Id $id, Sequence $properties): Query
     {
-        return Query\Insert::into(
+        return self::insertInto(
             $this->name->name(),
-            Row::new(
-                Row\Value::of(
-                    Column\Name::of('aggregateId'),
-                    $id->value(),
-                ),
-                ...$properties
-                    ->map(static fn($property) => Row\Value::of(
-                        Column\Name::of($property->name()),
-                        $property->value(),
-                    ))
-                    ->toList(),
-            ),
+            $id,
+            $properties,
         );
     }
 
@@ -156,25 +146,27 @@ final class OptionalTable
      */
     public function update(Id $id, Optional|Optional\BrandNew $optional): Sequence
     {
+        $name = $this->name;
+
         if ($optional instanceof Optional\BrandNew) {
             // No queries to make if the optional is brand new and no properties
             // as it means the state is the same
             return $optional
                 ->properties()
                 ->match(
-                    fn($properties) => Sequence::of(
-                        $this->insert($id, $properties),
+                    static fn($properties) => Sequence::of(
+                        self::insertInto($name->name(), $id, $properties),
                     ),
                     static fn() => Sequence::of(),
                 );
         }
 
         return $optional->properties()->match(
-            fn($properties) => match ($properties->empty()) {
+            static fn($properties) => match ($properties->empty()) {
                 true => Sequence::of(),
                 false => Sequence::of(
                     Update::set(
-                        $this->name,
+                        $name,
                         Row::new(
                             ...$properties
                                 ->map(static fn($property) => Row\Value::of(
@@ -191,8 +183,8 @@ final class OptionalTable
                         )),
                 ),
             },
-            fn() => Sequence::of(
-                Delete::from($this->name)->where(PropertySpecification::of(
+            static fn() => Sequence::of(
+                Delete::from($name)->where(PropertySpecification::of(
                     'aggregateId',
                     Sign::equality,
                     $id->value(),
@@ -211,5 +203,32 @@ final class OptionalTable
     public function whereAny(): Query
     {
         return Select::from($this->name)->columns($this->id);
+    }
+
+    /**
+     * @psalm-pure
+     *
+     * @param Sequence<Property> $properties
+     */
+    private static function insertInto(
+        Table\Name $name,
+        Id $id,
+        Sequence $properties,
+    ): Query {
+        return Query\Insert::into(
+            $name,
+            Row::new(
+                Row\Value::of(
+                    Column\Name::of('aggregateId'),
+                    $id->value(),
+                ),
+                ...$properties
+                    ->map(static fn($property) => Row\Value::of(
+                        Column\Name::of($property->name()),
+                        $property->value(),
+                    ))
+                    ->toList(),
+            ),
+        );
     }
 }

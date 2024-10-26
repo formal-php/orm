@@ -44,9 +44,12 @@ final class Optional
      */
     public function __invoke(Maybe $optional): Raw
     {
+        $definition = $this->definition;
         $class = $this->definition->class();
+        $properties = $this->properties;
+        $extract = $this->extract;
         $properties = $optional->map(
-            fn($object) => ($this->extract)($object, $this->properties)->match(
+            static fn($object) => $extract($object, $properties)->match(
                 static fn($properties) => $properties,
                 static fn() => throw new \LogicException("Failed to extract properties from '$class'"),
             ),
@@ -55,8 +58,7 @@ final class Optional
         return Raw::of(
             $this->definition->name(),
             $properties->map(
-                fn($properties) => $this
-                    ->definition
+                static fn($properties) => $definition
                     ->properties()
                     ->flatMap(
                         static fn($property) => $properties

@@ -43,9 +43,12 @@ final class Collection
      */
     public function __invoke(Set $collection): Raw
     {
+        $definition = $this->definition;
         $class = $this->definition->class();
+        $properties = $this->properties;
+        $extract = $this->extract;
         $entities = $collection->map(
-            fn($object) => ($this->extract)($object, $this->properties)->match(
+            static fn($object) => $extract($object, $properties)->match(
                 static fn($entity) => $entity,
                 static fn() => throw new \LogicException("Failed to extract properties from '$class'"),
             ),
@@ -55,8 +58,7 @@ final class Collection
             $this->definition->name(),
             $entities
                 ->map(
-                    fn($entity) => $this
-                        ->definition
+                    static fn($entity) => $definition
                         ->properties()
                         ->flatMap(
                             static fn($property) => $entity
