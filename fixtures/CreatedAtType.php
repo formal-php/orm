@@ -56,10 +56,13 @@ final class CreatedAtType implements Type, SQLType, ElasticsearchType
 
     public function denormalize(null|string|int|float|bool $value): mixed
     {
-        if (!\is_float($value) && !\is_int($value)) {
+        if (!\is_numeric($value)) {
             throw new \LogicException("'$value' is not a float");
         }
 
-        return new CreatedAt($value);
+        // With SQL the value is read from the database as a string. Adding 0
+        // allows to convert the string to the correct type (int or float)
+        // without modifying its value.
+        return new CreatedAt($value + 0);
     }
 }
