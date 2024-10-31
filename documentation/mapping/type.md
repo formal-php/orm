@@ -69,12 +69,12 @@ use Formal\ORM\Definition\Type;
  */
 final class NameType implements Type
 {
-    public function normalize(mixed $value): null|string|int|bool
+    public function normalize(mixed $value): null|string|int|float|bool
     {
         return $value->toString();
     }
 
-    public function denormalize(null|string|int|bool $value): mixed
+    public function denormalize(null|string|int|float|bool $value): mixed
     {
         if (!\is_string($value)) {
             throw new \LogicException("'$value' is not a string");
