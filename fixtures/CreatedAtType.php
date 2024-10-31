@@ -3,12 +3,14 @@ declare(strict_types = 1);
 
 namespace Fixtures\Formal\ORM;
 
-use Fixtures\Formal\ORM\Sortable;
+use Fixtures\Formal\ORM\CreatedAt;
 use Formal\ORM\Adapter\Elasticsearch\ElasticsearchType;
+use Formal\ORM\Adapter\SQL\SQLType;
 use Formal\ORM\Definition\{
     Type,
     Types,
 };
+use Formal\AccessLayer\Table\Column\Type as Definition;
 use Innmind\Type\{
     Type as Concrete,
     ClassName,
@@ -17,9 +19,9 @@ use Innmind\Immutable\Maybe;
 
 /**
  * @psalm-immutable
- * @implements Type<Sortable>
+ * @implements Type<CreatedAt>
  */
-final class SortableType implements Type, ElasticsearchType
+final class CreatedAtType implements Type, SQLType, ElasticsearchType
 {
     private function __construct()
     {
@@ -33,26 +35,31 @@ final class SortableType implements Type, ElasticsearchType
     public static function of(Types $types, Concrete $type): Maybe
     {
         return Maybe::just($type)
-            ->filter(static fn($type) => $type->accepts(ClassName::of(Sortable::class)))
+            ->filter(static fn($type) => $type->accepts(ClassName::of(CreatedAt::class)))
             ->map(static fn() => new self);
     }
 
     public function elasticsearchType(): array
     {
-        return ['type' => 'keyword'];
+        return ['type' => 'double'];
+    }
+
+    public function sqlType(): Definition
+    {
+        return Definition::decimal(65, 2);
     }
 
     public function normalize(mixed $value): null|string|int|float|bool
     {
-        return $value->toString();
+        return $value->toFloat();
     }
 
     public function denormalize(null|string|int|float|bool $value): mixed
     {
-        if (!\is_string($value)) {
-            throw new \LogicException("'$value' is not a string");
+        if (!\is_float($value)) {
+            throw new \LogicException("'$value' is not a float");
         }
 
-        return new Sortable($value);
+        return new CreatedAt($value);
     }
 }

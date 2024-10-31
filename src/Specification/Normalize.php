@@ -253,13 +253,13 @@ final class Normalize
      * @param Map<non-empty-string, Aggregate\Property> $properties
      * @param non-empty-string $property
      *
-     * @return null|string|int|bool|list<string|int|bool|null>
+     * @return null|string|int|float|bool|list<string|int|float|bool|null>
      */
     private function normalizeProperty(
         Map $properties,
         string $property,
         mixed $value,
-    ): null|string|int|bool|array {
+    ): null|string|int|float|bool|array {
         return $properties
             ->get($property)
             ->map(static fn($property) => match (true) {

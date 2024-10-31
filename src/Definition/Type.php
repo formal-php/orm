@@ -12,10 +12,10 @@ interface Type
     /**
      * @param D $value
      */
-    public function normalize(mixed $value): null|string|int|bool;
+    public function normalize(mixed $value): null|string|int|float|bool;
 
     /**
      * @return D
      */
-    public function denormalize(null|string|int|bool $value): mixed;
+    public function denormalize(null|string|int|float|bool $value): mixed;
 }

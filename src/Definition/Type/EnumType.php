@@ -51,12 +51,12 @@ final class EnumType implements Type
             ->map(static fn($type) => new self($type->toString()));
     }
 
-    public function normalize(mixed $value): null|string|int|bool
+    public function normalize(mixed $value): null|string|int|float|bool
     {
         return $value->name;
     }
 
-    public function denormalize(null|string|int|bool $value): mixed
+    public function denormalize(null|string|int|float|bool $value): mixed
     {
         foreach ($this->class::cases() as $case) {
             if ($case->name === $value) {

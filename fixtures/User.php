@@ -19,6 +19,9 @@ final class User
     /** @var Id<self> */
     private Id $id;
     private PointInTime $createdAt;
+    // To show by default floats are not supported on purpose
+    private float $createdAtFloat;
+    private CreatedAt $wrappedCreatedAt;
     private ?string $name;
     /** @var Maybe<Str> */
     #[Contains(Str::class)]
@@ -66,6 +69,12 @@ final class User
     ) {
         $this->id = $id;
         $this->createdAt = $createdAt;
+        $this->createdAtFloat = (float) \sprintf(
+            '%s.%s',
+            $createdAt->second()->toInt(),
+            $createdAt->millisecond()->toInt(),
+        );
+        $this->wrappedCreatedAt = new CreatedAt($this->createdAtFloat);
         $this->name = $name;
         $this->nameStr = Maybe::of($name)->map(Str::of(...));
         $this->sortableName = Sortable::of($name);

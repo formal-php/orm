@@ -54,7 +54,7 @@ final class MaybeType implements Type
         return $this->inner;
     }
 
-    public function normalize(mixed $value): null|string|int|bool
+    public function normalize(mixed $value): null|string|int|float|bool
     {
         return $value->match(
             $this->inner->normalize(...),
@@ -62,7 +62,7 @@ final class MaybeType implements Type
         );
     }
 
-    public function denormalize(null|string|int|bool $value): mixed
+    public function denormalize(null|string|int|float|bool $value): mixed
     {
         return Maybe::of($value)->map($this->inner->denormalize(...));
     }
