@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Cross matching on an aggregate or entity property.
+
 ## 3.4.1 - 2024-10-26
 
 ### Changed
