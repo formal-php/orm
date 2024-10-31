@@ -126,6 +126,35 @@ final class CrossAggregateMatching implements Property
 
         $assert->count(0, $found);
 
+        // this allows to check the cross match on aggregate properties
+        $found = $repository
+            ->matching(Comparator\Property::of(
+                'id',
+                Sign::in,
+                $repository->matching(
+                    Comparator\Property::of('id', Sign::equality, $child1->id())->or(
+                        Comparator\Property::of('id', Sign::equality, $parent2->id()),
+                    ),
+                ),
+            ))
+            ->map(static fn($user) => $user->id()->toString())
+            ->toList();
+
+        $assert
+            ->expected($child1->id()->toString())
+            ->in($found);
+        $assert
+            ->expected($parent2->id()->toString())
+            ->in($found);
+        $assert
+            ->expected($child2->id()->toString())
+            ->not()
+            ->in($found);
+        $assert
+            ->expected($parent1->id()->toString())
+            ->not()
+            ->in($found);
+
         return $manager;
     }
 }

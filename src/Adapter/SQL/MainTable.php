@@ -13,6 +13,7 @@ use Formal\ORM\{
     Specification\Child,
     Specification\Just,
     Specification\Has,
+    Specification\CrossMatch,
 };
 use Formal\AccessLayer\{
     Table,
@@ -27,6 +28,7 @@ use Formal\AccessLayer\{
 use Innmind\Specification\{
     Specification,
     Not,
+    Comparator,
     Composite,
     Operator,
     Sign,
@@ -404,6 +406,14 @@ final class MainTable
             );
         }
 
+        if ($specification instanceof CrossMatch) {
+            return Comparator\Property::of(
+                'entity.'.$specification->property(),
+                $specification->sign(),
+                $specification->value(),
+            );
+        }
+
         if (!($specification instanceof Property)) {
             $class = $specification::class;
 
@@ -444,6 +454,18 @@ final class MainTable
                 Operator::and => $left->and($right),
                 Operator::or => $left->or($right),
             };
+        }
+
+        if ($underlying instanceof CrossMatch) {
+            return Comparator\Property::of(
+                \sprintf(
+                    '%s.%s',
+                    $specification->entity(),
+                    $underlying->property(),
+                ),
+                $underlying->sign(),
+                $underlying->value(),
+            );
         }
 
         if (!($underlying instanceof Property)) {

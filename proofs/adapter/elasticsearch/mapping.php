@@ -12,7 +12,10 @@ use Innmind\TimeContinuum\{
     Earth\Clock,
     PointInTime,
 };
-use Fixtures\Formal\ORM\User;
+use Fixtures\Formal\ORM\{
+    User,
+    CreatedAtType,
+};
 
 return static function() {
     yield test(
@@ -23,6 +26,7 @@ return static function() {
                     PointInTime::class,
                     Type\PointInTimeType::new(new Clock),
                 ),
+                CreatedAtType::of(...),
             ));
 
             $mapping = Mapping::new()($aggregates->get(User::class));
@@ -35,6 +39,9 @@ return static function() {
                         ],
                         'createdAt' => [
                             'type' => 'text',
+                        ],
+                        'wrappedCreatedAt' => [
+                            'type' => 'double',
                         ],
                         'name' => [
                             'type' => 'text',

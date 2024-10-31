@@ -14,7 +14,7 @@ Using primitive types is fine when you prototype the design of your aggregates. 
 
 1. It also has the benefit to immensely simplify refactoring your code.
 
-Types is essential in the Formal design. You'll learn in the next chapter how to support your custom types.
+Types are essential in the Formal design. You'll learn in the next chapter how to support your custom types.
 
 By default Formal also supports:
 

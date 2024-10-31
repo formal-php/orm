@@ -10,12 +10,12 @@ final class Property
 {
     /** @var non-empty-string */
     private string $name;
-    private null|string|int|bool $value;
+    private null|string|int|float|bool $value;
 
     /**
      * @param non-empty-string $name
      */
-    private function __construct(string $name, null|string|int|bool $value)
+    private function __construct(string $name, null|string|int|float|bool $value)
     {
         $this->name = $name;
         $this->value = $value;
@@ -26,7 +26,7 @@ final class Property
      *
      * @param non-empty-string $name
      */
-    public static function of(string $name, null|string|int|bool $value): self
+    public static function of(string $name, null|string|int|float|bool $value): self
     {
         return new self($name, $value);
     }
@@ -39,7 +39,7 @@ final class Property
         return $this->name;
     }
 
-    public function value(): null|string|int|bool
+    public function value(): null|string|int|float|bool
     {
         return $this->value;
     }

@@ -151,19 +151,19 @@ final class Fold
     }
 
     /**
-     * @return callable(null|string|int|bool): bool
+     * @return callable(null|string|int|float|bool): bool
      */
     private function filter(Comparator $specification): callable
     {
         /** @psalm-suppress MixedArgument */
         return match ($specification->sign()) {
-            Sign::equality => static fn(null|string|int|bool $value): bool => $value === $specification->value(),
-            Sign::lessThan => static fn(null|string|int|bool $value): bool => $value < $specification->value(),
-            Sign::moreThan => static fn(null|string|int|bool $value): bool => $value > $specification->value(),
-            Sign::startsWith => static fn(null|string|int|bool $value): bool => \is_string($value) && \str_starts_with($value, $specification->value()),
-            Sign::endsWith => static fn(null|string|int|bool $value): bool => \is_string($value) && \str_ends_with($value, $specification->value()),
-            Sign::contains => static fn(null|string|int|bool $value): bool => \is_string($value) && \str_contains($value, $specification->value()),
-            Sign::in => static fn(null|string|int|bool $value): bool => \in_array($value, $specification->value(), true),
+            Sign::equality => static fn(null|string|int|float|bool $value): bool => $value === $specification->value(),
+            Sign::lessThan => static fn(null|string|int|float|bool $value): bool => $value < $specification->value(),
+            Sign::moreThan => static fn(null|string|int|float|bool $value): bool => $value > $specification->value(),
+            Sign::startsWith => static fn(null|string|int|float|bool $value): bool => \is_string($value) && \str_starts_with($value, $specification->value()),
+            Sign::endsWith => static fn(null|string|int|float|bool $value): bool => \is_string($value) && \str_ends_with($value, $specification->value()),
+            Sign::contains => static fn(null|string|int|float|bool $value): bool => \is_string($value) && \str_contains($value, $specification->value()),
+            Sign::in => static fn(null|string|int|float|bool $value): bool => \in_array($value, $specification->value(), true),
         };
     }
 
