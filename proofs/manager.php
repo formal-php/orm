@@ -15,6 +15,7 @@ use Fixtures\Formal\ORM\{
     User,
     Random,
     SortableType,
+    CreatedAtType,
 };
 use Properties\Formal\ORM\{
     Properties,
@@ -87,6 +88,7 @@ return static function() {
             Aggregates::of(Types::of(
                 Type\PointInTimeType::of(new Clock),
                 SortableType::of(...),
+                CreatedAtType::of(...),
             )),
         )),
     )->tag(Storage::filesystem);
@@ -102,6 +104,7 @@ return static function() {
                         Type\PointInTimeType::new(new Clock),
                     ),
                     SortableType::of(...),
+                    CreatedAtType::of(...),
                 )),
             )),
         )
@@ -116,6 +119,7 @@ return static function() {
             Type\PointInTimeType::new($os->clock()),
         ),
         SortableType::of(...),
+        CreatedAtType::of(...),
     ));
 
     $sql = static function(Url $dsn, string $driver) use ($os, $aggregates) {

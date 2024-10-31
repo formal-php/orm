@@ -140,8 +140,8 @@ final class Repository implements RepositoryInterface
 
         if ($sort) {
             $compare = match ($sort->direction()) {
-                Sort::asc => static fn(null|string|int|bool $a, null|string|int|bool $b) => $a <=> $b,
-                Sort::desc => static fn(null|string|int|bool $a, null|string|int|bool $b) => $b <=> $a,
+                Sort::asc => static fn(null|string|int|float|bool $a, null|string|int|float|bool $b) => $a <=> $b,
+                Sort::desc => static fn(null|string|int|float|bool $a, null|string|int|float|bool $b) => $b <=> $a,
             };
             $pluck = match (true) {
                 $sort instanceof Sort\Property => static fn(Aggregate $x): mixed => $x

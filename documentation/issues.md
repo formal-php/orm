@@ -42,6 +42,21 @@ $orm = Manager::of(
 
     This behaviour won't be change for the time being to not break existing projects. But you can gradually fix this via the `mapName` method.
 
+### Floating points
+
+By default Formal doesn't support `float` as a property type _but_ it allows you to use it if you need to.
+
+Storing `float`s is a tricky business because of the decimal part precision. Not every system will represent the same value the same way and you may end up with implicit convertions. Meaning you may not retrieve the exact value you put in.
+
+Formal tries to be as explicit as it can be. Supporting by default a type with implicit behaviours is a sure way to bugs.
+
+That being said you can still create a [custom type](mapping/type.md) and normalize that type to a `float` at the storage level. This way you have to determine how to represent the value in your storage and can control the precision.
+
+??? info
+    If you're not familiar with the `float` problems, you can read this, rather long, [article from Oracle](https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html) on how floating points are represented by a system and errors associated.
+
+    You can also watch this [talk](https://www.youtube.com/watch?v=0iEKP4tsWe0) (in french).
+
 ## Elasticsearch
 
 ### Searching with `endsWith`

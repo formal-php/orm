@@ -13,7 +13,10 @@ use Innmind\TimeContinuum\{
     Earth\Clock,
     PointInTime,
 };
-use Fixtures\Formal\ORM\User;
+use Fixtures\Formal\ORM\{
+    User,
+    CreatedAtType,
+};
 
 return static function() {
     yield test(
@@ -25,6 +28,7 @@ return static function() {
                         PointInTime::class,
                         Type\PointInTimeType::new(new Clock),
                     ),
+                    CreatedAtType::of(...),
                 )),
             );
 
@@ -35,7 +39,7 @@ return static function() {
             $assert
                 ->expected([
                     <<<SQL
-                    CREATE TABLE  `user` (`id` char(36) NOT NULL  COMMENT 'UUID', `createdAt` char(32) NOT NULL  COMMENT 'Date with timezone down to the microsecond', `name` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', `nameStr` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', `role` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', PRIMARY KEY (`id`))
+                    CREATE TABLE  `user` (`id` char(36) NOT NULL  COMMENT 'UUID', `createdAt` char(32) NOT NULL  COMMENT 'Date with timezone down to the microsecond', `wrappedCreatedAt` decimal(65, 2) NOT NULL  , `name` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', `nameStr` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', `role` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', PRIMARY KEY (`id`))
                     SQL,
                     <<<SQL
                     CREATE TABLE  `user_mainAddress` (`aggregateId` char(36) NOT NULL  COMMENT 'UUID', `value` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', `id` bigint  DEFAULT NULL COMMENT 'TODO Adjust the size depending on your use case', `enabled` tinyint(1) NOT NULL  COMMENT 'Boolean', CONSTRAINT `FK_user_mainAddress` FOREIGN KEY (`aggregateId`) REFERENCES `user`(`id`) ON DELETE CASCADE, UNIQUE (`aggregateId`))
@@ -62,7 +66,7 @@ return static function() {
             $assert
                 ->expected([
                     <<<SQL
-                    CREATE TABLE IF NOT EXISTS `user` (`id` char(36) NOT NULL  COMMENT 'UUID', `createdAt` char(32) NOT NULL  COMMENT 'Date with timezone down to the microsecond', `name` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', `nameStr` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', `role` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', PRIMARY KEY (`id`))
+                    CREATE TABLE IF NOT EXISTS `user` (`id` char(36) NOT NULL  COMMENT 'UUID', `createdAt` char(32) NOT NULL  COMMENT 'Date with timezone down to the microsecond', `wrappedCreatedAt` decimal(65, 2) NOT NULL  , `name` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', `nameStr` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', `role` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', PRIMARY KEY (`id`))
                     SQL,
                     <<<SQL
                     CREATE TABLE IF NOT EXISTS `user_mainAddress` (`aggregateId` char(36) NOT NULL  COMMENT 'UUID', `value` longtext NOT NULL  COMMENT 'TODO adjust the type depending on your use case', `id` bigint  DEFAULT NULL COMMENT 'TODO Adjust the size depending on your use case', `enabled` tinyint(1) NOT NULL  COMMENT 'Boolean', CONSTRAINT `FK_user_mainAddress` FOREIGN KEY (`aggregateId`) REFERENCES `user`(`id`) ON DELETE CASCADE, UNIQUE (`aggregateId`))
@@ -93,6 +97,7 @@ return static function() {
                         PointInTime::class,
                         Type\PointInTimeType::new(new Clock),
                     ),
+                    CreatedAtType::of(...),
                 ))->mapName(static fn($string) => match ($string) {
                     User::class => 'some_user',
                 }),
@@ -108,7 +113,7 @@ return static function() {
             $assert
                 ->expected(
                     <<<SQL
-                    CREATE TABLE  `some_user` (`id` char(36) NOT NULL  COMMENT 'UUID', `createdAt` char(32) NOT NULL  COMMENT 'Date with timezone down to the microsecond', `name` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', `nameStr` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', `role` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', PRIMARY KEY (`id`))
+                    CREATE TABLE  `some_user` (`id` char(36) NOT NULL  COMMENT 'UUID', `createdAt` char(32) NOT NULL  COMMENT 'Date with timezone down to the microsecond', `wrappedCreatedAt` decimal(65, 2) NOT NULL  , `name` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', `nameStr` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', `role` longtext  DEFAULT NULL COMMENT 'TODO adjust the type depending on your use case', PRIMARY KEY (`id`))
                     SQL,
                 )
                 ->in($queries);

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Allow to convert types to floating points.
+
 ### Fixed
 
 - Cross matching on an aggregate or entity property.
