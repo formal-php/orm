@@ -56,7 +56,7 @@ final class CreatedAtType implements Type, SQLType, ElasticsearchType
 
     public function denormalize(null|string|int|float|bool $value): mixed
     {
-        if (!\is_float($value)) {
+        if (!\is_float($value) && !\is_int($value)) {
             throw new \LogicException("'$value' is not a float");
         }
 
