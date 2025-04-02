@@ -62,6 +62,7 @@ final class Repository implements RepositoryInterface
         return new self($transaction, $definition);
     }
 
+    #[\Override]
     public function get(Aggregate\Id $id): Maybe
     {
         return $this
@@ -71,6 +72,7 @@ final class Repository implements RepositoryInterface
             ->flatMap(($this->decode)($id));
     }
 
+    #[\Override]
     public function contains(Aggregate\Id $id): bool
     {
         return $this
@@ -78,6 +80,7 @@ final class Repository implements RepositoryInterface
             ->contains(Name::of($id->value()));
     }
 
+    #[\Override]
     public function add(Aggregate $data): void
     {
         $encoded = Directory::named($this->definition->name())->add(
@@ -89,6 +92,7 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
     public function update(Diff $data): void
     {
         $encoded = Directory::named($this->definition->name())->add(
@@ -100,6 +104,7 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
     public function remove(Aggregate\Id $id): void
     {
         $mutated = Directory::named($this->definition->name())->remove(
@@ -111,6 +116,7 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
     public function removeAll(Specification $specification): void
     {
         $this
@@ -124,6 +130,7 @@ final class Repository implements RepositoryInterface
             ->foreach($this->remove(...));
     }
 
+    #[\Override]
     public function fetch(
         ?Specification $specification,
         null|Sort\Property|Sort\Entity $sort,
@@ -182,6 +189,7 @@ final class Repository implements RepositoryInterface
         return $aggregates;
     }
 
+    #[\Override]
     public function size(?Specification $specification = null): int
     {
         return $this
@@ -189,6 +197,7 @@ final class Repository implements RepositoryInterface
             ->size();
     }
 
+    #[\Override]
     public function any(?Specification $specification = null): bool
     {
         return $this

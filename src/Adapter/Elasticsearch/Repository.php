@@ -133,6 +133,7 @@ final class Repository implements RepositoryInterface
         return new self($transport, $definition, $url);
     }
 
+    #[\Override]
     public function get(Aggregate\Id $id): Maybe
     {
         return ($this->http)(Request::of(
@@ -151,6 +152,7 @@ final class Repository implements RepositoryInterface
             ->flatMap(($this->decode)($id));
     }
 
+    #[\Override]
     public function contains(Aggregate\Id $id): bool
     {
         return ($this->http)(Request::of(
@@ -168,6 +170,7 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
     public function add(Aggregate $data): void
     {
         $_ = ($this->http)(Request::of(
@@ -189,6 +192,7 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
     public function update(Diff $data): void
     {
         $_ = ($this->http)(Request::of(
@@ -210,6 +214,7 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
     public function remove(Aggregate\Id $id): void
     {
         $_ = ($this->http)(Request::of(
@@ -227,6 +232,7 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
     public function removeAll(Specification $specification): void
     {
         $_ = ($this->http)(Request::of(
@@ -249,6 +255,7 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
     public function fetch(
         ?Specification $specification,
         null|Sort\Property|Sort\Entity $sort,
@@ -302,6 +309,7 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
     public function size(?Specification $specification = null): int
     {
         $content = null;
@@ -343,6 +351,7 @@ final class Repository implements RepositoryInterface
             );
     }
 
+    #[\Override]
     public function any(?Specification $specification = null): bool
     {
         return !$this

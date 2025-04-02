@@ -33,6 +33,7 @@ final class Transaction implements TransactionInterface
         return new self($committed);
     }
 
+    #[\Override]
     public function start(): void
     {
         $this->notCommitted = $this->reset();
@@ -43,6 +44,7 @@ final class Transaction implements TransactionInterface
      *
      * @return callable(R): R
      */
+    #[\Override]
     public function commit(): callable
     {
         return function(mixed $value) {
@@ -60,6 +62,7 @@ final class Transaction implements TransactionInterface
      *
      * @return callable(R): R
      */
+    #[\Override]
     public function rollback(): callable
     {
         return function(mixed $value) {

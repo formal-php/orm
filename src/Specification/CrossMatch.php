@@ -46,16 +46,19 @@ final class CrossMatch implements Comparator
         return new self($property, $value);
     }
 
+    #[\Override]
     public function property(): string
     {
         return $this->property;
     }
 
+    #[\Override]
     public function sign(): Sign
     {
         return Sign::in;
     }
 
+    #[\Override]
     public function value(): mixed
     {
         return $this->value->unwrap();

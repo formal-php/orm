@@ -23,6 +23,7 @@ final class Filesystem implements Adapter
         return new self($adapter);
     }
 
+    #[\Override]
     public function repository(Aggregate $definition): Repository
     {
         return Filesystem\Repository::of(
@@ -31,6 +32,7 @@ final class Filesystem implements Adapter
         );
     }
 
+    #[\Override]
     public function transaction(): Transaction
     {
         return $this->transaction;

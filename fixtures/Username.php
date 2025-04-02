@@ -49,11 +49,13 @@ final class Username implements Comparator
         return new self($sign, $value);
     }
 
+    #[\Override]
     public function property(): string
     {
         return 'nameStr';
     }
 
+    #[\Override]
     public function sign(): Sign
     {
         return $this->sign;
@@ -62,6 +64,7 @@ final class Username implements Comparator
     /**
      * @return Maybe<Str>|Sequence<Maybe<Str>>
      */
+    #[\Override]
     public function value(): Maybe|Sequence
     {
         return $this->value;

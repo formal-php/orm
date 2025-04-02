@@ -22,6 +22,7 @@ final class Transaction implements TransactionInterface
         return new self;
     }
 
+    #[\Override]
     public function start(): void
     {
     }
@@ -31,6 +32,7 @@ final class Transaction implements TransactionInterface
      *
      * @return callable(R): R
      */
+    #[\Override]
     public function commit(): callable
     {
         return static function(mixed $value) {
@@ -43,6 +45,7 @@ final class Transaction implements TransactionInterface
      *
      * @return callable(R): R
      */
+    #[\Override]
     public function rollback(): callable
     {
         return static function(mixed $value) {

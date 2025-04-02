@@ -20,6 +20,7 @@ final class Refresh implements Transport
         $this->transport = $transport;
     }
 
+    #[\Override]
     public function __invoke(Request $request): Either
     {
         $path = Str::of($request->url()->path()->toString());

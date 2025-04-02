@@ -55,11 +55,13 @@ final class PointInTimeType implements Type
             ->map(static fn() => new self($clock, new Format));
     }
 
+    #[\Override]
     public function normalize(mixed $value): null|string|int|float|bool
     {
         return $value->format($this->format);
     }
 
+    #[\Override]
     public function denormalize(null|string|int|float|bool $value): mixed
     {
         if (!\is_string($value)) {

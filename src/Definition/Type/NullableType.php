@@ -55,6 +55,7 @@ final class NullableType implements Type
         return $this->inner;
     }
 
+    #[\Override]
     public function normalize(mixed $value): null|string|int|float|bool
     {
         if (\is_null($value)) {
@@ -64,6 +65,7 @@ final class NullableType implements Type
         return $this->inner->normalize($value);
     }
 
+    #[\Override]
     public function denormalize(null|string|int|float|bool $value): mixed
     {
         if (\is_null($value)) {

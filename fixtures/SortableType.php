@@ -37,16 +37,19 @@ final class SortableType implements Type, ElasticsearchType
             ->map(static fn() => new self);
     }
 
+    #[\Override]
     public function elasticsearchType(): array
     {
         return ['type' => 'keyword'];
     }
 
+    #[\Override]
     public function normalize(mixed $value): null|string|int|float|bool
     {
         return $value->toString();
     }
 
+    #[\Override]
     public function denormalize(null|string|int|float|bool $value): mixed
     {
         if (!\is_string($value)) {

@@ -31,6 +31,7 @@ final class Transaction implements TransactionInterface
         return new self($connection);
     }
 
+    #[\Override]
     public function start(): void
     {
         // memoize to force unwrap the monad
@@ -42,6 +43,7 @@ final class Transaction implements TransactionInterface
      *
      * @return callable(R): R
      */
+    #[\Override]
     public function commit(): callable
     {
         $connection = $this->connection;
@@ -59,6 +61,7 @@ final class Transaction implements TransactionInterface
      *
      * @return callable(R): R
      */
+    #[\Override]
     public function rollback(): callable
     {
         $connection = $this->connection;

@@ -73,7 +73,6 @@ final class Aggregate
         ?callable $mapName,
         string $class,
     ): self {
-        /** @var callable(class-string): non-empty-string */
         $mapName ??= static fn(string $class): string =>  Str::of($class)
             ->split('\\')
             ->takeEnd(1)
@@ -87,11 +86,13 @@ final class Aggregate
                 Parsing::of($class),
                 static fn(Parsing $parsing, $property) => $parsing->with($property, $types),
             );
+        /** @var non-empty-string */
+        $name = $mapName($class);
 
         return $parsed->id()->match(
             static fn($id) => new self(
                 $class,
-                $mapName($class),
+                $name,
                 $id,
                 $parsed->properties(),
                 $parsed->entities(),
