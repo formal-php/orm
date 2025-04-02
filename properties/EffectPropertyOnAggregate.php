@@ -41,7 +41,10 @@ final class EffectPropertyOnAggregate implements Property
     {
         return Set::compose(
             static fn(...$args) => new self(...$args),
-            Set::strings()->madeOf(Set::strings()->chars()->alphanumerical())->nullable(),
+            Set::strings()
+                ->madeOf(Set::strings()->chars()->alphanumerical())
+                ->toSet()
+                ->nullable(),
             Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()), // not nullable to avoid collisions
             PointInTime::any(),
         );

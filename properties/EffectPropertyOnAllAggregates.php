@@ -38,9 +38,11 @@ final class EffectPropertyOnAllAggregates implements Property
             static fn(...$args) => new self(...$args),
             Set::strings()
                 ->madeOf(Set::strings()->chars()->alphanumerical())
+                ->toSet()
                 ->nullable(),
             Set::strings()
                 ->madeOf(Set::strings()->chars()->alphanumerical())
+                ->toSet()
                 ->nullable(),
             PointInTime::any(),
         );
