@@ -35,12 +35,14 @@ $_ = Adapter\SQL\ShowCreateTable::of($aggregates)(User::class)->foreach($connect
 $manager = Manager::sql($connection, $aggregates);
 $repository = $manager->repository(User::class);
 
-$users = Set\Composite::immutable(
+$users = Set::compose(
     User::new(...),
     FPointInTime::any(),
-    Set\Strings::madeOf(Set\Chars::alphanumerical())->between(0, 250),
+    Set::strings()
+        ->madeOf(Set::strings()->chars()->alphanumerical())
+        ->between(0, 250),
 );
-$users = Set\Randomize::of($users)->take(100_000)->values(Random::default);
+$users = $users->randomize()->take(100_000)->values(Random::default);
 
 $manager->transactional(function() use ($repository, $users) {
     foreach ($users as $user) {

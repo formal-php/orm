@@ -18,8 +18,8 @@ return static function() {
     yield proof(
         'Id::equals()',
         given(
-            Set\Uuid::any(),
-            Set\Uuid::any(),
+            Set::uuid(),
+            Set::uuid(),
         ),
         static function($assert, $a, $b) {
             $idA = Id::for(stdClass::class)($a);
@@ -34,7 +34,7 @@ return static function() {
 
     yield proof(
         'Id::of() throws on invalid values',
-        given(Set\Strings::madeOf(Set\Unicode::any())),
+        given(Set::strings()->madeOf(Set::strings()->unicode()->char())),
         static function($assert, $value) {
             $assert->throws(static fn() => Id::of(stdClass::class, $value));
         },

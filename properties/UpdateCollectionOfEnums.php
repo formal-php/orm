@@ -38,9 +38,9 @@ final class UpdateCollectionOfEnums implements Property
         $this->newRoles = $newRoles;
     }
 
-    public static function any(): Set
+    public static function any(): Set\Provider
     {
-        $roles = Set\Elements::of(
+        $roles = Set::of(
             [Role::admin],
             [Role::user],
             [Role::guest],
@@ -50,7 +50,7 @@ final class UpdateCollectionOfEnums implements Property
             [Role::user, Role::guest],
         );
 
-        return Set\Composite::immutable(
+        return Set::compose(
             static fn(...$args) => new self(...$args),
             PointInTime::any(),
             $roles,
