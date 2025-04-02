@@ -14,6 +14,7 @@ use Formal\ORM\{
     Specification\Just,
     Specification\Has,
     Specification\CrossMatch,
+    Effect,
 };
 use Formal\AccessLayer\{
     Table,
@@ -283,6 +284,27 @@ final class MainTable
                     $data->id()->value(),
                 )),
             );
+    }
+
+    /**
+     * @internal
+     */
+    public function effect(
+        Effect\Property $effect,
+        ?Specification $specification,
+    ): Query {
+        $update = Update::set(
+            $this->name,
+            Row::new(Row\Value::of(
+                Column\Name::of($effect->property()),
+                $effect->value(),
+            )),
+        );
+
+        return match ($specification) {
+            null => $update,
+            default => $update->where($this->where($specification)),
+        };
     }
 
     /**

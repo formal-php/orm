@@ -7,11 +7,13 @@ use Formal\ORM\{
     Adapter\Repository as RepositoryInterface,
     Adapter\Repository\CrossAggregateMatching,
     Adapter\Repository\SubMatch,
+    Adapter\Repository\Effectful,
     Definition\Aggregate as Definition,
     Raw\Aggregate,
     Raw\Diff,
     Specification\Property,
     Sort,
+    Effect,
 };
 use Formal\AccessLayer\{
     Connection,
@@ -33,7 +35,7 @@ use Innmind\Immutable\{
  * @template T of object
  * @implements RepositoryInterface<T>
  */
-final class Repository implements RepositoryInterface, CrossAggregateMatching
+final class Repository implements RepositoryInterface, CrossAggregateMatching, Effectful
 {
     private Connection $connection;
     /** @var Definition<T> */
@@ -119,6 +121,14 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching
     public function update(Diff $data): void
     {
         $_ = ($this->update)($data)->foreach($this->connection);
+    }
+
+    #[\Override]
+    public function effect(
+        Effect\Property $effect,
+        ?Specification $specification,
+    ): void {
+        ($this->connection)($this->mainTable->effect($effect, $specification))->memoize();
     }
 
     #[\Override]
