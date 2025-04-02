@@ -37,12 +37,12 @@ final class EffectPropertyOnAggregate implements Property
         $this->createdAt = $createdAt;
     }
 
-    public static function any(): Set
+    public static function any(): Set\Provider
     {
-        return Set\Composite::immutable(
+        return Set::compose(
             static fn(...$args) => new self(...$args),
-            Set\Nullable::of(Set\Strings::madeOf(Set\Chars::alphanumerical())),
-            Set\Strings::madeOf(Set\Chars::alphanumerical()), // not nullable to avoid collisions
+            Set::strings()->madeOf(Set::strings()->chars()->alphanumerical())->nullable(),
+            Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()), // not nullable to avoid collisions
             PointInTime::any(),
         );
     }
