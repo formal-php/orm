@@ -39,7 +39,7 @@ Application::new($argv)
             ->enableWhen(\getenv('ENABLE_COVERAGE') !== false),
     )
     ->scenariiPerProof(match (\getenv('ENABLE_COVERAGE')) {
-        false => 1,
+        false => 100,
         default => 1,
     })
     ->parseTagWith(Storage::of(...))
