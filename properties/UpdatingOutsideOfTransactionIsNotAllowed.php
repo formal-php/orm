@@ -22,7 +22,7 @@ final class UpdatingOutsideOfTransactionIsNotAllowed implements Property
 
     public static function any(): Set
     {
-        return Set\Elements::of(new self);
+        return Set::of(new self);
     }
 
     public function applicableTo(object $manager): bool

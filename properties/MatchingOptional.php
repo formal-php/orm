@@ -38,14 +38,18 @@ final class MatchingOptional implements Property
         [$this->name1, $this->name2] = $names;
     }
 
-    public static function any(): Set
+    public static function any(): Set\Provider
     {
-        return Set\Composite::immutable(
+        return Set::compose(
             static fn(...$args) => new self(...$args),
             PointInTime::any(),
             Set\MutuallyExclusive::of(
-                Set\Strings::madeOf(Set\Chars::alphanumerical())->between(10, 100),
-                Set\Strings::madeOf(Set\Chars::alphanumerical())->between(10, 100),
+                Set::strings()
+                    ->madeOf(Set::strings()->chars()->alphanumerical())
+                    ->between(10, 100),
+                Set::strings()
+                    ->madeOf(Set::strings()->chars()->alphanumerical())
+                    ->between(10, 100),
             ),
         );
     }
