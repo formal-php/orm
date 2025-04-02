@@ -10,7 +10,7 @@ use Innmind\BlackBox\{
 
 final class Properties
 {
-    public static function any(array $properties = null): Set\Properties
+    public static function any(?array $properties = null): Set\Properties
     {
         return Set\Properties::any(
             ...\array_map(

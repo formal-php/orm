@@ -195,7 +195,7 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching
         return Maybe::just(SubMatch::of($select));
     }
 
-    public function size(Specification $specification = null): int
+    public function size(?Specification $specification = null): int
     {
         $count = $this->mainTable->count($specification);
 
@@ -211,7 +211,7 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching
             );
     }
 
-    public function any(Specification $specification = null): bool
+    public function any(?Specification $specification = null): bool
     {
         $count = $this
             ->mainTable

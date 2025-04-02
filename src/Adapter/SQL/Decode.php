@@ -51,7 +51,7 @@ final class Decode
     /**
      * @return callable(Row): Maybe<Aggregate>
      */
-    public function __invoke(Aggregate\Id $id = null): callable
+    public function __invoke(?Aggregate\Id $id = null): callable
     {
         $idName = $this->id;
         /** @psalm-suppress MixedArgument */

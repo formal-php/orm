@@ -302,7 +302,7 @@ final class Repository implements RepositoryInterface
         );
     }
 
-    public function size(Specification $specification = null): int
+    public function size(?Specification $specification = null): int
     {
         $content = null;
 
@@ -343,7 +343,7 @@ final class Repository implements RepositoryInterface
             );
     }
 
-    public function any(Specification $specification = null): bool
+    public function any(?Specification $specification = null): bool
     {
         return !$this
             ->fetch($specification, null, null, 1)
@@ -358,7 +358,7 @@ final class Repository implements RepositoryInterface
         Url $url,
         Template $path,
         string $action,
-        string $id = null,
+        ?string $id = null,
     ): Url {
         /** @var Map<non-empty-string, non-empty-string> */
         $map = Map::of(['action', $action]);

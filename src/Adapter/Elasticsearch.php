@@ -23,7 +23,7 @@ final class Elasticsearch implements Adapter
         $this->transaction = Elasticsearch\Transaction::of();
     }
 
-    public static function of(Transport $transport, Url $url = null): self
+    public static function of(Transport $transport, ?Url $url = null): self
     {
         return new self($transport, $url ?? Url::of('http://localhost:9200/'));
     }
