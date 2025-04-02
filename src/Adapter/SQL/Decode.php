@@ -14,7 +14,6 @@ use Formal\AccessLayer\{
 };
 use Innmind\Immutable\{
     Maybe,
-    Set,
     Sequence,
     Str,
 };
@@ -108,27 +107,18 @@ final class Decode
                 ->collections()
                 ->map(static fn($collection) => Aggregate\Collection::of(
                     $collection->name()->alias(),
-                    Set::defer(
-                        (static function() use ($connection, $collection, $id) {
-                            // Wrapping this call in a deferred Set allows to
-                            // not immediately make the request but only when
-                            // asked.
-                            // The memoize is here to make sure the user can't
-                            // work with a partially loaded collection
-                            $entities = $connection($collection->select($id))
-                                ->map(static fn($row) => Aggregate\Collection\Entity::of(
-                                    self::properties(
-                                        $row,
-                                        $collection->columns(),
-                                    ),
-                                ))
-                                ->toList();
-
-                            foreach ($entities as $entity) {
-                                yield $entity;
-                            }
-                        })(),
-                    ),
+                    // Wrapping this in a lazy Sequence to avoid computing the
+                    // query right away but only when needed
+                    Sequence::lazy(static fn() => yield $connection($collection->select($id)))
+                        ->flatMap(static fn($rows) => $rows)
+                        ->snap() // to avoid working on partially loaded data
+                        ->map(static fn($row) => Aggregate\Collection\Entity::of(
+                            self::properties(
+                                $row,
+                                $collection->columns(),
+                            ),
+                        ))
+                        ->toSet(),
                 )),
         ));
     }
