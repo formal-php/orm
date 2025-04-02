@@ -182,14 +182,14 @@ final class Repository implements RepositoryInterface
         return $aggregates;
     }
 
-    public function size(Specification $specification = null): int
+    public function size(?Specification $specification = null): int
     {
         return $this
             ->fetch($specification, null, null, null)
             ->size();
     }
 
-    public function any(Specification $specification = null): bool
+    public function any(?Specification $specification = null): bool
     {
         return $this
             ->fetch($specification, null, null, 1)

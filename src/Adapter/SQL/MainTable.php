@@ -183,7 +183,7 @@ final class MainTable
     /**
      * @internal
      */
-    public function select(Specification $specification = null): Select
+    public function select(?Specification $specification = null): Select
     {
         return match ($specification) {
             null => $this->select,
@@ -194,7 +194,7 @@ final class MainTable
     /**
      * @internal
      */
-    public function search(Specification $specification = null): Select
+    public function search(?Specification $specification = null): Select
     {
         $select = $this
             ->select
@@ -220,7 +220,7 @@ final class MainTable
     /**
      * @internal
      */
-    public function count(Specification $specification = null): Select
+    public function count(?Specification $specification = null): Select
     {
         return match ($specification) {
             null => $this->count,
@@ -288,7 +288,7 @@ final class MainTable
     /**
      * @internal
      */
-    public function delete(Specification $specification = null): Delete
+    public function delete(?Specification $specification = null): Delete
     {
         return match ($specification) {
             null => $this->delete,

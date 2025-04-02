@@ -16,7 +16,7 @@
     },
     "require": {
         "php": "~8.2",
-        "innmind/immutable": "~5.4",
+        "innmind/immutable": "^5.14.1",
         "innmind/specification": "~4.1",
         "ramsey/uuid": "~4.7",
         "innmind/reflection": "~5.1",

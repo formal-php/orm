@@ -32,7 +32,7 @@ final class Types
      */
     public function __invoke(
         Concrete $type,
-        Contains $contains = null,
+        ?Contains $contains = null,
     ): Maybe {
         /** @var Maybe<Type> */
         $found = Maybe::nothing();

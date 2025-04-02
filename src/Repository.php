@@ -198,7 +198,7 @@ final class Repository
     /**
      * @return 0|positive-int
      */
-    public function size(Specification $specification = null): int
+    public function size(?Specification $specification = null): int
     {
         return $this->adapter->size(match ($specification) {
             null => null,
@@ -206,7 +206,7 @@ final class Repository
         });
     }
 
-    public function any(Specification $specification = null): bool
+    public function any(?Specification $specification = null): bool
     {
         return $this->adapter->any(match ($specification) {
             null => null,
@@ -214,7 +214,7 @@ final class Repository
         });
     }
 
-    public function none(Specification $specification = null): bool
+    public function none(?Specification $specification = null): bool
     {
         return !$this->any($specification);
     }

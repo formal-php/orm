@@ -30,21 +30,21 @@ final class Manager
 
     public static function of(
         Adapter $adapter,
-        Aggregates $aggregates = null,
+        ?Aggregates $aggregates = null,
     ): self {
         return new self($adapter, $aggregates ?? Aggregates::of(Types::default()));
     }
 
     public static function sql(
         Connection $connection,
-        Aggregates $aggregates = null,
+        ?Aggregates $aggregates = null,
     ): self {
         return self::of(Adapter\SQL::of($connection), $aggregates);
     }
 
     public static function filesystem(
         Storage $storage,
-        Aggregates $aggregates = null,
+        ?Aggregates $aggregates = null,
     ): self {
         return self::of(Adapter\Filesystem::of($storage), $aggregates);
     }

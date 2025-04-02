@@ -110,7 +110,7 @@ final class Decode
     /**
      * @return callable(mixed): Maybe<Aggregate>
      */
-    public function __invoke(Aggregate\Id $id = null): callable
+    public function __invoke(?Aggregate\Id $id = null): callable
     {
         $property = $this->definition->id()->property();
         /**
