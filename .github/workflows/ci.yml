@@ -54,6 +54,7 @@ jobs:
           DB_PORT: ${{ job.services.mariadb.ports[3306] }}
           POSTGRES_DB_PORT: ${{ job.services.postgres.ports[5432] }}
           ES_PORT: ${{ job.services.elasticsearch.ports[9200] }}
+          CI: 'true'
   coverage:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -104,6 +105,7 @@ jobs:
           DB_PORT: ${{ job.services.mariadb.ports[3306] }}
           POSTGRES_DB_PORT: ${{ job.services.postgres.ports[5432] }}
           ES_PORT: ${{ job.services.elasticsearch.ports[9200] }}
+          CI: 'true'
       - uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
