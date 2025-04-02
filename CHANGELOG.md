@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- The following types are now enums with a single case to avoid creating too many objects in large projects
+    - `Formal\ORM\Definition\Type\BoolType`
+    - `Formal\ORM\Definition\Type\IdType`
+    - `Formal\ORM\Definition\Type\IntType`
+    - `Formal\ORM\Definition\Type\StringType`
+    - `Formal\ORM\Definition\Type\StrType`
+
 ## 4.0.0 - 2024-10-31
 
 ### Added
