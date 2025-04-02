@@ -35,14 +35,16 @@ final class DroppingMoreElementsThanWasTakenReturnsNothing implements Property
         $this->drop = $drop;
     }
 
-    public static function any(): Set
+    public static function any(): Set\Provider
     {
-        return Set\Composite::immutable(
+        return Set::compose(
             static fn(...$args) => new self(...$args),
             PointInTime::any(),
-            Set\Strings::madeOf(Set\Chars::alphanumerical())->between(0, 100),
-            Set\Integers::between(1, 1_000_000), // upper limit to avoid PHP switching the type to float
-            Set\Integers::between(0, 1_000_000), // upper limit to avoid PHP switching the type to float
+            Set::strings()
+                ->madeOf(Set::strings()->chars()->alphanumerical())
+                ->between(0, 100),
+            Set::integers()->between(1, 1_000_000), // upper limit to avoid PHP switching the type to float
+            Set::integers()->between(0, 1_000_000), // upper limit to avoid PHP switching the type to float
         );
     }
 

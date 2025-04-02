@@ -83,7 +83,7 @@ return static function() {
     yield properties(
         'Filesystem properties',
         Properties::any(),
-        Set\Call::of(static fn() => Manager::filesystem(
+        Set::call(static fn() => Manager::filesystem(
             InMemory::emulateFilesystem(),
             Aggregates::of(Types::of(
                 Type\PointInTimeType::of(new Clock),
@@ -96,7 +96,7 @@ return static function() {
     foreach (Properties::alwaysApplicable() as $property) {
         yield property(
             $property,
-            Set\Call::of(static fn() => Manager::filesystem(
+            Set::call(static fn() => Manager::filesystem(
                 InMemory::emulateFilesystem(),
                 Aggregates::of(Types::of(
                     Type\Support::class(
@@ -146,13 +146,13 @@ return static function() {
         yield properties(
             "SQL properties($driver)",
             Properties::any(),
-            Set\Call::of($setup),
+            Set::call($setup),
         )->tag(Storage::sql);
 
         foreach (Properties::alwaysApplicable() as $property) {
             yield property(
                 $property,
-                Set\Call::of($setup),
+                Set::call($setup),
             )
                 ->named("SQL($driver)")
                 ->tag(Storage::sql);
@@ -201,7 +201,7 @@ return static function() {
     yield properties(
         'Elasticsearch properties',
         Properties::any(Properties::withoutTransactions()),
-        Set\Call::of($setup),
+        Set::call($setup),
     )->tag(Storage::elasticsearch);
 
     foreach (Properties::alwaysApplicable() as $property) {
@@ -215,7 +215,7 @@ return static function() {
 
         yield property(
             $property,
-            Set\Call::of($setup),
+            Set::call($setup),
         )
             ->named('Elasticsearch')
             ->tag(Storage::elasticsearch);

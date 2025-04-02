@@ -45,16 +45,24 @@ final class MatchingCollection implements Property
         $this->addresses = $addresses;
     }
 
-    public static function any(): Set
+    public static function any(): Set\Provider
     {
-        return Set\Composite::immutable(
+        return Set::compose(
             static fn(...$args) => new self(...$args),
             PointInTime::any(),
-            Set\Strings::madeOf(Set\Chars::alphanumerical())->between(10, 100),
-            Set\Strings::madeOf(Set\Chars::alphanumerical())->between(10, 100),
-            Set\Strings::madeOf(Set\Chars::alphanumerical())->between(10, 100),
-            Set\Sequence::of(
-                Set\Strings::madeOf(Set\Chars::alphanumerical())->between(1, 200),
+            Set::strings()
+                ->madeOf(Set::strings()->chars()->alphanumerical())
+                ->between(10, 100),
+            Set::strings()
+                ->madeOf(Set::strings()->chars()->alphanumerical())
+                ->between(10, 100),
+            Set::strings()
+                ->madeOf(Set::strings()->chars()->alphanumerical())
+                ->between(10, 100),
+            Set::sequence(
+                Set::strings()
+                    ->madeOf(Set::strings()->chars()->alphanumerical())
+                    ->between(1, 200),
             )->between(0, 10),
         );
     }

@@ -29,12 +29,12 @@ final class AddElementToCollections implements Property
         $this->address = $address;
     }
 
-    public static function any(): Set
+    public static function any(): Set\Provider
     {
-        return Set\Composite::immutable(
+        return Set::compose(
             static fn(...$args) => new self(...$args),
             PointInTime::any(),
-            Set\Strings::madeOf(Set\Chars::alphanumerical()),
+            Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()),
         );
     }
 

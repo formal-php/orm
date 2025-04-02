@@ -34,10 +34,7 @@ final class MatchingCollectionOfEnums implements Property
 
     public static function any(): Set
     {
-        return Set\Decorate::immutable(
-            static fn(...$args) => new self(...$args),
-            PointInTime::any(),
-        );
+        return PointInTime::any()->map(static fn(...$args) => new self(...$args));
     }
 
     public function applicableTo(object $manager): bool
