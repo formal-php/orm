@@ -18,11 +18,9 @@ use Innmind\Immutable\Maybe;
  * @psalm-immutable
  * @implements Type<Id>
  */
-final class IdType implements Type
+enum IdType implements Type
 {
-    private function __construct()
-    {
-    }
+    case instance;
 
     /**
      * @psalm-pure
@@ -33,7 +31,7 @@ final class IdType implements Type
     {
         return Maybe::just($type)
             ->filter(static fn($type) => $type->accepts(ClassName::of(Id::class)))
-            ->map(static fn() => new self);
+            ->map(static fn() => self::instance);
     }
 
     public function normalize(mixed $value): null|string|int|float|bool

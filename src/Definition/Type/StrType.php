@@ -10,18 +10,16 @@ use Innmind\Immutable\Str;
  * @psalm-immutable
  * @implements Type<Str>
  */
-final class StrType implements Type
+enum StrType implements Type
 {
-    private function __construct()
-    {
-    }
+    case instance;
 
     /**
      * @psalm-pure
      */
     public static function new(): self
     {
-        return new self;
+        return self::instance;
     }
 
     public function normalize(mixed $value): null|string|int|float|bool
