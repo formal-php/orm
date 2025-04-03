@@ -11,6 +11,7 @@ use Innmind\Filesystem\{
     Name,
 };
 use Innmind\Json\Json;
+use Innmind\Immutable\Sequence;
 
 /**
  * @internal
@@ -21,15 +22,24 @@ final class EncodeEffect
     {
     }
 
-    public function __invoke(Effect\Property $effect): Directory
+    public function __invoke(Effect\Property|Effect\Collection $effect): Directory
     {
+        if ($effect instanceof Effect\Property) {
+            $effects = Sequence::of($effect);
+        } else {
+            $effects = $effect->effects();
+        }
+
         // The real name is the id computed in Repository::effect()
         return Directory::named('tmp')
             ->add(
-                Directory::named('properties')->add(File::named(
-                    $effect->property(),
-                    Content::ofString(Json::encode($effect->value())),
-                )),
+                Directory::of(
+                    Name::of('properties'),
+                    $effects->map(static fn($effect) => File::named(
+                        $effect->property(),
+                        Content::ofString(Json::encode($effect->value())),
+                    )),
+                ),
             );
     }
 

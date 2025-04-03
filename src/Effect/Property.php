@@ -30,6 +30,14 @@ final class Property
     }
 
     /**
+     * @return Collection<self>
+     */
+    public function and(self $effect): Collection
+    {
+        return Collection::of($this, $effect);
+    }
+
+    /**
      * @return non-empty-string
      */
     public function property(): string

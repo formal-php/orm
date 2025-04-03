@@ -290,15 +290,25 @@ final class MainTable
      * @internal
      */
     public function effect(
-        Effect\Property $effect,
+        Effect\Property|Effect\Collection $effect,
         ?Specification $specification,
     ): Query {
+        if ($effect instanceof Effect\Property) {
+            $effects = Sequence::of($effect);
+        } else {
+            $effects = $effect->effects();
+        }
+
         $update = Update::set(
             $this->name,
-            Row::new(Row\Value::of(
-                Column\Name::of($effect->property()),
-                $effect->value(),
-            )),
+            Row::new(
+                ...$effects
+                    ->map(static fn($effect) => Row\Value::of(
+                        Column\Name::of($effect->property()),
+                        $effect->value(),
+                    ))
+                    ->toList(),
+            ),
         );
 
         return match ($specification) {

@@ -70,6 +70,7 @@ final class Properties
             UpdateOptionalWithoutChangingInnerProperties::class,
             EffectPropertyOnAllAggregates::class,
             EffectPropertyOnAggregate::class,
+            EffectPropertiesOnAggregate::class,
         ];
     }
 
@@ -136,6 +137,7 @@ final class Properties
             UpdateOptionalWithoutChangingInnerProperties::class,
             EffectPropertyOnAllAggregates::class,
             EffectPropertyOnAggregate::class,
+            EffectPropertiesOnAggregate::class,
         ];
     }
 }

@@ -86,7 +86,32 @@ final class Normalize
         );
     }
 
-    public function __invoke(Property $effect): Property
+    public function __invoke(Property|Collection $effect): Property|Collection
+    {
+        if ($effect instanceof Property) {
+            return $this->normalizeProperty($effect);
+        }
+
+        return $effect->map(
+            $this->normalizeProperty(...),
+        );
+    }
+
+    /**
+     * @internal
+     * @psalm-pure
+     * @template A of object
+     *
+     * @param Aggregate<A> $definition
+     *
+     * @return self<A>
+     */
+    public static function of(Aggregate $definition): self
+    {
+        return new self($definition);
+    }
+
+    private function normalizeProperty(Property $effect): Property
     {
         $property = $effect->property();
 
@@ -105,19 +130,5 @@ final class Normalize
                 ),
                 static fn() => throw new \LogicException("Unknown property '$property'"),
             );
-    }
-
-    /**
-     * @internal
-     * @psalm-pure
-     * @template A of object
-     *
-     * @param Aggregate<A> $definition
-     *
-     * @return self<A>
-     */
-    public static function of(Aggregate $definition): self
-    {
-        return new self($definition);
     }
 }
