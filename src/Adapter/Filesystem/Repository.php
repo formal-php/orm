@@ -113,29 +113,18 @@ final class Repository implements RepositoryInterface, Effectful
         Effect\Property|Effect\Entity|Effect\Collection $effect,
         ?Specification $specification,
     ): void {
-        $aggregates = $this->all();
-
-        if ($specification) {
-            $aggregates = $aggregates->filter(
-                ($this->fold)($specification),
-            );
-        }
-
         $effect = ($this->encodeEffect)($effect);
 
-        $aggregates = $aggregates->map(
-            static fn($aggregate) => $effect->rename(Name::of(
-                $aggregate->id()->value(),
-            )),
-        );
-        $encoded = Directory::of(
-            Name::of($this->definition->name()),
-            $aggregates,
-        );
-
-        $this->transaction->mutate(
-            static fn($adapter) => $adapter->add($encoded),
-        );
+        $this
+            ->fetch(
+                $specification,
+                null,
+                null,
+                null,
+            )
+            ->map(static fn($aggregate) => $aggregate->id())
+            ->map($effect)
+            ->foreach($this->update(...));
     }
 
     #[\Override]

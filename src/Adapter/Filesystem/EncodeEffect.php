@@ -3,14 +3,12 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Adapter\Filesystem;
 
-use Formal\ORM\Effect;
-use Innmind\Filesystem\{
-    Directory,
-    File,
-    File\Content,
-    Name,
+use Formal\ORM\{
+    Effect,
+    Raw\Aggregate,
+    Raw\Aggregate\Id,
+    Raw\Diff,
 };
-use Innmind\Json\Json;
 use Innmind\Immutable\Sequence;
 
 /**
@@ -22,38 +20,48 @@ final class EncodeEffect
     {
     }
 
-    public function __invoke(Effect\Property|Effect\Entity|Effect\Collection $effect): Directory
+    /**
+     * @return callable(Id): Diff
+     */
+    public function __invoke(Effect\Property|Effect\Entity|Effect\Collection $effect): callable
     {
+        $properties = Sequence::of();
+        $entities = Sequence::of();
+        $optionals = Sequence::of();
+        $collections = Sequence::of();
+
         if ($effect instanceof Effect\Entity) {
-            return Directory::named('tmp')->add(
-                Directory::named('entities')->add(
-                    Directory::named($effect->property())->add(
-                        File::named(
-                            $effect->effect()->property(),
-                            Content::ofString(Json::encode($effect->effect()->value())),
-                        ),
-                    ),
-                ),
-            );
-        }
-
-        if ($effect instanceof Effect\Property) {
-            $effects = Sequence::of($effect);
+            /** @psalm-suppress MixedArgument */
+            $entities = Sequence::of(Aggregate\Entity::of(
+                $effect->property(),
+                Sequence::of(Aggregate\Property::of(
+                    $effect->effect()->property(),
+                    $effect->effect()->value(),
+                )),
+            ));
         } else {
-            $effects = $effect->effects();
-        }
+            if ($effect instanceof Effect\Property) {
+                $effects = Sequence::of($effect);
+            } else {
+                $effects = $effect->effects();
+            }
 
-        // The real name is the id computed in Repository::effect()
-        return Directory::named('tmp')
-            ->add(
-                Directory::of(
-                    Name::of('properties'),
-                    $effects->map(static fn($effect) => File::named(
-                        $effect->property(),
-                        Content::ofString(Json::encode($effect->value())),
-                    )),
+            /** @psalm-suppress MixedArgument */
+            $properties = $effects->map(
+                static fn($effect) => Aggregate\Property::of(
+                    $effect->property(),
+                    $effect->value(),
                 ),
             );
+        }
+
+        return static fn(Id $id) => Diff::of(
+            $id,
+            $properties,
+            $entities,
+            $optionals,
+            $collections,
+        );
     }
 
     /**
