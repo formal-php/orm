@@ -86,15 +86,17 @@ final class Normalize
         );
     }
 
-    public function __invoke(Property|Collection $effect): Property|Collection
+    public function __invoke(Property|Entity|Collection $effect): Property|Entity|Collection
     {
         if ($effect instanceof Property) {
             return $this->normalizeProperty($effect);
         }
 
-        return $effect->map(
-            $this->normalizeProperty(...),
-        );
+        if ($effect instanceof Entity) {
+            return $this->normalizeEntity($effect);
+        }
+
+        return $effect->map($this->normalizeProperty(...));
     }
 
     /**
@@ -127,6 +129,33 @@ final class Normalize
                 static fn($value) => Property::assign(
                     $property,
                     $value,
+                ),
+                static fn() => throw new \LogicException("Unknown property '$property'"),
+            );
+    }
+
+    private function normalizeEntity(Entity $effect): Entity
+    {
+        $property = $effect->property();
+
+        return $this
+            ->entities
+            ->get($effect->property())
+            ->flatMap(static fn($entity) => $entity->get(
+                $effect->effect()->property(),
+            ))
+            ->map(
+                static fn($property) => $property
+                    ->type()
+                    ->normalize($effect->effect()->value()),
+            )
+            ->match(
+                static fn($value) => Entity::of(
+                    $effect->property(),
+                    Property::assign(
+                        $effect->effect()->property(),
+                        $value,
+                    ),
                 ),
                 static fn() => throw new \LogicException("Unknown property '$property'"),
             );

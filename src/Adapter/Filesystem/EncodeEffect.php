@@ -22,8 +22,21 @@ final class EncodeEffect
     {
     }
 
-    public function __invoke(Effect\Property|Effect\Collection $effect): Directory
+    public function __invoke(Effect\Property|Effect\Entity|Effect\Collection $effect): Directory
     {
+        if ($effect instanceof Effect\Entity) {
+            return Directory::named('tmp')->add(
+                Directory::named('entities')->add(
+                    Directory::named($effect->property())->add(
+                        File::named(
+                            $effect->effect()->property(),
+                            Content::ofString(Json::encode($effect->effect()->value())),
+                        ),
+                    ),
+                ),
+            );
+        }
+
         if ($effect instanceof Effect\Property) {
             $effects = Sequence::of($effect);
         } else {

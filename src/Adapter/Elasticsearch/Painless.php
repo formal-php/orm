@@ -19,7 +19,24 @@ final class Painless
     {
     }
 
-    public function __invoke(Effect\Property|Effect\Collection $effect): array
+    public function __invoke(Effect\Property|Effect\Entity|Effect\Collection $effect): array
+    {
+        if ($effect instanceof Effect\Entity) {
+            return $this->entities($effect);
+        }
+
+        return $this->properties($effect);
+    }
+
+    /**
+     * @internal
+     */
+    public static function new(): self
+    {
+        return new self;
+    }
+
+    private function properties(Effect\Property|Effect\Collection $effect): array
     {
         if ($effect instanceof Effect\Property) {
             $effects = Sequence::of($effect);
@@ -28,13 +45,13 @@ final class Painless
         }
 
         $params = $effects->map(static fn($effect) => [
-            'p'.\hash('xxh128', $effect->property()),
+            self::hash($effect->property()),
             $effect->value(),
         ]);
         $source = $effects->map(static fn($effect) => \sprintf(
             'ctx._source.%s = params.%s;',
             $effect->property(),
-            'p'.\hash('xxh128', $effect->property()),
+            self::hash($effect->property()),
         ));
 
         return [
@@ -52,11 +69,37 @@ final class Painless
         ];
     }
 
-    /**
-     * @internal
-     */
-    public static function new(): self
+    private function entities(Effect\Entity $effect): array
     {
-        return new self;
+        $effects = Sequence::of($effect);
+        $params = $effects->map(static fn($effect) => [
+            self::hash($effect->property().$effect->effect()->property()),
+            $effect->effect()->value(),
+        ]);
+        $source = $effects->map(static fn($effect) => \sprintf(
+            'ctx._source.%s.%s = params.%s;',
+            $effect->property(),
+            $effect->effect()->property(),
+            self::hash($effect->property().$effect->effect()->property()),
+        ));
+
+        return [
+            'lang' => 'painless',
+            'source' => $source->map(Str::of(...))->fold(new Concat)->toString(),
+            'params' => $params->reduce(
+                [],
+                static function(array $params, $param) {
+                    /** @psalm-suppress MixedAssignment */
+                    $params[$param[0]] = $param[1];
+
+                    return $params;
+                },
+            ),
+        ];
+    }
+
+    private static function hash(string $string): string
+    {
+        return 'p'.\hash('xxh128', $string);
     }
 }

@@ -290,9 +290,28 @@ final class MainTable
      * @internal
      */
     public function effect(
-        Effect\Property|Effect\Collection $effect,
+        Effect\Property|Effect\Entity|Effect\Collection $effect,
         ?Specification $specification,
     ): Query {
+        if ($effect instanceof Effect\Entity) {
+            $select = match ($specification) {
+                null => null,
+                default => $this
+                    ->select($specification)
+                    ->columns(
+                        Column\Name::of($this->definition->id()->property())->in($this->name),
+                    ),
+            };
+
+            return $this
+                ->entities
+                ->get($effect->property())
+                ->match(
+                    static fn($table) => $table->effect($effect, $select),
+                    static fn() => throw new \LogicException("Unkown entity {$effect->property()}"),
+                );
+        }
+
         if ($effect instanceof Effect\Property) {
             $effects = Sequence::of($effect);
         } else {
