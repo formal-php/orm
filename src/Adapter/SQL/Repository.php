@@ -125,7 +125,7 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching, E
 
     #[\Override]
     public function effect(
-        Effect\Property|Effect\Entity|Effect\Collection $effect,
+        Effect\Property|Effect\Property\Collection|Effect\Entity $effect,
         ?Specification $specification,
     ): void {
         ($this->connection)($this->mainTable->effect($effect, $specification))->memoize();

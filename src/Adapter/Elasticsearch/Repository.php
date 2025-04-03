@@ -220,7 +220,7 @@ final class Repository implements RepositoryInterface, Effectful
 
     #[\Override]
     public function effect(
-        Effect\Property|Effect\Entity|Effect\Collection $effect,
+        Effect\Property|Effect\Property\Collection|Effect\Entity $effect,
         ?Specification $specification,
     ): void {
         $payload = [

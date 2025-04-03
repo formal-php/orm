@@ -23,7 +23,7 @@ final class EncodeEffect
     /**
      * @return callable(Id): Diff
      */
-    public function __invoke(Effect\Property|Effect\Entity|Effect\Collection $effect): callable
+    public function __invoke(Effect\Property|Effect\Property\Collection|Effect\Entity $effect): callable
     {
         $properties = Sequence::of();
         $entities = Sequence::of();

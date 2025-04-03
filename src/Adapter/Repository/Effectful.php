@@ -12,7 +12,7 @@ use Innmind\Specification\Specification;
 interface Effectful
 {
     public function effect(
-        Effect\Property|Effect\Entity|Effect\Collection $effect,
+        Effect\Property|Effect\Property\Collection|Effect\Entity $effect,
         ?Specification $specification,
     ): void;
 }

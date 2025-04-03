@@ -86,7 +86,7 @@ final class Normalize
         );
     }
 
-    public function __invoke(Property|Entity|Collection $effect): Property|Entity|Collection
+    public function __invoke(Property|Property\Collection|Entity $effect): Property|Property\Collection|Entity
     {
         if ($effect instanceof Property) {
             return $this->normalizeProperty($effect);

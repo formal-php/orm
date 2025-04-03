@@ -290,7 +290,7 @@ final class MainTable
      * @internal
      */
     public function effect(
-        Effect\Property|Effect\Entity|Effect\Collection $effect,
+        Effect\Property|Effect\Property\Collection|Effect\Entity $effect,
         ?Specification $specification,
     ): Query {
         if ($effect instanceof Effect\Entity) {

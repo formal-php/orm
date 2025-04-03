@@ -158,7 +158,7 @@ final class Repository
     }
 
     public function effect(
-        Effect\Property|Effect\Entity|Effect\Collection $effect,
+        Effect\Property|Effect\Property\Collection|Effect\Entity $effect,
         ?Specification $specification = null,
     ): void {
         if (!($this->inTransaction)()) {
