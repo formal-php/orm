@@ -34,10 +34,13 @@ final class EncodeEffect
             /** @psalm-suppress MixedArgument */
             $entities = Sequence::of(Aggregate\Entity::of(
                 $effect->property(),
-                Sequence::of(Aggregate\Property::of(
-                    $effect->effect()->property(),
-                    $effect->effect()->value(),
-                )),
+                $effect
+                    ->effects()
+                    ->effects()
+                    ->map(static fn($effect) => Aggregate\Property::of(
+                        $effect->property(),
+                        $effect->value(),
+                    )),
             ));
         } else {
             /** @psalm-suppress MixedArgument */

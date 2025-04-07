@@ -143,22 +143,33 @@ final class Normalize
         return $this
             ->entities
             ->get($effect->property())
-            ->flatMap(static fn($entity) => $entity->get(
-                $effect->effect()->property(),
-            ))
             ->map(
-                static fn($property) => $property
-                    ->type()
-                    ->normalize($effect->effect()->value()),
-            )
-            ->match(
-                static fn($value) => Entity::of(
-                    $effect->property(),
-                    Property::assign(
-                        $effect->effect()->property(),
-                        $value,
+                static fn($entity) => $effect
+                    ->effects()
+                    ->map(
+                        static fn($effect) => $entity
+                            ->get($effect->property())
+                            ->map(
+                                static fn($property) => $property
+                                    ->type()
+                                    ->normalize($effect->value()),
+                            )
+                            ->map(static fn($value) => Property::assign(
+                                $effect->property(),
+                                $value,
+                            ))
+                            ->match(
+                                static fn($effect) => $effect,
+                                static fn() => throw new \LogicException("Unknown property '{$effect->property()}'"),
+                            ),
                     ),
-                ),
+            )
+            ->map(static fn($effects) => Entity::of(
+                $property,
+                $effects,
+            ))
+            ->match(
+                static fn($effect) => $effect,
                 static fn() => throw new \LogicException("Unknown property '$property'"),
             );
     }

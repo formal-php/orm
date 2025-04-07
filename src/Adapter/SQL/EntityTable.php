@@ -168,10 +168,14 @@ final class EntityTable
         $update = Update::set(
             $this->name,
             Row::new(
-                Row\Value::of(
-                    Column\Name::of($effect->effect()->property()),
-                    $effect->effect()->value(),
-                ),
+                ...$effect
+                    ->effects()
+                    ->effects()
+                    ->map(static fn($effect) => Row\Value::of(
+                        Column\Name::of($effect->property()),
+                        $effect->value(),
+                    ))
+                    ->toList(),
             ),
         );
 

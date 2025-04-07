@@ -5,7 +5,6 @@ namespace Formal\ORM\Adapter\Elasticsearch;
 
 use Formal\ORM\Effect;
 use Innmind\Immutable\{
-    Sequence,
     Monoid\Concat,
     Str,
 };
@@ -67,16 +66,17 @@ final class Painless
 
     private function entities(Effect\Entity $effect): array
     {
-        $effects = Sequence::of($effect);
+        $property = $effect->property();
+        $effects = $effect->effects()->effects();
         $params = $effects->map(static fn($effect) => [
-            self::hash($effect->property().$effect->effect()->property()),
-            $effect->effect()->value(),
+            self::hash($property.$effect->property()),
+            $effect->value(),
         ]);
         $source = $effects->map(static fn($effect) => \sprintf(
             'ctx._source.%s.%s = params.%s;',
+            $property,
             $effect->property(),
-            $effect->effect()->property(),
-            self::hash($effect->property().$effect->effect()->property()),
+            self::hash($property.$effect->property()),
         ));
 
         return [
