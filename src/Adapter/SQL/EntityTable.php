@@ -162,14 +162,13 @@ final class EntityTable
     }
 
     public function effect(
-        Effect\Entity $effect,
+        Effect\Normalized\Entity $effect,
         ?Select $select,
     ): Query {
         $update = Update::set(
             $this->name,
             Row::new(
                 ...$effect
-                    ->effects()
                     ->effects()
                     ->map(static fn($effect) => Row\Value::of(
                         Column\Name::of($effect->property()),

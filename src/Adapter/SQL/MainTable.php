@@ -290,10 +290,10 @@ final class MainTable
      * @internal
      */
     public function effect(
-        Effect\Property\Collection|Effect\Entity $effect,
+        Effect\Normalized\Properties|Effect\Normalized\Entity $effect,
         ?Specification $specification,
     ): Query {
-        if ($effect instanceof Effect\Entity) {
+        if ($effect instanceof Effect\Normalized\Entity) {
             $select = match ($specification) {
                 null => null,
                 default => $this

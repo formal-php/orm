@@ -4,7 +4,10 @@ declare(strict_types = 1);
 namespace Formal\ORM\Effect;
 
 use Formal\ORM\Definition\Aggregate;
-use Innmind\Immutable\Map;
+use Innmind\Immutable\{
+    Map,
+    Sequence,
+};
 
 /**
  * @internal
@@ -86,19 +89,21 @@ final class Normalize
         );
     }
 
-    public function __invoke(Property|Property\Collection|Entity $effect): Property\Collection|Entity
+    public function __invoke(Property|Property\Collection|Entity $effect): Normalized\Properties|Normalized\Entity
     {
-        if ($effect instanceof Property) {
-            return Property\Collection::of(
-                $this->normalizeProperty($effect),
-            );
-        }
-
         if ($effect instanceof Entity) {
             return $this->normalizeEntity($effect);
         }
 
-        return $effect->map($this->normalizeProperty(...));
+        if ($effect instanceof Property) {
+            $effects = Sequence::of($effect);
+        } else {
+            $effects = $effect->effects();
+        }
+
+        return Normalized\Properties::of(
+            $effects->map($this->normalizeProperty(...)),
+        );
     }
 
     /**
@@ -115,7 +120,7 @@ final class Normalize
         return new self($definition);
     }
 
-    private function normalizeProperty(Property $effect): Property
+    private function normalizeProperty(Property $effect): Normalized\Property
     {
         $property = $effect->property();
 
@@ -128,7 +133,7 @@ final class Normalize
                     ->normalize($effect->value()),
             )
             ->match(
-                static fn($value) => Property::assign(
+                static fn($value) => Normalized\Property::assign(
                     $property,
                     $value,
                 ),
@@ -136,7 +141,7 @@ final class Normalize
             );
     }
 
-    private function normalizeEntity(Entity $effect): Entity
+    private function normalizeEntity(Entity $effect): Normalized\Entity
     {
         $property = $effect->property();
 
@@ -146,6 +151,7 @@ final class Normalize
             ->map(
                 static fn($entity) => $effect
                     ->effects()
+                    ->effects()
                     ->map(
                         static fn($effect) => $entity
                             ->get($effect->property())
@@ -154,7 +160,7 @@ final class Normalize
                                     ->type()
                                     ->normalize($effect->value()),
                             )
-                            ->map(static fn($value) => Property::assign(
+                            ->map(static fn($value) => Normalized\Property::assign(
                                 $effect->property(),
                                 $value,
                             ))
@@ -164,7 +170,8 @@ final class Normalize
                             ),
                     ),
             )
-            ->map(static fn($effects) => Entity::of(
+            ->map(Normalized\Properties::of(...))
+            ->map(static fn($effects) => Normalized\Entity::of(
                 $property,
                 $effects,
             ))

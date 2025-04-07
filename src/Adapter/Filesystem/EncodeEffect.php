@@ -23,19 +23,18 @@ final class EncodeEffect
     /**
      * @return callable(Id): Diff
      */
-    public function __invoke(Effect\Property\Collection|Effect\Entity $effect): callable
+    public function __invoke(Effect\Normalized\Properties|Effect\Normalized\Entity $effect): callable
     {
         $properties = Sequence::of();
         $entities = Sequence::of();
         $optionals = Sequence::of();
         $collections = Sequence::of();
 
-        if ($effect instanceof Effect\Entity) {
+        if ($effect instanceof Effect\Normalized\Entity) {
             /** @psalm-suppress MixedArgument */
             $entities = Sequence::of(Aggregate\Entity::of(
                 $effect->property(),
                 $effect
-                    ->effects()
                     ->effects()
                     ->map(static fn($effect) => Aggregate\Property::of(
                         $effect->property(),

@@ -3,7 +3,7 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Adapter\Repository;
 
-use Formal\ORM\Effect;
+use Formal\ORM\Effect\Normalized;
 use Innmind\Specification\Specification;
 
 /**
@@ -12,7 +12,7 @@ use Innmind\Specification\Specification;
 interface Effectful
 {
     public function effect(
-        Effect\Property\Collection|Effect\Entity $effect,
+        Normalized\Properties|Normalized\Entity $effect,
         ?Specification $specification,
     ): void;
 }

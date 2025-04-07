@@ -18,9 +18,9 @@ final class Painless
     {
     }
 
-    public function __invoke(Effect\Property\Collection|Effect\Entity $effect): array
+    public function __invoke(Effect\Normalized\Properties|Effect\Normalized\Entity $effect): array
     {
-        if ($effect instanceof Effect\Entity) {
+        if ($effect instanceof Effect\Normalized\Entity) {
             return $this->entities($effect);
         }
 
@@ -35,7 +35,7 @@ final class Painless
         return new self;
     }
 
-    private function properties(Effect\Property\Collection $effect): array
+    private function properties(Effect\Normalized\Properties $effect): array
     {
         $effects = $effect->effects();
 
@@ -64,10 +64,10 @@ final class Painless
         ];
     }
 
-    private function entities(Effect\Entity $effect): array
+    private function entities(Effect\Normalized\Entity $effect): array
     {
         $property = $effect->property();
-        $effects = $effect->effects()->effects();
+        $effects = $effect->effects();
         $params = $effects->map(static fn($effect) => [
             self::hash($property.$effect->property()),
             $effect->value(),
