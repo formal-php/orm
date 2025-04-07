@@ -110,7 +110,7 @@ final class Repository implements RepositoryInterface, Effectful
 
     #[\Override]
     public function effect(
-        Effect\Property|Effect\Property\Collection|Effect\Entity $effect,
+        Effect\Property\Collection|Effect\Entity $effect,
         ?Specification $specification,
     ): void {
         $effect = ($this->encodeEffect)($effect);

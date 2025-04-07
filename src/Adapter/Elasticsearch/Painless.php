@@ -19,7 +19,7 @@ final class Painless
     {
     }
 
-    public function __invoke(Effect\Property|Effect\Property\Collection|Effect\Entity $effect): array
+    public function __invoke(Effect\Property\Collection|Effect\Entity $effect): array
     {
         if ($effect instanceof Effect\Entity) {
             return $this->entities($effect);
@@ -36,13 +36,9 @@ final class Painless
         return new self;
     }
 
-    private function properties(Effect\Property|Effect\Property\Collection $effect): array
+    private function properties(Effect\Property\Collection $effect): array
     {
-        if ($effect instanceof Effect\Property) {
-            $effects = Sequence::of($effect);
-        } else {
-            $effects = $effect->effects();
-        }
+        $effects = $effect->effects();
 
         $params = $effects->map(static fn($effect) => [
             self::hash($effect->property()),

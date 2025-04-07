@@ -12,25 +12,24 @@ use Innmind\Immutable\Sequence;
 final class Collection
 {
     /**
-     * @param Sequence<Property> $rest
+     * @param Sequence<Property> $effects
      */
     private function __construct(
-        private Property $first,
-        private Sequence $rest,
+        private Sequence $effects,
     ) {
     }
 
     /**
      * @psalm-pure
      */
-    public static function of(Property $first, Property $second): self
+    public static function of(Property $effect): self
     {
-        return new self($first, Sequence::of($second));
+        return new self(Sequence::of($effect));
     }
 
     public function and(Property $effect): self
     {
-        return new self($this->first, ($this->rest)($effect));
+        return new self(($this->effects)($effect));
     }
 
     /**
@@ -38,10 +37,8 @@ final class Collection
      */
     public function map(callable $map): self
     {
-        /** @psalm-suppress ImpureFunctionCall */
         return new self(
-            $map($this->first),
-            $this->rest->map($map),
+            $this->effects->map($map),
         );
     }
 
@@ -50,6 +47,6 @@ final class Collection
      */
     public function effects(): Sequence
     {
-        return $this->rest->prepend(Sequence::of($this->first));
+        return $this->effects;
     }
 }

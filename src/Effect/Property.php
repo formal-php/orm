@@ -33,7 +33,7 @@ final class Property
 
     public function and(self $effect): Collection
     {
-        return Collection::of($this, $effect);
+        return Collection::of($this)->and($effect);
     }
 
     /**

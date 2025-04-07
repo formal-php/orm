@@ -290,7 +290,7 @@ final class MainTable
      * @internal
      */
     public function effect(
-        Effect\Property|Effect\Property\Collection|Effect\Entity $effect,
+        Effect\Property\Collection|Effect\Entity $effect,
         ?Specification $specification,
     ): Query {
         if ($effect instanceof Effect\Entity) {
@@ -312,16 +312,11 @@ final class MainTable
                 );
         }
 
-        if ($effect instanceof Effect\Property) {
-            $effects = Sequence::of($effect);
-        } else {
-            $effects = $effect->effects();
-        }
-
         $update = Update::set(
             $this->name,
             Row::new(
-                ...$effects
+                ...$effect
+                    ->effects()
                     ->map(static fn($effect) => Row\Value::of(
                         Column\Name::of($effect->property()),
                         $effect->value(),

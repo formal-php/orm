@@ -23,7 +23,7 @@ final class EncodeEffect
     /**
      * @return callable(Id): Diff
      */
-    public function __invoke(Effect\Property|Effect\Property\Collection|Effect\Entity $effect): callable
+    public function __invoke(Effect\Property\Collection|Effect\Entity $effect): callable
     {
         $properties = Sequence::of();
         $entities = Sequence::of();
@@ -40,14 +40,8 @@ final class EncodeEffect
                 )),
             ));
         } else {
-            if ($effect instanceof Effect\Property) {
-                $effects = Sequence::of($effect);
-            } else {
-                $effects = $effect->effects();
-            }
-
             /** @psalm-suppress MixedArgument */
-            $properties = $effects->map(
+            $properties = $effect->effects()->map(
                 static fn($effect) => Aggregate\Property::of(
                     $effect->property(),
                     $effect->value(),
