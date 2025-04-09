@@ -37,7 +37,7 @@ final class EffectEntityPropertiesOnAllAggregates implements Property
                 ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->atLeast(10) // to limit collisions
                 ->nullable(),
-            Set::strings() // not nullable to avoid collisions
+            Set::strings()
                 ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->atLeast(10), // to limit collisions
             Set::of(true, false),
