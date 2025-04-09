@@ -29,11 +29,6 @@ final class Add
         return new self($property, Sequence::of($entity));
     }
 
-    public function add(object $entity): self
-    {
-        return new self($this->property, ($this->entities)($entity));
-    }
-
     /**
      * @return non-empty-string
      */
@@ -47,6 +42,19 @@ final class Add
      */
     public function entities(): Sequence
     {
+        // It's not currently possible to specify multiple entities to add at
+        // once because of the SQL adapter. To insert multiple entities it
+        // requires to run multiple "INSERT" queries. And if a specification is
+        // passed to condition to which aggregate add the children then it uses
+        // the "INSERT INTO SELECT" strategy. The problem is that the condition
+        // on the "SELECT" may depend on the collections being modified. This
+        // means that between 2 "INSERT"s it may not affect the same aggregates.
+        // This is an implicit behaviour that may lead to bugs.
+        // A possible solution would be to use a CTE to make sure the list of
+        // aggregates for all "INSERT"s. But this needs quite some work to
+        // achieve.
+        // For now this method returns a Sequence to allow to add this feature
+        // in the future without introducing a BC break.
         return $this->entities;
     }
 }

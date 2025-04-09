@@ -8,6 +8,7 @@ use Formal\ORM\{
     Raw\Aggregate\Id,
     Raw\Aggregate\Collection\Entity,
     Specification\Property as PropertySpecification,
+    Effect,
 };
 use Formal\AccessLayer\{
     Table,
@@ -191,5 +192,34 @@ final class CollectionTable
         return Select::from($this->name)
             ->columns($this->id)
             ->where($specification);
+    }
+
+    public function effect(
+        Effect\Normalized\Child\Add $effect,
+        Column\Name $id,
+        Table\Name\Aliased $main,
+        ?Select $select,
+    ): Query {
+        $insertSelect = Select::from($main)->columns(
+            $id->in($main)->as('aggregateId'),
+            ...$effect
+                ->entities()
+                ->take(1) // todo change implementation when multi add is supported
+                ->flatMap(static fn($entity) => $entity->properties())
+                ->map(static fn($property) => Row\Value::of(
+                    Column\Name::of($property->name()),
+                    $property->value(),
+                ))
+                ->toList(),
+        );
+
+        if ($select) {
+            $insertSelect = $insertSelect->where(SubQuery::of(
+                $id->toString(),
+                $select,
+            ));
+        }
+
+        return Query\Insert::into($this->name->name(), $insertSelect);
     }
 }

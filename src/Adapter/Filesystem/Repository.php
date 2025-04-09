@@ -110,7 +110,7 @@ final class Repository implements RepositoryInterface, Effectful
 
     #[\Override]
     public function effect(
-        Effect\Normalized\Properties|Effect\Normalized\Entity $effect,
+        Effect\Normalized\Properties|Effect\Normalized\Entity|Effect\Normalized\Child\Add $effect,
         ?Specification $specification,
     ): void {
         $effect = ($this->encodeEffect)($effect);
@@ -122,7 +122,6 @@ final class Repository implements RepositoryInterface, Effectful
                 null,
                 null,
             )
-            ->map(static fn($aggregate) => $aggregate->id())
             ->map($effect)
             ->foreach($this->update(...));
     }

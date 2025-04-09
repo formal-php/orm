@@ -18,10 +18,14 @@ final class Painless
     {
     }
 
-    public function __invoke(Effect\Normalized\Properties|Effect\Normalized\Entity $effect): array
+    public function __invoke(Effect\Normalized\Properties|Effect\Normalized\Entity|Effect\Normalized\Child\Add $effect): array
     {
         if ($effect instanceof Effect\Normalized\Entity) {
             return $this->entities($effect);
+        }
+
+        if ($effect instanceof Effect\Normalized\Child\Add) {
+            return $this->addChildren($effect);
         }
 
         return $this->properties($effect);
@@ -77,6 +81,43 @@ final class Painless
             $property,
             $effect->property(),
             self::hash($property.$effect->property()),
+        ));
+
+        return [
+            'lang' => 'painless',
+            'source' => $source->map(Str::of(...))->fold(new Concat)->toString(),
+            'params' => $params->reduce(
+                [],
+                static function(array $params, $param) {
+                    /** @psalm-suppress MixedAssignment */
+                    $params[$param[0]] = $param[1];
+
+                    return $params;
+                },
+            ),
+        ];
+    }
+
+    private function addChildren(Effect\Normalized\Child\Add $effect): array
+    {
+        $property = $effect->property();
+        $entities = $effect->entities();
+        $params = $entities
+            ->indices()
+            ->zip($entities)
+            ->map(static fn($pair) => [
+                self::hash($property.$pair[0]),
+                \array_merge(
+                    ...$pair[1]
+                        ->properties()
+                        ->map(static fn($property) => [$property->name() => $property->value()])
+                        ->toList(),
+                ),
+            ]);
+        $source = $entities->indices()->map(static fn($index) => \sprintf(
+            'ctx._source.%s.add(params.%s);',
+            $property,
+            self::hash($property.$index),
         ));
 
         return [

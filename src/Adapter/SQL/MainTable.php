@@ -290,7 +290,7 @@ final class MainTable
      * @internal
      */
     public function effect(
-        Effect\Normalized\Properties|Effect\Normalized\Entity $effect,
+        Effect\Normalized\Properties|Effect\Normalized\Entity|Effect\Normalized\Child\Add $effect,
         ?Specification $specification,
     ): Query {
         if ($effect instanceof Effect\Normalized\Entity) {
@@ -309,6 +309,32 @@ final class MainTable
                 ->match(
                     static fn($table) => $table->effect($effect, $select),
                     static fn() => throw new \LogicException("Unkown entity {$effect->property()}"),
+                );
+        }
+
+        if ($effect instanceof Effect\Normalized\Child\Add) {
+            $select = match ($specification) {
+                null => null,
+                default => $this
+                    ->select($specification)
+                    ->columns(
+                        Column\Name::of($this->definition->id()->property())->in($this->name),
+                    ),
+            };
+            $id = Column\Name::of($this->definition->id()->property());
+            $name = $this->name;
+
+            return $this
+                ->collections
+                ->get($effect->property())
+                ->match(
+                    static fn($table) => $table->effect(
+                        $effect,
+                        $id,
+                        $name,
+                        $select,
+                    ),
+                    static fn() => throw new \LogicException("Unknown collection {$effect->property()}"),
                 );
         }
 

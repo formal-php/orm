@@ -6,7 +6,6 @@ namespace Formal\ORM\Adapter\Filesystem;
 use Formal\ORM\{
     Effect,
     Raw\Aggregate,
-    Raw\Aggregate\Id,
     Raw\Diff,
 };
 use Innmind\Immutable\Sequence;
@@ -21,17 +20,20 @@ final class EncodeEffect
     }
 
     /**
-     * @return callable(Id): Diff
+     * @return callable(Aggregate): Diff
      */
-    public function __invoke(Effect\Normalized\Properties|Effect\Normalized\Entity $effect): callable
+    public function __invoke(Effect\Normalized\Properties|Effect\Normalized\Entity|Effect\Normalized\Child\Add $effect): callable
     {
+        /** @var Sequence<Aggregate\Property> */
         $properties = Sequence::of();
+        /** @var Sequence<Aggregate\Entity> */
         $entities = Sequence::of();
+        /** @var Sequence<Aggregate\Optional> */
         $optionals = Sequence::of();
+        /** @var Sequence<Aggregate\Collection> */
         $collections = Sequence::of();
 
         if ($effect instanceof Effect\Normalized\Entity) {
-            /** @psalm-suppress MixedArgument */
             $entities = Sequence::of(Aggregate\Entity::of(
                 $effect->property(),
                 $effect
@@ -40,6 +42,11 @@ final class EncodeEffect
                         $effect->property(),
                         $effect->value(),
                     )),
+            ));
+        } else if ($effect instanceof Effect\Normalized\Child\Add) {
+            $collections = Sequence::of(Aggregate\Collection::of(
+                $effect->property(),
+                $effect->entities()->toSet(),
             ));
         } else {
             /** @psalm-suppress MixedArgument */
@@ -51,12 +58,25 @@ final class EncodeEffect
             );
         }
 
-        return static fn(Id $id) => Diff::of(
-            $id,
+        return static fn(Aggregate $aggregate) => Diff::of(
+            $aggregate->id(),
             $properties,
             $entities,
             $optionals,
-            $collections,
+            $aggregate->collections()->map(
+                static fn($collection) => $collections
+                    ->find(static fn($toModify) => $toModify->name() === $collection->name())
+                    ->map(static fn($toModify) => $collection->entities()->merge(
+                        $toModify->entities(),
+                    ))
+                    ->match(
+                        static fn($entities) => Aggregate\Collection::of(
+                            $collection->name(),
+                            $entities,
+                        ),
+                        static fn() => $collection,
+                    ),
+            ),
         );
     }
 

@@ -74,6 +74,8 @@ final class Properties
             EffectEntityPropertyOnAggregate::class,
             EffectEntityPropertiesOnAggregate::class,
             EffectEntityPropertiesOnAllAggregates::class,
+            EffectChildAddOnAggregate::class,
+            EffectChildAddOnAllAggregates::class,
         ];
     }
 
@@ -144,6 +146,8 @@ final class Properties
             EffectEntityPropertyOnAggregate::class,
             EffectEntityPropertiesOnAggregate::class,
             EffectEntityPropertiesOnAllAggregates::class,
+            EffectChildAddOnAggregate::class,
+            EffectChildAddOnAllAggregates::class,
         ];
     }
 }
