@@ -11,6 +11,7 @@ use Innmind\Immutable\Sequence;
 final class Add
 {
     /**
+     * @param non-empty-string $property
      * @param Sequence<object> $entities
      */
     private function __construct(
