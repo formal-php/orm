@@ -72,8 +72,7 @@ final class EffectPropertyOnAllAggregates implements Property
             fn() => Either::right(
                 $manager
                     ->repository(User::class)
-                    ->effect(Effect\Property::assign(
-                        'name',
+                    ->effect(Effect::property('name')->assign(
                         $this->newName,
                     )),
             ),

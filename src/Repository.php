@@ -158,7 +158,7 @@ final class Repository
     }
 
     public function effect(
-        Effect\Property|Effect\Property\Collection|Effect\Entity|Effect\Child\Add $effect,
+        Effect|Effect\Provider $effect,
         ?Specification $specification = null,
     ): void {
         if (!($this->inTransaction)()) {
@@ -169,8 +169,12 @@ final class Repository
             throw new \LogicException('Effects not supported by the adapter');
         }
 
+        if ($effect instanceof Effect\Provider) {
+            $effect = $effect->toEffect();
+        }
+
         $this->adapter->effect(
-            ($this->normalizeEffect)($effect),
+            ($this->normalizeEffect)($effect->unwrap()),
             match ($specification) {
                 null => null,
                 default => ($this->normalizeSpecification)($specification),

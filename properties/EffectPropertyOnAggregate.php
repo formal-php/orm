@@ -84,8 +84,7 @@ final class EffectPropertyOnAggregate implements Property
                 $manager
                     ->repository(User::class)
                     ->effect(
-                        Effect\Property::assign(
-                            'name',
+                        Effect::property('name')->assign(
                             $this->newName,
                         ),
                         $specification,

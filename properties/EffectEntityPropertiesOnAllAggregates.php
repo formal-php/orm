@@ -70,17 +70,14 @@ final class EffectEntityPropertiesOnAllAggregates implements Property
                 $manager
                     ->repository(User::class)
                     ->effect(
-                        Effect\Entity::of(
-                            'mainAddress',
-                            Effect\Property::assign(
-                                'value',
-                                $this->address,
-                            )->and(
-                                Effect\Property::assign(
-                                    'enabled',
-                                    $this->enabled,
+                        Effect::entity('mainAddress')->properties(
+                            Effect::property('value')
+                                ->assign($this->address)
+                                ->and(
+                                    Effect::property('enabled')->assign(
+                                        $this->enabled,
+                                    ),
                                 ),
-                            ),
                         ),
                     ),
             ),

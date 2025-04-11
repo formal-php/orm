@@ -88,15 +88,13 @@ final class EffectPropertiesOnAggregate implements Property
                 $manager
                     ->repository(User::class)
                     ->effect(
-                        Effect\Property::assign(
-                            'name',
-                            $this->newName,
-                        )->and(
-                            Effect\Property::assign(
-                                'nameStr',
-                                Maybe::just(Str::of($this->newName)),
+                        Effect::property('name')
+                            ->assign($this->newName)
+                            ->and(
+                                Effect::property('nameStr')->assign(
+                                    Maybe::just(Str::of($this->newName)),
+                                ),
                             ),
-                        ),
                         $specification,
                     ),
             ),

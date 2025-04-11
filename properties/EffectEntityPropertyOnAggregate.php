@@ -84,10 +84,8 @@ final class EffectEntityPropertyOnAggregate implements Property
                 $manager
                     ->repository(User::class)
                     ->effect(
-                        Effect\Entity::of(
-                            'mainAddress',
-                            Effect\Property::assign(
-                                'value',
+                        Effect::entity('mainAddress')->properties(
+                            Effect::property('value')->assign(
                                 $this->address,
                             ),
                         ),
