@@ -4,14 +4,12 @@ declare(strict_types = 1);
 namespace Formal\ORM\Effect;
 
 use Formal\ORM\{
+    Effect,
     Definition\Aggregate,
     Repository\Normalize\Collection,
 };
 use Innmind\Reflection\Extract;
-use Innmind\Immutable\{
-    Map,
-    Sequence,
-};
+use Innmind\Immutable\Map;
 
 /**
  * @internal
@@ -89,8 +87,10 @@ final class Normalize
         );
     }
 
-    public function __invoke(Property|Property\Collection|Entity|Child\Add $effect): Normalized\Properties|Normalized\Entity|Normalized\Child\Add
+    public function __invoke(Effect $effect): Normalized\Properties|Normalized\Entity|Normalized\Child\Add
     {
+        $effect = $effect->unwrap();
+
         if ($effect instanceof Entity) {
             return $this->normalizeEntity($effect);
         }
@@ -99,14 +99,8 @@ final class Normalize
             return $this->normalizeChildAdd($effect);
         }
 
-        if ($effect instanceof Property) {
-            $effects = Sequence::of($effect);
-        } else {
-            $effects = $effect->effects();
-        }
-
         return Normalized\Properties::of(
-            $effects->map($this->normalizeProperty(...)),
+            $effect->effects()->map($this->normalizeProperty(...)),
         );
     }
 
