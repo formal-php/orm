@@ -92,7 +92,7 @@ final class Normalize
 
     public function __invoke(Effect $effect): Normalized\Properties|Normalized\Entity|Normalized\Child\Add
     {
-        return $effect->match(
+        return $effect->normalize(
             fn($properties) => Normalized\Properties::of(
                 $properties->map($this->normalizeProperty(...)),
             ),

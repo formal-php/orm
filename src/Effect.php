@@ -8,6 +8,7 @@ use Formal\ORM\Effect\{
     Entity,
     Property,
     Property\Collection,
+    Normalized,
 };
 use Innmind\Immutable\Sequence;
 
@@ -62,19 +63,16 @@ final class Effect
 
     /**
      * @internal
-     * @template R
      *
-     * @param callable(Sequence<Property>): R $properties
-     * @param callable(non-empty-string, Sequence<Property>): R $entity
-     * @param callable(non-empty-string, Sequence<object>): R $addChild
-     *
-     * @return R
+     * @param callable(Sequence<Property>): Normalized\Properties $properties
+     * @param callable(non-empty-string, Sequence<Property>): Normalized\Entity $entity
+     * @param callable(non-empty-string, Sequence<object>): Normalized\Child\Add $addChild
      */
-    public function match(
+    public function normalize(
         callable $properties,
         callable $entity,
         callable $addChild,
-    ): mixed {
+    ): Normalized\Properties|Normalized\Entity|Normalized\Child\Add {
         if ($this->effect instanceof Collection) {
             /** @psalm-suppress ImpureFunctionCall */
             return $properties($this->effect->effects());
