@@ -3,12 +3,13 @@ declare(strict_types = 1);
 
 namespace Formal\ORM;
 
-use Formal\ORM\Effect\{
-    Child,
-    Entity,
-    Property,
-    Property\Collection,
-    Normalized,
+use Formal\ORM\{
+    Effect\Child,
+    Effect\Entity,
+    Effect\Property,
+    Effect\Property\Collection,
+    Effect\Normalized,
+    Raw\Aggregate\Collection\Entity as RawEntity,
 };
 use Innmind\Immutable\Sequence;
 
@@ -64,32 +65,39 @@ final class Effect
     /**
      * @internal
      *
-     * @param callable(Sequence<Property>): Normalized\Properties $properties
-     * @param callable(non-empty-string, Sequence<Property>): Normalized\Entity $entity
-     * @param callable(non-empty-string, Sequence<object>): Normalized\Child\Add $addChild
+     * @param callable(Property): Normalized\Property $property
+     * @param callable(non-empty-string, Sequence<Property>): Sequence<Normalized\Property> $entity
+     * @param callable(non-empty-string, Sequence<object>): Sequence<RawEntity> $addChild
      */
     public function normalize(
-        callable $properties,
+        callable $property,
         callable $entity,
         callable $addChild,
     ): Normalized\Properties|Normalized\Entity|Normalized\Child\Add {
         if ($this->effect instanceof Collection) {
-            /** @psalm-suppress ImpureFunctionCall */
-            return $properties($this->effect->effects());
+            return Normalized\Properties::of($this->effect->effects()->map($property));
         }
 
         if ($this->effect instanceof Entity) {
             /** @psalm-suppress ImpureFunctionCall */
-            return $entity(
+            return Normalized\Entity::of(
                 $this->effect->property(),
-                $this->effect->effects(),
+                Normalized\Properties::of(
+                    $entity(
+                        $this->effect->property(),
+                        $this->effect->effects(),
+                    ),
+                ),
             );
         }
 
         /** @psalm-suppress ImpureFunctionCall */
-        return $addChild(
+        return Normalized\Child\Add::of(
             $this->effect->property(),
-            $this->effect->entities(),
+            $addChild(
+                $this->effect->property(),
+                $this->effect->entities(),
+            ),
         );
     }
 

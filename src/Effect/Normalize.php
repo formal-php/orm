@@ -7,6 +7,7 @@ use Formal\ORM\{
     Effect,
     Definition\Aggregate,
     Repository\Normalize\Collection,
+    Raw\Aggregate\Collection\Entity,
 };
 use Innmind\Reflection\Extract;
 use Innmind\Immutable\{
@@ -93,9 +94,7 @@ final class Normalize
     public function __invoke(Effect $effect): Normalized\Properties|Normalized\Entity|Normalized\Child\Add
     {
         return $effect->normalize(
-            fn($properties) => Normalized\Properties::of(
-                $properties->map($this->normalizeProperty(...)),
-            ),
+            $this->normalizeProperty(...),
             $this->normalizeEntity(...),
             $this->normalizeChildAdd(...),
         );
@@ -139,11 +138,13 @@ final class Normalize
     /**
      * @param non-empty-string $entity
      * @param Sequence<Property> $properties
+     *
+     * @return Sequence<Normalized\Property>
      */
     private function normalizeEntity(
         string $entity,
         Sequence $properties,
-    ): Normalized\Entity {
+    ): Sequence {
         return $this
             ->entities
             ->get($entity)
@@ -164,11 +165,6 @@ final class Normalize
                         static fn() => throw new \LogicException("Unknown property '{$effect->property()}'"),
                     ),
             ))
-            ->map(Normalized\Properties::of(...))
-            ->map(static fn($effects) => Normalized\Entity::of(
-                $entity,
-                $effects,
-            ))
             ->match(
                 static fn($effect) => $effect,
                 static fn() => throw new \LogicException("Unknown property '$entity'"),
@@ -178,11 +174,13 @@ final class Normalize
     /**
      * @param non-empty-string $collection
      * @param Sequence<object> $entities
+     *
+     * @return Sequence<Entity>
      */
     private function normalizeChildAdd(
         string $collection,
         Sequence $entities,
-    ): Normalized\Child\Add {
+    ): Sequence {
         return $this
             ->collections
             ->get($collection)
@@ -191,12 +189,8 @@ final class Normalize
                     $entities->toSet(),
                 ),
             )
-            ->map(static fn($effects) => Normalized\Child\Add::of(
-                $collection,
-                $effects->entities()->unsorted(),
-            ))
             ->match(
-                static fn($effect) => $effect,
+                static fn($effects) => $effects->entities()->unsorted(),
                 static fn() => throw new \LogicException("Unknown property '$collection'"),
             );
     }
