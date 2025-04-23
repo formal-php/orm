@@ -143,7 +143,6 @@ final class Normalize
             ->map(
                 static fn($entity) => $effect
                     ->effects()
-                    ->effects()
                     ->map(
                         static fn($effect) => $entity
                             ->get($effect->property())
