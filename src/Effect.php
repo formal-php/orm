@@ -7,7 +7,7 @@ use Formal\ORM\{
     Effect\Child,
     Effect\Entity,
     Effect\Property,
-    Effect\Property\Collection,
+    Effect\Properties,
     Effect\Normalized,
     Raw\Aggregate\Collection\Entity as RawEntity,
 };
@@ -19,7 +19,7 @@ use Innmind\Immutable\Sequence;
 final class Effect
 {
     private function __construct(
-        private Collection|Entity|Child\Add $effect,
+        private Properties|Entity|Child\Add $effect,
     ) {
     }
 
@@ -74,7 +74,7 @@ final class Effect
         callable $entity,
         callable $addChild,
     ): Normalized\Properties|Normalized\Entity|Normalized\Child\Add {
-        if ($this->effect instanceof Collection) {
+        if ($this->effect instanceof Properties) {
             return Normalized\Properties::of($this->effect->effects()->map($property));
         }
 
@@ -105,7 +105,7 @@ final class Effect
      * @psalm-pure
      */
     private static function build(
-        Collection|Entity|Child\Add $effect,
+        Properties|Entity|Child\Add $effect,
     ): self {
         return new self($effect);
     }

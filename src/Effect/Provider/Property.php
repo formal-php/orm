@@ -5,7 +5,7 @@ namespace Formal\ORM\Effect\Provider;
 
 use Formal\ORM\{
     Effect,
-    Effect\Property\Collection,
+    Effect\Properties as Collection,
 };
 
 /**

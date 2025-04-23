@@ -7,7 +7,7 @@ use Formal\ORM\{
     Effect,
     Effect\Provider,
     Effect\Property,
-    Effect\Property\Collection,
+    Effect\Properties as Collection,
 };
 use Innmind\Immutable\Map;
 

@@ -3,8 +3,6 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Effect;
 
-use Formal\ORM\Effect\Property\Collection;
-
 /**
  * @psalm-immutable
  */
@@ -31,9 +29,9 @@ final class Property
         return new self($property, $value);
     }
 
-    public function and(self $effect): Collection
+    public function and(self $effect): Properties
     {
-        return Collection::of($this)->and($effect);
+        return Properties::of($this)->and($effect);
     }
 
     /**

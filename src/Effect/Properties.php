@@ -1,15 +1,14 @@
 <?php
 declare(strict_types = 1);
 
-namespace Formal\ORM\Effect\Property;
+namespace Formal\ORM\Effect;
 
-use Formal\ORM\Effect\Property;
 use Innmind\Immutable\Sequence;
 
 /**
  * @psalm-immutable
  */
-final class Collection
+final class Properties
 {
     /**
      * @param Sequence<Property> $effects

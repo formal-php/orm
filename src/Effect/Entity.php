@@ -15,7 +15,7 @@ final class Entity
      */
     private function __construct(
         private string $property,
-        private Property\Collection $effects,
+        private Properties $effects,
     ) {
     }
 
@@ -26,10 +26,10 @@ final class Entity
      */
     public static function of(
         string $property,
-        Property|Property\Collection $effect,
+        Property|Properties $effect,
     ): self {
         if ($effect instanceof Property) {
-            $effect = Property\Collection::of($effect);
+            $effect = Properties::of($effect);
         }
 
         return new self($property, $effect);
