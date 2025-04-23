@@ -5,6 +5,7 @@ namespace Formal\ORM\Effect;
 
 use Formal\ORM\{
     Effect\Normalized\Properties,
+    Effect\Normalized\Property,
     Effect\Normalized\Entity,
     Effect\Normalized\Child,
     Raw\Aggregate\Collection\Entity as RawEntity,
@@ -26,7 +27,7 @@ final class Normalized
      * @internal
      * @psalm-pure
      *
-     * @param Sequence<Normalized\Property> $effects
+     * @param Sequence<Property> $effects
      */
     public static function properties(Sequence $effects): self
     {
@@ -38,7 +39,7 @@ final class Normalized
      * @psalm-pure
      *
      * @param non-empty-string $entity
-     * @param Sequence<Normalized\Property> $effects
+     * @param Sequence<Property> $effects
      */
     public static function entity(string $entity, Sequence $effects): self
     {
@@ -63,8 +64,37 @@ final class Normalized
         ));
     }
 
-    public function unwrap(): Properties|Entity|Child\Add
-    {
-        return $this->effect;
+    /**
+     * @template R
+     *
+     * @param callable(Sequence<Property>): R $properties
+     * @param callable(non-empty-string, Sequence<Property>): R $entity
+     * @param callable(non-empty-string, Sequence<RawEntity>): R $addChild
+     *
+     * @return R
+     */
+    public function match(
+        callable $properties,
+        callable $entity,
+        callable $addChild,
+    ): mixed {
+        if ($this->effect instanceof Properties) {
+            /** @psalm-suppress ImpureFunctionCall */
+            return $properties($this->effect->effects());
+        }
+
+        if ($this->effect instanceof Entity) {
+            /** @psalm-suppress ImpureFunctionCall */
+            return $entity(
+                $this->effect->property(),
+                $this->effect->effects(),
+            );
+        }
+
+        /** @psalm-suppress ImpureFunctionCall */
+        return $addChild(
+            $this->effect->property(),
+            $this->effect->entities(),
+        );
     }
 }

@@ -293,70 +293,11 @@ final class MainTable
         Effect\Normalized $effect,
         ?Specification $specification,
     ): Query {
-        $effect = $effect->unwrap();
-
-        if ($effect instanceof Effect\Normalized\Entity) {
-            $select = match ($specification) {
-                null => null,
-                default => $this
-                    ->select($specification)
-                    ->columns(
-                        Column\Name::of($this->definition->id()->property())->in($this->name),
-                    ),
-            };
-
-            return $this
-                ->entities
-                ->get($effect->property())
-                ->match(
-                    static fn($table) => $table->effect($effect, $select),
-                    static fn() => throw new \LogicException("Unkown entity {$effect->property()}"),
-                );
-        }
-
-        if ($effect instanceof Effect\Normalized\Child\Add) {
-            $select = match ($specification) {
-                null => null,
-                default => $this
-                    ->select($specification)
-                    ->columns(
-                        Column\Name::of($this->definition->id()->property())->in($this->name),
-                    ),
-            };
-            $id = Column\Name::of($this->definition->id()->property());
-            $name = $this->name;
-
-            return $this
-                ->collections
-                ->get($effect->property())
-                ->match(
-                    static fn($table) => $table->effect(
-                        $effect,
-                        $id,
-                        $name,
-                        $select,
-                    ),
-                    static fn() => throw new \LogicException("Unknown collection {$effect->property()}"),
-                );
-        }
-
-        $update = Update::set(
-            $this->name,
-            Row::new(
-                ...$effect
-                    ->effects()
-                    ->map(static fn($effect) => Row\Value::of(
-                        Column\Name::of($effect->property()),
-                        $effect->value(),
-                    ))
-                    ->toList(),
-            ),
+        return $effect->match(
+            fn($properties) => $this->effectProperties($properties, $specification),
+            fn($entity, $properties) => $this->effectEntity($entity, $properties, $specification),
+            fn($collection, $entities) => $this->effectAddChildren($collection, $entities, $specification),
         );
-
-        return match ($specification) {
-            null => $update,
-            default => $update->where($this->where($specification)),
-        };
     }
 
     /**
@@ -557,5 +498,97 @@ final class MainTable
             $underlying->sign(),
             $underlying->value(),
         );
+    }
+
+    /**
+     * @internal
+     *
+     * @param non-empty-string $entity
+     * @param Sequence<Effect\Normalized\Property> $properties
+     */
+    private function effectEntity(
+        string $entity,
+        Sequence $properties,
+        ?Specification $specification,
+    ): Query {
+        $select = match ($specification) {
+            null => null,
+            default => $this
+                ->select($specification)
+                ->columns(
+                    Column\Name::of($this->definition->id()->property())->in($this->name),
+                ),
+        };
+
+        return $this
+            ->entities
+            ->get($entity)
+            ->match(
+                static fn($table) => $table->effect($properties, $select),
+                static fn() => throw new \LogicException("Unkown entity $entity"),
+            );
+    }
+
+    /**
+     * @internal
+     *
+     * @param non-empty-string $collection
+     * @param Sequence<Aggregate\Collection\Entity> $entities
+     */
+    private function effectAddChildren(
+        string $collection,
+        Sequence $entities,
+        ?Specification $specification,
+    ): Query {
+        $select = match ($specification) {
+            null => null,
+            default => $this
+                ->select($specification)
+                ->columns(
+                    Column\Name::of($this->definition->id()->property())->in($this->name),
+                ),
+        };
+        $id = Column\Name::of($this->definition->id()->property());
+        $name = $this->name;
+
+        return $this
+            ->collections
+            ->get($collection)
+            ->match(
+                static fn($table) => $table->effect(
+                    $entities,
+                    $id,
+                    $name,
+                    $select,
+                ),
+                static fn() => throw new \LogicException("Unknown collection {$collection}"),
+            );
+    }
+
+    /**
+     * @internal
+     *
+     * @param Sequence<Effect\Normalized\Property> $properties
+     */
+    private function effectProperties(
+        Sequence $properties,
+        ?Specification $specification,
+    ): Query {
+        $update = Update::set(
+            $this->name,
+            Row::new(
+                ...$properties
+                    ->map(static fn($effect) => Row\Value::of(
+                        Column\Name::of($effect->property()),
+                        $effect->value(),
+                    ))
+                    ->toList(),
+            ),
+        );
+
+        return match ($specification) {
+            null => $update,
+            default => $update->where($this->where($specification)),
+        };
     }
 }

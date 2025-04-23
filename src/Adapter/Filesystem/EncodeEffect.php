@@ -8,7 +8,10 @@ use Formal\ORM\{
     Raw\Aggregate,
     Raw\Diff,
 };
-use Innmind\Immutable\Sequence;
+use Innmind\Immutable\{
+    Sequence,
+    Predicate\Instance,
+};
 
 /**
  * @internal
@@ -24,46 +27,46 @@ final class EncodeEffect
      */
     public function __invoke(Effect\Normalized $effect): callable
     {
-        $effect = $effect->unwrap();
-        /** @var Sequence<Aggregate\Property> */
-        $properties = Sequence::of();
-        /** @var Sequence<Aggregate\Entity> */
-        $entities = Sequence::of();
-        /** @var Sequence<Aggregate\Optional> */
-        $optionals = Sequence::of();
-        /** @var Sequence<Aggregate\Collection> */
-        $collections = Sequence::of();
-
-        if ($effect instanceof Effect\Normalized\Entity) {
-            $entities = Sequence::of(Aggregate\Entity::of(
-                $effect->property(),
-                $effect
-                    ->effects()
-                    ->map(static fn($effect) => Aggregate\Property::of(
+        [$properties, $entities, $collections] = $effect->match(
+            static fn($properties) => [
+                $properties->map(static fn($effect) => Aggregate\Property::of(
+                    $effect->property(),
+                    $effect->value(),
+                )),
+                null,
+                null,
+            ],
+            static fn($entity, $properties) => [
+                null,
+                Sequence::of(Aggregate\Entity::of(
+                    $entity,
+                    $properties->map(static fn($effect) => Aggregate\Property::of(
                         $effect->property(),
                         $effect->value(),
                     )),
-            ));
-        } else if ($effect instanceof Effect\Normalized\Child\Add) {
-            $collections = Sequence::of(Aggregate\Collection::of(
-                $effect->property(),
-                $effect->entities()->toSet(),
-            ));
-        } else {
-            /** @psalm-suppress MixedArgument */
-            $properties = $effect->effects()->map(
-                static fn($effect) => Aggregate\Property::of(
-                    $effect->property(),
-                    $effect->value(),
-                ),
-            );
-        }
+                )),
+                null,
+            ],
+            static fn($collection, $entities) => [
+                null,
+                null,
+                Sequence::of(Aggregate\Collection::of(
+                    $collection,
+                    $entities->toSet(),
+                )),
+            ],
+        );
+        $properties ??= Sequence::of();
+        $entities ??= Sequence::of();
+        $collections ??= Sequence::of();
+        // to please Psalm
+        $collections = $collections->keep(Instance::of(Aggregate\Collection::class));
 
         return static fn(Aggregate $aggregate) => Diff::of(
             $aggregate->id(),
             $properties,
             $entities,
-            $optionals,
+            Sequence::of(),
             $aggregate->collections()->map(
                 static fn($collection) => $collections
                     ->find(static fn($toModify) => $toModify->name() === $collection->name())

@@ -161,15 +161,17 @@ final class EntityTable
             );
     }
 
+    /**
+     * @param Sequence<Effect\Normalized\Property> $properties
+     */
     public function effect(
-        Effect\Normalized\Entity $effect,
+        Sequence $properties,
         ?Select $select,
     ): Query {
         $update = Update::set(
             $this->name,
             Row::new(
-                ...$effect
-                    ->effects()
+                ...$properties
                     ->map(static fn($effect) => Row\Value::of(
                         Column\Name::of($effect->property()),
                         $effect->value(),

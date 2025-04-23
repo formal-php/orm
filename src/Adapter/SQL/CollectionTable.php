@@ -8,7 +8,6 @@ use Formal\ORM\{
     Raw\Aggregate\Id,
     Raw\Aggregate\Collection\Entity,
     Specification\Property as PropertySpecification,
-    Effect,
 };
 use Formal\AccessLayer\{
     Table,
@@ -194,16 +193,18 @@ final class CollectionTable
             ->where($specification);
     }
 
+    /**
+     * @param Sequence<Entity> $entities
+     */
     public function effect(
-        Effect\Normalized\Child\Add $effect,
+        Sequence $entities,
         Column\Name $id,
         Table\Name\Aliased $main,
         ?Select $select,
     ): Query {
         $insertSelect = Select::from($main)->columns(
             $id->in($main)->as('aggregateId'),
-            ...$effect
-                ->entities()
+            ...$entities
                 ->take(1) // todo change implementation when multi add is supported
                 ->flatMap(static fn($entity) => $entity->properties())
                 ->map(static fn($property) => Row\Value::of(

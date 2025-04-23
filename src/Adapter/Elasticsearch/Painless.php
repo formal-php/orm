@@ -3,10 +3,14 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Adapter\Elasticsearch;
 
-use Formal\ORM\Effect;
+use Formal\ORM\{
+    Effect,
+    Raw\Aggregate\Collection\Entity as RawEntity,
+};
 use Innmind\Immutable\{
     Monoid\Concat,
     Str,
+    Sequence,
 };
 
 /**
@@ -20,17 +24,11 @@ final class Painless
 
     public function __invoke(Effect\Normalized $effect): array
     {
-        $effect = $effect->unwrap();
-
-        if ($effect instanceof Effect\Normalized\Entity) {
-            return $this->entities($effect);
-        }
-
-        if ($effect instanceof Effect\Normalized\Child\Add) {
-            return $this->addChildren($effect);
-        }
-
-        return $this->properties($effect);
+        return $effect->match(
+            $this->properties(...),
+            $this->entities(...),
+            $this->addChildren(...),
+        );
     }
 
     /**
@@ -41,10 +39,11 @@ final class Painless
         return new self;
     }
 
-    private function properties(Effect\Normalized\Properties $effect): array
+    /**
+     * @param Sequence<Effect\Normalized\Property> $effects
+     */
+    private function properties(Sequence $effects): array
     {
-        $effects = $effect->effects();
-
         $params = $effects->map(static fn($effect) => [
             self::hash($effect->property()),
             $effect->value(),
@@ -70,19 +69,21 @@ final class Painless
         ];
     }
 
-    private function entities(Effect\Normalized\Entity $effect): array
+    /**
+     * @param non-empty-string $entity
+     * @param Sequence<Effect\Normalized\Property> $effects
+     */
+    private function entities(string $entity, Sequence $effects): array
     {
-        $property = $effect->property();
-        $effects = $effect->effects();
         $params = $effects->map(static fn($effect) => [
-            self::hash($property.$effect->property()),
+            self::hash($entity.$effect->property()),
             $effect->value(),
         ]);
         $source = $effects->map(static fn($effect) => \sprintf(
             'ctx._source.%s.%s = params.%s;',
-            $property,
+            $entity,
             $effect->property(),
-            self::hash($property.$effect->property()),
+            self::hash($entity.$effect->property()),
         ));
 
         return [
@@ -100,15 +101,17 @@ final class Painless
         ];
     }
 
-    private function addChildren(Effect\Normalized\Child\Add $effect): array
+    /**
+     * @param non-empty-string $collection
+     * @param Sequence<RawEntity> $entities
+     */
+    private function addChildren(string $collection, Sequence $entities): array
     {
-        $property = $effect->property();
-        $entities = $effect->entities();
         $params = $entities
             ->indices()
             ->zip($entities)
             ->map(static fn($pair) => [
-                self::hash($property.$pair[0]),
+                self::hash($collection.$pair[0]),
                 \array_merge(
                     ...$pair[1]
                         ->properties()
@@ -118,8 +121,8 @@ final class Painless
             ]);
         $source = $entities->indices()->map(static fn($index) => \sprintf(
             'ctx._source.%s.add(params.%s);',
-            $property,
-            self::hash($property.$index),
+            $collection,
+            self::hash($collection.$index),
         ));
 
         return [
