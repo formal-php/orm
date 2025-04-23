@@ -18,8 +18,10 @@ final class Painless
     {
     }
 
-    public function __invoke(Effect\Normalized\Properties|Effect\Normalized\Entity|Effect\Normalized\Child\Add $effect): array
+    public function __invoke(Effect\Normalized $effect): array
     {
+        $effect = $effect->unwrap();
+
         if ($effect instanceof Effect\Normalized\Entity) {
             return $this->entities($effect);
         }

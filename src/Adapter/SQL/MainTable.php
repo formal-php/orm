@@ -290,9 +290,11 @@ final class MainTable
      * @internal
      */
     public function effect(
-        Effect\Normalized\Properties|Effect\Normalized\Entity|Effect\Normalized\Child\Add $effect,
+        Effect\Normalized $effect,
         ?Specification $specification,
     ): Query {
+        $effect = $effect->unwrap();
+
         if ($effect instanceof Effect\Normalized\Entity) {
             $select = match ($specification) {
                 null => null,

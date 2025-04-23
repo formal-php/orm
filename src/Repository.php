@@ -174,7 +174,7 @@ final class Repository
         }
 
         $this->adapter->effect(
-            ($this->normalizeEffect)($effect)->unwrap(),
+            ($this->normalizeEffect)($effect),
             match ($specification) {
                 null => null,
                 default => ($this->normalizeSpecification)($specification),

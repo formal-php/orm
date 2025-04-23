@@ -22,8 +22,9 @@ final class EncodeEffect
     /**
      * @return callable(Aggregate): Diff
      */
-    public function __invoke(Effect\Normalized\Properties|Effect\Normalized\Entity|Effect\Normalized\Child\Add $effect): callable
+    public function __invoke(Effect\Normalized $effect): callable
     {
+        $effect = $effect->unwrap();
         /** @var Sequence<Aggregate\Property> */
         $properties = Sequence::of();
         /** @var Sequence<Aggregate\Entity> */
