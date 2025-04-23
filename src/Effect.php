@@ -75,36 +75,28 @@ final class Effect
         callable $addChild,
     ): Normalized {
         if ($this->effect instanceof Properties) {
-            return Normalized::of(
-                Normalized\Properties::of(
-                    $this->effect->effects()->map($property),
-                ),
+            return Normalized::properties(
+                $this->effect->effects()->map($property),
             );
         }
 
         if ($this->effect instanceof Entity) {
             /** @psalm-suppress ImpureFunctionCall */
-            return Normalized::of(
-                Normalized\Entity::of(
+            return Normalized::entity(
+                $this->effect->property(),
+                $entity(
                     $this->effect->property(),
-                    Normalized\Properties::of(
-                        $entity(
-                            $this->effect->property(),
-                            $this->effect->effects(),
-                        ),
-                    ),
+                    $this->effect->effects(),
                 ),
             );
         }
 
         /** @psalm-suppress ImpureFunctionCall */
-        return Normalized::of(
-            Normalized\Child\Add::of(
+        return Normalized::addChildren(
+            $this->effect->property(),
+            $addChild(
                 $this->effect->property(),
-                $addChild(
-                    $this->effect->property(),
-                    $this->effect->entities(),
-                ),
+                $this->effect->entities(),
             ),
         );
     }
