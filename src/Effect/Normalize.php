@@ -91,7 +91,7 @@ final class Normalize
         );
     }
 
-    public function __invoke(Effect $effect): Normalized\Properties|Normalized\Entity|Normalized\Child\Add
+    public function __invoke(Effect $effect): Normalized
     {
         return $effect->normalize(
             $this->normalizeProperty(...),
