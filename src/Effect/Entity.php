@@ -26,12 +26,8 @@ final class Entity
      */
     public static function of(
         string $property,
-        Property|Properties $effect,
+        Properties $effect,
     ): self {
-        if ($effect instanceof Property) {
-            $effect = Properties::of($effect);
-        }
-
         return new self($property, $effect);
     }
 

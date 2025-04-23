@@ -29,11 +29,6 @@ final class Property
         return new self($property, $value);
     }
 
-    public function and(self $effect): Properties
-    {
-        return Properties::of($this)->and($effect);
-    }
-
     /**
      * @return non-empty-string
      */

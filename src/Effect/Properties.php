@@ -32,16 +32,6 @@ final class Properties
     }
 
     /**
-     * @param callable(Property): Property $map
-     */
-    public function map(callable $map): self
-    {
-        return new self(
-            $this->effects->map($map),
-        );
-    }
-
-    /**
      * @return Sequence<Property>
      */
     public function effects(): Sequence
