@@ -89,18 +89,12 @@ final class Normalize
 
     public function __invoke(Effect $effect): Normalized\Properties|Normalized\Entity|Normalized\Child\Add
     {
-        $effect = $effect->unwrap();
-
-        if ($effect instanceof Entity) {
-            return $this->normalizeEntity($effect);
-        }
-
-        if ($effect instanceof Child\Add) {
-            return $this->normalizeChildAdd($effect);
-        }
-
-        return Normalized\Properties::of(
-            $effect->effects()->map($this->normalizeProperty(...)),
+        return $effect->match(
+            fn($effect) => Normalized\Properties::of(
+                $effect->effects()->map($this->normalizeProperty(...)),
+            ),
+            $this->normalizeEntity(...),
+            $this->normalizeChildAdd(...),
         );
     }
 

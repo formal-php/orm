@@ -60,10 +60,31 @@ final class Effect
 
     /**
      * @internal
+     * @template R
+     *
+     * @param callable(Collection): R $collection
+     * @param callable(Entity): R $entity
+     * @param callable(Child\Add): R $addChild
+     *
+     * @return R
      */
-    public function unwrap(): Collection|Entity|Child\Add
-    {
-        return $this->effect;
+    public function match(
+        callable $collection,
+        callable $entity,
+        callable $addChild,
+    ): mixed {
+        if ($this->effect instanceof Collection) {
+            /** @psalm-suppress ImpureFunctionCall */
+            return $collection($this->effect);
+        }
+
+        if ($this->effect instanceof Entity) {
+            /** @psalm-suppress ImpureFunctionCall */
+            return $entity($this->effect);
+        }
+
+        /** @psalm-suppress ImpureFunctionCall */
+        return $addChild($this->effect);
     }
 
     /**
