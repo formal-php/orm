@@ -9,7 +9,10 @@ use Formal\ORM\{
     Repository\Normalize\Collection,
 };
 use Innmind\Reflection\Extract;
-use Innmind\Immutable\Map;
+use Innmind\Immutable\{
+    Map,
+    Sequence,
+};
 
 /**
  * @internal
@@ -90,8 +93,8 @@ final class Normalize
     public function __invoke(Effect $effect): Normalized\Properties|Normalized\Entity|Normalized\Child\Add
     {
         return $effect->match(
-            fn($effect) => Normalized\Properties::of(
-                $effect->effects()->map($this->normalizeProperty(...)),
+            fn($properties) => Normalized\Properties::of(
+                $properties->map($this->normalizeProperty(...)),
             ),
             $this->normalizeEntity(...),
             $this->normalizeChildAdd(...),
@@ -133,64 +136,68 @@ final class Normalize
             );
     }
 
-    private function normalizeEntity(Entity $effect): Normalized\Entity
-    {
-        $property = $effect->property();
-
+    /**
+     * @param non-empty-string $entity
+     * @param Sequence<Property> $properties
+     */
+    private function normalizeEntity(
+        string $entity,
+        Sequence $properties,
+    ): Normalized\Entity {
         return $this
             ->entities
-            ->get($effect->property())
-            ->map(
-                static fn($entity) => $effect
-                    ->effects()
+            ->get($entity)
+            ->map(static fn($entity) => $properties->map(
+                static fn($effect) => $entity
+                    ->get($effect->property())
                     ->map(
-                        static fn($effect) => $entity
-                            ->get($effect->property())
-                            ->map(
-                                static fn($property) => $property
-                                    ->type()
-                                    ->normalize($effect->value()),
-                            )
-                            ->map(static fn($value) => Normalized\Property::assign(
-                                $effect->property(),
-                                $value,
-                            ))
-                            ->match(
-                                static fn($effect) => $effect,
-                                static fn() => throw new \LogicException("Unknown property '{$effect->property()}'"),
-                            ),
+                        static fn($property) => $property
+                            ->type()
+                            ->normalize($effect->value()),
+                    )
+                    ->map(static fn($value) => Normalized\Property::assign(
+                        $effect->property(),
+                        $value,
+                    ))
+                    ->match(
+                        static fn($effect) => $effect,
+                        static fn() => throw new \LogicException("Unknown property '{$effect->property()}'"),
                     ),
-            )
+            ))
             ->map(Normalized\Properties::of(...))
             ->map(static fn($effects) => Normalized\Entity::of(
-                $property,
+                $entity,
                 $effects,
             ))
             ->match(
                 static fn($effect) => $effect,
-                static fn() => throw new \LogicException("Unknown property '$property'"),
+                static fn() => throw new \LogicException("Unknown property '$entity'"),
             );
     }
 
-    private function normalizeChildAdd(Child\Add $effect): Normalized\Child\Add
-    {
-        $property = $effect->property();
-
+    /**
+     * @param non-empty-string $collection
+     * @param Sequence<object> $entities
+     */
+    private function normalizeChildAdd(
+        string $collection,
+        Sequence $entities,
+    ): Normalized\Child\Add {
         return $this
             ->collections
-            ->get($effect->property())
+            ->get($collection)
             ->map(
                 static fn($collection) => $collection(
-                    $effect->entities()->toSet(),
+                    $entities->toSet(),
                 ),
             )
             ->map(static fn($effects) => Normalized\Child\Add::of(
-                $property,
+                $collection,
                 $effects->entities()->unsorted(),
             ))
             ->match(
                 static fn($effect) => $effect,
-                static fn() => throw new \LogicException("Unknown property '$property'"),
+                static fn() => throw new \LogicException("Unknown property '$collection'"),
             );
     }
 }

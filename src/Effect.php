@@ -6,8 +6,10 @@ namespace Formal\ORM;
 use Formal\ORM\Effect\{
     Child,
     Entity,
+    Property,
     Property\Collection,
 };
+use Innmind\Immutable\Sequence;
 
 /**
  * @psalm-immutable
@@ -62,29 +64,35 @@ final class Effect
      * @internal
      * @template R
      *
-     * @param callable(Collection): R $collection
-     * @param callable(Entity): R $entity
-     * @param callable(Child\Add): R $addChild
+     * @param callable(Sequence<Property>): R $properties
+     * @param callable(non-empty-string, Sequence<Property>): R $entity
+     * @param callable(non-empty-string, Sequence<object>): R $addChild
      *
      * @return R
      */
     public function match(
-        callable $collection,
+        callable $properties,
         callable $entity,
         callable $addChild,
     ): mixed {
         if ($this->effect instanceof Collection) {
             /** @psalm-suppress ImpureFunctionCall */
-            return $collection($this->effect);
+            return $properties($this->effect->effects());
         }
 
         if ($this->effect instanceof Entity) {
             /** @psalm-suppress ImpureFunctionCall */
-            return $entity($this->effect);
+            return $entity(
+                $this->effect->property(),
+                $this->effect->effects(),
+            );
         }
 
         /** @psalm-suppress ImpureFunctionCall */
-        return $addChild($this->effect);
+        return $addChild(
+            $this->effect->property(),
+            $this->effect->entities(),
+        );
     }
 
     /**
