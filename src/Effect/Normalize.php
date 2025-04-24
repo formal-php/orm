@@ -8,7 +8,9 @@ use Formal\ORM\{
     Definition\Aggregate,
     Repository\Normalize\Collection,
     Raw\Aggregate\Collection\Entity,
+    Specification,
 };
+use Innmind\Specification\Comparator;
 use Innmind\Reflection\Extract;
 use Innmind\Immutable\{
     Map,
@@ -24,6 +26,8 @@ final class Normalize
 {
     /** @var Aggregate<T> */
     private Aggregate $definition;
+    /** @var Specification\Normalize<T> */
+    private Specification\Normalize $normalizeSpecification;
     /** @var Map<non-empty-string, Aggregate\Property<T, mixed>> */
     private Map $properties;
     /** @var Map<non-empty-string, Map<non-empty-string, Aggregate\Property>> */
@@ -35,10 +39,14 @@ final class Normalize
 
     /**
      * @param Aggregate<T> $definition
+     * @param Specification\Normalize<T> $normalizeSpecification
      */
-    private function __construct(Aggregate $definition)
-    {
+    private function __construct(
+        Aggregate $definition,
+        Specification\Normalize $normalizeSpecification,
+    ) {
         $this->definition = $definition;
+        $this->normalizeSpecification = $normalizeSpecification;
         $this->properties = Map::of(
             ...$definition
                 ->properties()
@@ -97,6 +105,7 @@ final class Normalize
             $this->normalizeProperty(...),
             $this->normalizeEntity(...),
             $this->normalizeChildAdd(...),
+            $this->normalizeChildRemove(...),
         );
     }
 
@@ -106,12 +115,15 @@ final class Normalize
      * @template A of object
      *
      * @param Aggregate<A> $definition
+     * @param Specification\Normalize<A> $normalizeSpecification
      *
      * @return self<A>
      */
-    public static function of(Aggregate $definition): self
-    {
-        return new self($definition);
+    public static function of(
+        Aggregate $definition,
+        Specification\Normalize $normalizeSpecification,
+    ): self {
+        return new self($definition, $normalizeSpecification);
     }
 
     private function normalizeProperty(Property $effect): Normalized\Property
@@ -193,5 +205,25 @@ final class Normalize
                 static fn($effects) => $effects->entities()->unsorted(),
                 static fn() => throw new \LogicException("Unknown property '$collection'"),
             );
+    }
+
+    /**
+     * @param non-empty-string $collection
+     */
+    private function normalizeChildRemove(
+        string $collection,
+        Comparator $specification,
+    ): Specification\Property {
+        $specification = ($this->normalizeSpecification)(Specification\Child::of(
+            $collection,
+            $specification,
+        ));
+
+        /**
+         * Implicit behaviour, see Specification\Normalize
+         * @psalm-suppress UndefinedInterfaceMethod
+         * @var Specification\Property
+         */
+        return $specification->specification();
     }
 }

@@ -196,7 +196,7 @@ final class CollectionTable
     /**
      * @param Sequence<Entity> $entities
      */
-    public function effect(
+    public function effectAddChildren(
         Sequence $entities,
         Column\Name $id,
         Table\Name\Aliased $main,
@@ -222,5 +222,20 @@ final class CollectionTable
         }
 
         return Query\Insert::into($this->name->name(), $insertSelect);
+    }
+
+    public function effectRemoveChildren(
+        PropertySpecification $comparator,
+        ?Select $select,
+    ): Query {
+        $where = match ($select) {
+            null => $comparator,
+            default => $comparator->and(SubQuery::of(
+                $this->id->column()->toString(),
+                $select,
+            )),
+        };
+
+        return Delete::from($this->name)->where($where);
     }
 }

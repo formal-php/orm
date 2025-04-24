@@ -6,7 +6,9 @@ namespace Formal\ORM\Adapter\Elasticsearch;
 use Formal\ORM\{
     Effect,
     Raw\Aggregate\Collection\Entity as RawEntity,
+    Specification,
 };
+use Innmind\Specification\Sign;
 use Innmind\Immutable\{
     Monoid\Concat,
     Str,
@@ -28,6 +30,7 @@ final class Painless
             $this->properties(...),
             $this->entities(...),
             $this->addChildren(...),
+            $this->removeChildren(...),
         );
     }
 
@@ -137,6 +140,45 @@ final class Painless
                     return $params;
                 },
             ),
+        ];
+    }
+
+    /**
+     * @param non-empty-string $collection
+     */
+    private function removeChildren(
+        string $collection,
+        Specification\Property $comparator,
+    ): array {
+        $condition = match ($comparator->sign()) {
+            Sign::equality => 'entity.%s == params.%s',
+            Sign::lessThan => 'entity.%s < params.%s',
+            Sign::moreThan => 'entity.%s > params.%s',
+            Sign::startsWith => 'entity.%s.startsWith(params.%s)',
+            Sign::endsWith => 'entity.%s.endsWith(params.%s)',
+            Sign::contains => 'entity.%s.contains(params.%s)',
+            Sign::in => 'params.%s.stream().anyMatch(v -> v == entity.%s)',
+        };
+        $comparison = \sprintf(
+            $condition,
+            $comparator->property(),
+            self::hash($collection),
+        );
+        $source = <<<SOURCE
+        ctx._source.$collection = ctx
+            ._source
+            .$collection
+            .stream()
+            .filter(entity -> !($comparison))
+            .collect(Collectors.toList());
+        SOURCE;
+
+        return [
+            'lang' => 'painless',
+            'source' => $source,
+            'params' => [
+                self::hash($collection) => $comparator->value(),
+            ],
         ];
     }
 

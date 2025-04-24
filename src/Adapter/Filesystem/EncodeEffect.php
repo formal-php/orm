@@ -7,11 +7,10 @@ use Formal\ORM\{
     Effect,
     Raw\Aggregate,
     Raw\Diff,
+    Specification,
 };
-use Innmind\Immutable\{
-    Sequence,
-    Predicate\Instance,
-};
+use Innmind\Specification\Sign;
+use Innmind\Immutable\Sequence;
 
 /**
  * @internal
@@ -27,6 +26,7 @@ final class EncodeEffect
      */
     public function __invoke(Effect\Normalized $effect): callable
     {
+        /** @psalm-suppress MixedArgumentTypeCoercion */
         [$properties, $entities, $collections] = $effect->match(
             static fn($properties) => [
                 $properties->map(static fn($effect) => Aggregate\Property::of(
@@ -50,37 +50,34 @@ final class EncodeEffect
             static fn($collection, $entities) => [
                 null,
                 null,
-                Sequence::of(Aggregate\Collection::of(
+                static fn(Sequence $collections) => self::addChild(
                     $collection,
-                    $entities->toSet(),
-                )),
+                    $entities,
+                    $collections,
+                ),
+            ],
+            static fn($collection, $comparator) => [
+                null,
+                null,
+                static fn(Sequence $collections) => self::removeChild(
+                    $collection,
+                    $comparator,
+                    $collections,
+                ),
             ],
         );
         $properties ??= Sequence::of();
         $entities ??= Sequence::of();
-        $collections ??= Sequence::of();
-        // to please Psalm
-        $collections = $collections->keep(Instance::of(Aggregate\Collection::class));
 
         return static fn(Aggregate $aggregate) => Diff::of(
             $aggregate->id(),
             $properties,
             $entities,
             Sequence::of(),
-            $aggregate->collections()->map(
-                static fn($collection) => $collections
-                    ->find(static fn($toModify) => $toModify->name() === $collection->name())
-                    ->map(static fn($toModify) => $collection->entities()->merge(
-                        $toModify->entities(),
-                    ))
-                    ->match(
-                        static fn($entities) => Aggregate\Collection::of(
-                            $collection->name(),
-                            $entities,
-                        ),
-                        static fn() => $collection,
-                    ),
-            ),
+            match ($collections) {
+                null => $aggregate->collections(),
+                default => $collections($aggregate->collections()),
+            },
         );
     }
 
@@ -90,5 +87,82 @@ final class EncodeEffect
     public static function new(): self
     {
         return new self;
+    }
+
+    /**
+     * @psalm-pure
+     *
+     * @param Sequence<Aggregate\Collection\Entity> $entities
+     * @param Sequence<Aggregate\Collection> $collections
+     *
+     * @return Sequence<Aggregate\Collection>
+     */
+    private static function addChild(
+        string $collection,
+        Sequence $entities,
+        Sequence $collections,
+    ): Sequence {
+        return $collections->map(
+            static fn($existing) => match ($existing->name()) {
+                $collection => Aggregate\Collection::of(
+                    $collection,
+                    $existing->entities()->merge($entities->toSet()),
+                ),
+                default => $existing,
+            },
+        );
+    }
+
+    /**
+     * @psalm-pure
+     *
+     * @param Sequence<Aggregate\Collection> $collections
+     *
+     * @return Sequence<Aggregate\Collection>
+     */
+    private static function removeChild(
+        string $collection,
+        Specification\Property $comparator,
+        Sequence $collections,
+    ): Sequence {
+        return $collections->map(
+            static fn($existing) => match ($existing->name()) {
+                $collection => Aggregate\Collection::of(
+                    $collection,
+                    $existing->entities()->exclude(
+                        static fn($entity) => $entity
+                            ->properties()
+                            ->find(static fn($property) => $property->name() === $comparator->property())
+                            ->match(
+                                static fn($property) => self::matches($property, $comparator),
+                                static fn() => false,
+                            ),
+                    ),
+                ),
+                default => $existing,
+            },
+        );
+    }
+
+    /**
+     * @psalm-pure
+     */
+    private static function matches(
+        Aggregate\Property $property,
+        Specification\Property $specification,
+    ): bool {
+        /**
+         * @psalm-suppress InvalidArgument
+         * @psalm-suppress PossiblyInvalidArgument
+         */
+        return match ($specification->sign()) {
+            Sign::equality => $property->value() === $specification->value(),
+            Sign::lessThan => $property->value() < $specification->value(),
+            Sign::moreThan => $property->value() > $specification->value(),
+            Sign::startsWith => \is_string($property->value()) && \str_starts_with($property->value(), $specification->value()),
+            Sign::endsWith => \is_string($property->value()) && \str_ends_with($property->value(), $specification->value()),
+            Sign::contains => \is_string($property->value()) && \str_contains($property->value(), $specification->value()),
+            Sign::in => \in_array($property->value(), $specification->value(), true),
+        };
     }
 }

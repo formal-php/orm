@@ -297,6 +297,7 @@ final class MainTable
             fn($properties) => $this->effectProperties($properties, $specification),
             fn($entity, $properties) => $this->effectEntity($entity, $properties, $specification),
             fn($collection, $entities) => $this->effectAddChildren($collection, $entities, $specification),
+            fn($collection, $comparator) => $this->effectRemoveChildren($collection, $comparator, $specification),
         );
     }
 
@@ -555,10 +556,41 @@ final class MainTable
             ->collections
             ->get($collection)
             ->match(
-                static fn($table) => $table->effect(
+                static fn($table) => $table->effectAddChildren(
                     $entities,
                     $id,
                     $name,
+                    $select,
+                ),
+                static fn() => throw new \LogicException("Unknown collection {$collection}"),
+            );
+    }
+
+    /**
+     * @internal
+     *
+     * @param non-empty-string $collection
+     */
+    private function effectRemoveChildren(
+        string $collection,
+        Property $comparator,
+        ?Specification $specification,
+    ): Query {
+        $select = match ($specification) {
+            null => null,
+            default => $this
+                ->select($specification)
+                ->columns(
+                    Column\Name::of($this->definition->id()->property())->in($this->name),
+                ),
+        };
+
+        return $this
+            ->collections
+            ->get($collection)
+            ->match(
+                static fn($table) => $table->effectRemoveChildren(
+                    $comparator,
                     $select,
                 ),
                 static fn() => throw new \LogicException("Unknown collection {$collection}"),

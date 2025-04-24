@@ -6,7 +6,9 @@ namespace Formal\ORM\Effect\Provider;
 use Formal\ORM\{
     Effect,
     Effect\Child\Add,
+    Effect\Child\Remove,
 };
+use Innmind\Specification\Comparator;
 
 /**
  * @psalm-immutable
@@ -14,7 +16,7 @@ use Formal\ORM\{
 final class Child
 {
     /**
-     * @param pure-Closure(Add): Effect $build
+     * @param pure-Closure(Add|Remove): Effect $build
      * @param non-empty-string $property
      */
     private function __construct(
@@ -27,7 +29,7 @@ final class Child
      * @internal
      * @psalm-pure
      *
-     * @param pure-Closure(Add): Effect $build
+     * @param pure-Closure(Add|Remove): Effect $build
      * @param non-empty-string $property
      */
     public static function of(\Closure $build, string $property): self
@@ -40,6 +42,14 @@ final class Child
         return ($this->build)(Add::of(
             $this->property,
             $entity,
+        ));
+    }
+
+    public function remove(Comparator $specification): Effect
+    {
+        return ($this->build)(Remove::of(
+            $this->property,
+            $specification,
         ));
     }
 }

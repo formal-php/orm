@@ -66,7 +66,10 @@ final class Repository
         $this->id = $definition->id();
         $this->inTransaction = $inTransaction;
         $this->normalizeSpecification = NormalizeSpecification::of($definition, $context);
-        $this->normalizeEffect = NormalizeEffect::of($definition);
+        $this->normalizeEffect = NormalizeEffect::of(
+            $definition,
+            $this->normalizeSpecification,
+        );
         $this->loaded = Loaded::of($repositories, $definition);
         $this->normalize = Normalize::of($definition);
         $this->denormalize = Denormalize::of($definition);

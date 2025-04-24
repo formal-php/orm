@@ -11,6 +11,7 @@ use Formal\ORM\{
     Effect\Normalized,
     Raw\Aggregate\Collection\Entity as RawEntity,
 };
+use Innmind\Specification\Comparator;
 use Innmind\Immutable\Sequence;
 
 /**
@@ -19,7 +20,7 @@ use Innmind\Immutable\Sequence;
 final class Effect
 {
     private function __construct(
-        private Properties|Entity|Child\Add $effect,
+        private Properties|Entity|Child\Add|Child\Remove $effect,
     ) {
     }
 
@@ -68,11 +69,13 @@ final class Effect
      * @param callable(Property): Normalized\Property $property
      * @param callable(non-empty-string, Sequence<Property>): Sequence<Normalized\Property> $entity
      * @param callable(non-empty-string, Sequence<object>): Sequence<RawEntity> $addChild
+     * @param callable(non-empty-string, Comparator): Specification\Property $removeChild
      */
     public function normalize(
         callable $property,
         callable $entity,
         callable $addChild,
+        callable $removeChild,
     ): Normalized {
         if ($this->effect instanceof Properties) {
             return Normalized::properties(
@@ -91,12 +94,23 @@ final class Effect
             );
         }
 
-        /** @psalm-suppress ImpureFunctionCall */
-        return Normalized::addChildren(
-            $this->effect->property(),
-            $addChild(
+        if ($this->effect instanceof Child\Add) {
+            /** @psalm-suppress ImpureFunctionCall */
+            return Normalized::addChildren(
                 $this->effect->property(),
-                $this->effect->entities(),
+                $addChild(
+                    $this->effect->property(),
+                    $this->effect->entities(),
+                ),
+            );
+        }
+
+        /** @psalm-suppress ImpureFunctionCall */
+        return Normalized::removeChildren(
+            $this->effect->property(),
+            $removeChild(
+                $this->effect->property(),
+                $this->effect->specification(),
             ),
         );
     }
@@ -105,7 +119,7 @@ final class Effect
      * @psalm-pure
      */
     private static function build(
-        Properties|Entity|Child\Add $effect,
+        Properties|Entity|Child\Add|Child\Remove $effect,
     ): self {
         return new self($effect);
     }

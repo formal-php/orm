@@ -9,6 +9,7 @@ use Formal\ORM\{
     Effect\Normalized\Entity,
     Effect\Normalized\Child,
     Raw\Aggregate\Collection\Entity as RawEntity,
+    Specification,
 };
 use Innmind\Immutable\Sequence;
 
@@ -19,7 +20,7 @@ use Innmind\Immutable\Sequence;
 final class Normalized
 {
     private function __construct(
-        private Properties|Entity|Child\Add $effect,
+        private Properties|Entity|Child\Add|Child\Remove $effect,
     ) {
     }
 
@@ -65,11 +66,28 @@ final class Normalized
     }
 
     /**
+     * @internal
+     * @psalm-pure
+     *
+     * @param non-empty-string $collection
+     */
+    public static function removeChildren(
+        string $collection,
+        Specification\Property $specification,
+    ): self {
+        return new self(Child\Remove::of(
+            $collection,
+            $specification,
+        ));
+    }
+
+    /**
      * @template R
      *
      * @param callable(Sequence<Property>): R $properties
      * @param callable(non-empty-string, Sequence<Property>): R $entity
      * @param callable(non-empty-string, Sequence<RawEntity>): R $addChild
+     * @param callable(non-empty-string, Specification\Property): R $removeChild
      *
      * @return R
      */
@@ -77,6 +95,7 @@ final class Normalized
         callable $properties,
         callable $entity,
         callable $addChild,
+        callable $removeChild,
     ): mixed {
         if ($this->effect instanceof Properties) {
             /** @psalm-suppress ImpureFunctionCall */
@@ -91,10 +110,18 @@ final class Normalized
             );
         }
 
+        if ($this->effect instanceof Child\Add) {
+            /** @psalm-suppress ImpureFunctionCall */
+            return $addChild(
+                $this->effect->property(),
+                $this->effect->entities(),
+            );
+        }
+
         /** @psalm-suppress ImpureFunctionCall */
-        return $addChild(
+        return $removeChild(
             $this->effect->property(),
-            $this->effect->entities(),
+            $this->effect->specification(),
         );
     }
 }
