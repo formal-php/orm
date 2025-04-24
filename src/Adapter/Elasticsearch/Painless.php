@@ -150,19 +150,19 @@ final class Painless
         string $collection,
         Specification\Property $comparator,
     ): array {
+        $param = self::hash($collection);
         $condition = match ($comparator->sign()) {
-            Sign::equality => 'entity.%s == params.%s',
-            Sign::lessThan => 'entity.%s < params.%s',
-            Sign::moreThan => 'entity.%s > params.%s',
-            Sign::startsWith => 'entity.%s.startsWith(params.%s)',
-            Sign::endsWith => 'entity.%s.endsWith(params.%s)',
-            Sign::contains => 'entity.%s.contains(params.%s)',
-            Sign::in => 'params.%s.stream().anyMatch(v -> v == entity.%s)',
+            Sign::equality => "entity.%s == params.$param",
+            Sign::lessThan => "entity.%s < params.$param",
+            Sign::moreThan => "entity.%s > params.$param",
+            Sign::startsWith => "entity.%s.startsWith(params.$param)",
+            Sign::endsWith => "entity.%s.endsWith(params.$param)",
+            Sign::contains => "entity.%s.contains(params.$param)",
+            Sign::in => "params.$param.stream().anyMatch(v -> v == entity.%s)",
         };
         $comparison = \sprintf(
             $condition,
             $comparator->property(),
-            self::hash($collection),
         );
         $source = <<<SOURCE
         ctx._source.$collection = ctx

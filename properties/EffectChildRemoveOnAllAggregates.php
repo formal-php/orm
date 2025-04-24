@@ -27,7 +27,9 @@ final class EffectChildRemoveOnAllAggregates implements Property
 {
     private function __construct(
         private ?string $name,
-        private string $address,
+        private string $prefix,
+        private string $suffix,
+        private Sign $sign,
         private $createdAt,
     ) {
     }
@@ -43,6 +45,16 @@ final class EffectChildRemoveOnAllAggregates implements Property
             Set::strings()
                 ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->atLeast(10), // to limit collisions
+            Set::strings()
+                ->madeOf(Set::strings()->chars()->alphanumerical())
+                ->atLeast(10), // to limit collisions
+            Set::of(
+                Sign::equality,
+                Sign::startsWith,
+                Sign::endsWith,
+                Sign::contains,
+                Sign::in,
+            ),
             PointInTime::any(),
         );
     }
@@ -67,13 +79,14 @@ final class EffectChildRemoveOnAllAggregates implements Property
         );
         unset($user); // to make sure there is no in memory cache somewhere
 
+        $address = $this->prefix.$this->suffix;
         $manager->transactional(
-            fn() => Either::right(
+            static fn() => Either::right(
                 $manager
                     ->repository(User::class)
                     ->effect(
                         Effect::child('addresses')->add(
-                            User\Address::new($this->address),
+                            User\Address::new($address),
                         ),
                     ),
             ),
@@ -83,15 +96,23 @@ final class EffectChildRemoveOnAllAggregates implements Property
             ->repository(User::class)
             ->all()
             ->foreach(
-                fn($user) => $assert
+                static fn($user) => $assert
                     ->array(
                         $user
                             ->addresses()
                             ->map(static fn($address) => $address->toString())
                             ->toList(),
                     )
-                    ->contains($this->address),
+                    ->contains($address),
             );
+
+        $value = match ($this->sign) {
+            Sign::equality => $address,
+            Sign::startsWith => $this->prefix,
+            Sign::endsWith => $this->suffix,
+            Sign::contains => $this->suffix,
+            Sign::in => [$address],
+        };
 
         $manager->transactional(
             fn() => Either::right(
@@ -101,8 +122,8 @@ final class EffectChildRemoveOnAllAggregates implements Property
                         Effect::child('addresses')->remove(
                             Comparator\Property::of(
                                 'value',
-                                Sign::equality,
-                                $this->address,
+                                $this->sign,
+                                $value,
                             ),
                         ),
                     ),
@@ -113,7 +134,7 @@ final class EffectChildRemoveOnAllAggregates implements Property
             ->repository(User::class)
             ->all()
             ->foreach(
-                fn($user) => $assert
+                static fn($user) => $assert
                     ->array(
                         $user
                             ->addresses()
@@ -121,7 +142,7 @@ final class EffectChildRemoveOnAllAggregates implements Property
                             ->toList(),
                     )
                     ->not()
-                    ->contains($this->address),
+                    ->contains($address),
             );
 
         return $manager;
