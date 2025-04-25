@@ -296,6 +296,7 @@ final class MainTable
         return $effect->match(
             fn($properties) => $this->effectProperties($properties, $specification),
             fn($entity, $properties) => $this->effectEntity($entity, $properties, $specification),
+            fn($optional) => $this->effectOptionalNothing($optional, $specification),
             fn($collection, $entities) => $this->effectAddChildren($collection, $entities, $specification),
             fn($collection, $comparator) => $this->effectRemoveChildren($collection, $comparator, $specification),
         );
@@ -527,6 +528,33 @@ final class MainTable
             ->match(
                 static fn($table) => $table->effect($properties, $select),
                 static fn() => throw new \LogicException("Unkown entity $entity"),
+            );
+    }
+
+    /**
+     * @internal
+     *
+     * @param non-empty-string $optional
+     */
+    private function effectOptionalNothing(
+        string $optional,
+        ?Specification $specification,
+    ): Query {
+        $select = match ($specification) {
+            null => null,
+            default => $this
+                ->select($specification)
+                ->columns(
+                    Column\Name::of($this->definition->id()->property())->in($this->name),
+                ),
+        };
+
+        return $this
+            ->optionals
+            ->get($optional)
+            ->match(
+                static fn($table) => $table->effectNothing($select),
+                static fn() => throw new \LogicException("Unknown optional $optional"),
             );
     }
 

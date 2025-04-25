@@ -193,6 +193,20 @@ final class OptionalTable
         );
     }
 
+    public function effectNothing(?Select $select): Query
+    {
+        $delete = Delete::from($this->name);
+
+        if ($select) {
+            $delete = $delete->where(SubQuery::of(
+                $this->id->column()->toString(),
+                $select,
+            ));
+        }
+
+        return $delete;
+    }
+
     public function where(Specification $specification): Query
     {
         return Select::from($this->name)

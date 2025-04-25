@@ -10,7 +10,10 @@ use Formal\ORM\{
     Specification,
 };
 use Innmind\Specification\Sign;
-use Innmind\Immutable\Sequence;
+use Innmind\Immutable\{
+    Sequence,
+    Maybe,
+};
 
 /**
  * @internal
@@ -27,12 +30,13 @@ final class EncodeEffect
     public function __invoke(Effect\Normalized $effect): callable
     {
         /** @psalm-suppress MixedArgumentTypeCoercion */
-        [$properties, $entities, $collections] = $effect->match(
+        [$properties, $entities, $optionals, $collections] = $effect->match(
             static fn($properties) => [
                 $properties->map(static fn($effect) => Aggregate\Property::of(
                     $effect->property(),
                     $effect->value(),
                 )),
+                null,
                 null,
                 null,
             ],
@@ -46,8 +50,19 @@ final class EncodeEffect
                     )),
                 )),
                 null,
+                null,
+            ],
+            static fn($optional) => [
+                null,
+                null,
+                Sequence::of(Aggregate\Optional::of(
+                    $optional,
+                    Maybe::nothing(),
+                )),
+                null,
             ],
             static fn($collection, $entities) => [
+                null,
                 null,
                 null,
                 static fn(Sequence $collections) => self::addChild(
@@ -59,6 +74,7 @@ final class EncodeEffect
             static fn($collection, $comparator) => [
                 null,
                 null,
+                null,
                 static fn(Sequence $collections) => self::removeChild(
                     $collection,
                     $comparator,
@@ -68,12 +84,13 @@ final class EncodeEffect
         );
         $properties ??= Sequence::of();
         $entities ??= Sequence::of();
+        $optionals ??= Sequence::of();
 
         return static fn(Aggregate $aggregate) => Diff::of(
             $aggregate->id(),
             $properties,
             $entities,
-            Sequence::of(),
+            $optionals,
             match ($collections) {
                 null => $aggregate->collections(),
                 default => $collections($aggregate->collections()),

@@ -77,6 +77,7 @@ final class Properties
             EffectChildAddOnAggregate::class,
             EffectChildAddOnAllAggregates::class,
             EffectChildRemoveOnAllAggregates::class,
+            EffectOptionalNothingOnAllAggregates::class,
         ];
     }
 
@@ -150,6 +151,7 @@ final class Properties
             EffectChildAddOnAggregate::class,
             EffectChildAddOnAllAggregates::class,
             EffectChildRemoveOnAllAggregates::class,
+            EffectOptionalNothingOnAllAggregates::class,
         ];
     }
 }

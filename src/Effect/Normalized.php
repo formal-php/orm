@@ -7,6 +7,7 @@ use Formal\ORM\{
     Effect\Normalized\Properties,
     Effect\Normalized\Property,
     Effect\Normalized\Entity,
+    Effect\Normalized\Optional,
     Effect\Normalized\Child,
     Raw\Aggregate\Collection\Entity as RawEntity,
     Specification,
@@ -20,7 +21,7 @@ use Innmind\Immutable\Sequence;
 final class Normalized
 {
     private function __construct(
-        private Properties|Entity|Child\Add|Child\Remove $effect,
+        private Properties|Entity|Optional\Nothing|Child\Add|Child\Remove $effect,
     ) {
     }
 
@@ -47,6 +48,19 @@ final class Normalized
         return new self(Entity::of(
             $entity,
             Properties::of($effects),
+        ));
+    }
+
+    /**
+     * @internal
+     * @psalm-pure
+     *
+     * @param non-empty-string $optional
+     */
+    public static function optionalNothing(string $optional): self
+    {
+        return new self(Optional\Nothing::of(
+            $optional,
         ));
     }
 
@@ -86,6 +100,7 @@ final class Normalized
      *
      * @param callable(Sequence<Property>): R $properties
      * @param callable(non-empty-string, Sequence<Property>): R $entity
+     * @param callable(non-empty-string): R $optionalNothing
      * @param callable(non-empty-string, Sequence<RawEntity>): R $addChild
      * @param callable(non-empty-string, Specification\Property): R $removeChild
      *
@@ -94,6 +109,7 @@ final class Normalized
     public function match(
         callable $properties,
         callable $entity,
+        callable $optionalNothing,
         callable $addChild,
         callable $removeChild,
     ): mixed {
@@ -108,6 +124,11 @@ final class Normalized
                 $this->effect->property(),
                 $this->effect->effects(),
             );
+        }
+
+        if ($this->effect instanceof Optional\Nothing) {
+            /** @psalm-suppress ImpureFunctionCall */
+            return $optionalNothing($this->effect->property());
         }
 
         if ($this->effect instanceof Child\Add) {

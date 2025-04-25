@@ -29,6 +29,7 @@ final class Painless
         return $effect->match(
             $this->properties(...),
             $this->entities(...),
+            $this->optionalNothing(...),
             $this->addChildren(...),
             $this->removeChildren(...),
         );
@@ -100,6 +101,20 @@ final class Painless
 
                     return $params;
                 },
+            ),
+        ];
+    }
+
+    /**
+     * @param non-empty-string $optional
+     */
+    private function optionalNothing(string $optional): array
+    {
+        return [
+            'lang' => 'painless',
+            'source' => \sprintf(
+                'ctx._source.%s = null;',
+                $optional,
             ),
         ];
     }
