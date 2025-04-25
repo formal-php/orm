@@ -203,7 +203,7 @@ final class CollectionTable
         ?Select $select,
     ): Query {
         $insertSelect = Select::from($main)->columns(
-            $id->in($main)->as('aggregateId'),
+            $id->in($main)->as($this->id->column()->toString()),
             ...$entities
                 ->take(1) // todo change implementation when multi add is supported
                 ->flatMap(static fn($entity) => $entity->properties())
