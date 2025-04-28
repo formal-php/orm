@@ -60,3 +60,7 @@ It uses objects to represent:
 - an `or` composition of 2 specifications
 
 In essence this boolean logic represented via objects. With them you can create almost any filter. And it enforces the precedence of operations (thus no implicits).
+
+## Effect
+
+An `Effect` is the mechanism to update multiple aggregates directly at the `Adapter` level.
