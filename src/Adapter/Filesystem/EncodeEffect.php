@@ -52,6 +52,20 @@ final class EncodeEffect
                 null,
                 null,
             ],
+            static fn($optional, $properties) => [
+                null,
+                null,
+                Sequence::of(Aggregate\Optional::of(
+                    $optional,
+                    Maybe::just(
+                        $properties->map(static fn($effect) => Aggregate\Property::of(
+                            $effect->property(),
+                            $effect->value(),
+                        )),
+                    ),
+                )),
+                null,
+            ],
             static fn($optional) => [
                 null,
                 null,

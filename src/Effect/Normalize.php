@@ -104,6 +104,7 @@ final class Normalize
         return $effect->normalize(
             $this->normalizeProperty(...),
             $this->normalizeEntity(...),
+            $this->normalizeOptional(...),
             $this->normalizeChildAdd(...),
             $this->normalizeChildRemove(...),
         );
@@ -180,6 +181,42 @@ final class Normalize
             ->match(
                 static fn($effect) => $effect,
                 static fn() => throw new \LogicException("Unknown property '$entity'"),
+            );
+    }
+
+    /**
+     * @param non-empty-string $optional
+     * @param Sequence<Property> $properties
+     *
+     * @return Sequence<Normalized\Property>
+     */
+    private function normalizeOptional(
+        string $optional,
+        Sequence $properties,
+    ): Sequence {
+        return $this
+            ->optionals
+            ->get($optional)
+            ->map(static fn($optional) => $properties->map(
+                static fn($effect) => $optional
+                    ->get($effect->property())
+                    ->map(
+                        static fn($property) => $property
+                            ->type()
+                            ->normalize($effect->value()),
+                    )
+                    ->map(static fn($value) => Normalized\Property::assign(
+                        $effect->property(),
+                        $value,
+                    ))
+                    ->match(
+                        static fn($effect) => $effect,
+                        static fn() => throw new \LogicException("Unknown property '{$effect->property()}'"),
+                    ),
+            ))
+            ->match(
+                static fn($effect) => $effect,
+                static fn() => throw new \LogicException("Unknown property '$optional'"),
             );
     }
 

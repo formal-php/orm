@@ -21,7 +21,7 @@ use Innmind\Immutable\Sequence;
 final class Normalized
 {
     private function __construct(
-        private Properties|Entity|Optional\Nothing|Child\Add|Child\Remove $effect,
+        private Properties|Entity|Optional|Optional\Nothing|Child\Add|Child\Remove $effect,
     ) {
     }
 
@@ -47,6 +47,21 @@ final class Normalized
     {
         return new self(Entity::of(
             $entity,
+            Properties::of($effects),
+        ));
+    }
+
+    /**
+     * @internal
+     * @psalm-pure
+     *
+     * @param non-empty-string $optional
+     * @param Sequence<Property> $effects
+     */
+    public static function optional(string $optional, Sequence $effects): self
+    {
+        return new self(Optional::of(
+            $optional,
             Properties::of($effects),
         ));
     }
@@ -100,6 +115,7 @@ final class Normalized
      *
      * @param callable(Sequence<Property>): R $properties
      * @param callable(non-empty-string, Sequence<Property>): R $entity
+     * @param callable(non-empty-string, Sequence<Property>): R $optional
      * @param callable(non-empty-string): R $optionalNothing
      * @param callable(non-empty-string, Sequence<RawEntity>): R $addChild
      * @param callable(non-empty-string, Specification\Property): R $removeChild
@@ -109,6 +125,7 @@ final class Normalized
     public function match(
         callable $properties,
         callable $entity,
+        callable $optional,
         callable $optionalNothing,
         callable $addChild,
         callable $removeChild,
@@ -121,6 +138,14 @@ final class Normalized
         if ($this->effect instanceof Entity) {
             /** @psalm-suppress ImpureFunctionCall */
             return $entity(
+                $this->effect->property(),
+                $this->effect->effects(),
+            );
+        }
+
+        if ($this->effect instanceof Optional) {
+            /** @psalm-suppress ImpureFunctionCall */
+            return $optional(
                 $this->effect->property(),
                 $this->effect->effects(),
             );

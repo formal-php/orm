@@ -21,7 +21,7 @@ use Innmind\Immutable\Sequence;
 final class Effect
 {
     private function __construct(
-        private Properties|Entity|Optional\Nothing|Child\Add|Child\Remove $effect,
+        private Properties|Entity|Optional|Optional\Nothing|Child\Add|Child\Remove $effect,
     ) {
     }
 
@@ -82,12 +82,14 @@ final class Effect
      *
      * @param callable(Property): Normalized\Property $property
      * @param callable(non-empty-string, Sequence<Property>): Sequence<Normalized\Property> $entity
+     * @param callable(non-empty-string, Sequence<Property>): Sequence<Normalized\Property> $optional
      * @param callable(non-empty-string, Sequence<object>): Sequence<RawEntity> $addChild
      * @param callable(non-empty-string, Comparator): Specification\Property $removeChild
      */
     public function normalize(
         callable $property,
         callable $entity,
+        callable $optional,
         callable $addChild,
         callable $removeChild,
     ): Normalized {
@@ -102,6 +104,17 @@ final class Effect
             return Normalized::entity(
                 $this->effect->property(),
                 $entity(
+                    $this->effect->property(),
+                    $this->effect->effects(),
+                ),
+            );
+        }
+
+        if ($this->effect instanceof Optional) {
+            /** @psalm-suppress ImpureFunctionCall */
+            return Normalized::optional(
+                $this->effect->property(),
+                $optional(
                     $this->effect->property(),
                     $this->effect->effects(),
                 ),
@@ -140,7 +153,7 @@ final class Effect
      * @psalm-pure
      */
     private static function build(
-        Properties|Entity|Optional\Nothing|Child\Add|Child\Remove $effect,
+        Properties|Entity|Optional|Optional\Nothing|Child\Add|Child\Remove $effect,
     ): self {
         return new self($effect);
     }

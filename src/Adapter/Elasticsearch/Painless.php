@@ -29,6 +29,7 @@ final class Painless
         return $effect->match(
             $this->properties(...),
             $this->entities(...),
+            $this->optional(...),
             $this->optionalNothing(...),
             $this->addChildren(...),
             $this->removeChildren(...),
@@ -93,6 +94,46 @@ final class Painless
         return [
             'lang' => 'painless',
             'source' => $source->map(Str::of(...))->fold(new Concat)->toString(),
+            'params' => $params->reduce(
+                [],
+                static function(array $params, $param) {
+                    /** @psalm-suppress MixedAssignment */
+                    $params[$param[0]] = $param[1];
+
+                    return $params;
+                },
+            ),
+        ];
+    }
+
+    /**
+     * @param non-empty-string $optional
+     * @param Sequence<Effect\Normalized\Property> $effects
+     */
+    private function optional(string $optional, Sequence $effects): array
+    {
+        $params = $effects->map(static fn($effect) => [
+            self::hash($optional.$effect->property()),
+            $effect->value(),
+        ]);
+        $source = $effects->map(static fn($effect) => \sprintf(
+            'ctx._source.%s.%s = params.%s;',
+            $optional,
+            $effect->property(),
+            self::hash($optional.$effect->property()),
+        ));
+
+        return [
+            'lang' => 'painless',
+            'source' => $source
+                ->prepend(Sequence::of(
+                    \sprintf('if (ctx._source.%s == null) {', $optional),
+                    '    return;',
+                    '}',
+                ))
+                ->map(Str::of(...))
+                ->fold(new Concat)
+                ->toString(),
             'params' => $params->reduce(
                 [],
                 static function(array $params, $param) {

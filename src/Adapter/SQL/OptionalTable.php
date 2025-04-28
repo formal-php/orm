@@ -8,6 +8,7 @@ use Formal\ORM\{
     Raw\Aggregate\Id,
     Raw\Aggregate\Property,
     Raw\Aggregate\Optional,
+    Effect,
     Specification\Property as PropertySpecification,
 };
 use Formal\AccessLayer\{
@@ -191,6 +192,35 @@ final class OptionalTable
                 )),
             ),
         );
+    }
+
+    /**
+     * @param Sequence<Effect\Normalized\Property> $properties
+     */
+    public function effectProperties(
+        Sequence $properties,
+        ?Select $select,
+    ): Query {
+        $update = Update::set(
+            $this->name,
+            Row::new(
+                ...$properties
+                    ->map(static fn($effect) => Row\Value::of(
+                        Column\Name::of($effect->property()),
+                        $effect->value(),
+                    ))
+                    ->toList(),
+            ),
+        );
+
+        if ($select) {
+            $update = $update->where(SubQuery::of(
+                $this->id->column()->toString(),
+                $select,
+            ));
+        }
+
+        return $update;
     }
 
     public function effectNothing(?Select $select): Query
