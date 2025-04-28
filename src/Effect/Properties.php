@@ -6,6 +6,7 @@ namespace Formal\ORM\Effect;
 use Innmind\Immutable\Sequence;
 
 /**
+ * @internal
  * @psalm-immutable
  */
 final class Properties
@@ -19,6 +20,7 @@ final class Properties
     }
 
     /**
+     * @internal
      * @psalm-pure
      */
     public static function of(Property $effect): self

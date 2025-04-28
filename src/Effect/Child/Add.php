@@ -6,6 +6,7 @@ namespace Formal\ORM\Effect\Child;
 use Innmind\Immutable\Sequence;
 
 /**
+ * @internal
  * @psalm-immutable
  */
 final class Add
@@ -21,7 +22,9 @@ final class Add
     }
 
     /**
+     * @internal
      * @psalm-pure
+     *
      * @param non-empty-string $property
      */
     public static function of(string $property, object $entity): self

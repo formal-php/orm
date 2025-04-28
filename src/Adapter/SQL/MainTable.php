@@ -504,8 +504,6 @@ final class MainTable
     }
 
     /**
-     * @internal
-     *
      * @param non-empty-string $entity
      * @param Sequence<Effect\Normalized\Property> $properties
      */
@@ -560,8 +558,6 @@ final class MainTable
     }
 
     /**
-     * @internal
-     *
      * @param non-empty-string $optional
      */
     private function effectOptionalNothing(
@@ -587,8 +583,6 @@ final class MainTable
     }
 
     /**
-     * @internal
-     *
      * @param non-empty-string $collection
      * @param Sequence<Aggregate\Collection\Entity> $entities
      */
@@ -623,8 +617,6 @@ final class MainTable
     }
 
     /**
-     * @internal
-     *
      * @param non-empty-string $collection
      */
     private function effectRemoveChildren(
@@ -654,8 +646,6 @@ final class MainTable
     }
 
     /**
-     * @internal
-     *
      * @param Sequence<Effect\Normalized\Property> $properties
      */
     private function effectProperties(

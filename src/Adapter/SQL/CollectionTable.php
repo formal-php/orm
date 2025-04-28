@@ -194,6 +194,8 @@ final class CollectionTable
     }
 
     /**
+     * @internal
+     *
      * @param Sequence<Entity> $entities
      */
     public function effectAddChildren(
@@ -224,6 +226,9 @@ final class CollectionTable
         return Query\Insert::into($this->name->name(), $insertSelect);
     }
 
+    /**
+     * @internal
+     */
     public function effectRemoveChildren(
         PropertySpecification $comparator,
         ?Select $select,

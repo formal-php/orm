@@ -6,6 +6,7 @@ namespace Formal\ORM\Effect;
 use Innmind\Immutable\Sequence;
 
 /**
+ * @internal
  * @psalm-immutable
  */
 final class Optional
@@ -20,6 +21,7 @@ final class Optional
     }
 
     /**
+     * @internal
      * @psalm-pure
      *
      * @param non-empty-string $property

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace Formal\ORM\Effect;
 
 /**
+ * @internal
  * @psalm-immutable
  */
 final class Property
@@ -18,6 +19,7 @@ final class Property
     }
 
     /**
+     * @internal
      * @psalm-pure
      *
      * @param non-empty-string $property

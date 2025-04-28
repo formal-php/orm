@@ -6,6 +6,7 @@ namespace Formal\ORM\Effect\Child;
 use Innmind\Specification\Comparator;
 
 /**
+ * @internal
  * @psalm-immutable
  */
 final class Remove
@@ -20,7 +21,9 @@ final class Remove
     }
 
     /**
+     * @internal
      * @psalm-pure
+     *
      * @param non-empty-string $property
      */
     public static function of(string $property, Comparator $specification): self

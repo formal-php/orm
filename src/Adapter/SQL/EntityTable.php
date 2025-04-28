@@ -162,6 +162,8 @@ final class EntityTable
     }
 
     /**
+     * @internal
+     *
      * @param Sequence<Effect\Normalized\Property> $properties
      */
     public function effect(

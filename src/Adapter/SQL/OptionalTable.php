@@ -195,6 +195,8 @@ final class OptionalTable
     }
 
     /**
+     * @internal
+     *
      * @param Sequence<Effect\Normalized\Property> $properties
      */
     public function effectProperties(
@@ -223,6 +225,9 @@ final class OptionalTable
         return $update;
     }
 
+    /**
+     * @internal
+     */
     public function effectNothing(?Select $select): Query
     {
         $delete = Delete::from($this->name);
