@@ -69,18 +69,6 @@ final class Normalize
                 )
                 ->toList(),
         );
-        $extract = new Extract;
-        $this->collections = Map::of(
-            ...$definition
-                ->collections()
-                ->map(
-                    static fn($collection) => [
-                        $collection->name(),
-                        Collection::of($collection, $extract),
-                    ],
-                )
-                ->toList(),
-        );
         $this->optionals = Map::of(
             ...$definition
                 ->optionals()
@@ -93,6 +81,18 @@ final class Normalize
                                 ->map(static fn($property) => [$property->name(), $property])
                                 ->toList(),
                         ),
+                    ],
+                )
+                ->toList(),
+        );
+        $extract = new Extract;
+        $this->collections = Map::of(
+            ...$definition
+                ->collections()
+                ->map(
+                    static fn($collection) => [
+                        $collection->name(),
+                        Collection::of($collection, $extract),
                     ],
                 )
                 ->toList(),
