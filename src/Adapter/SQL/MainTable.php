@@ -395,7 +395,7 @@ final class MainTable
                     ->collection($specification->collection())
                     ->match(
                         static fn($collection) => $collection->where($specification->specification()),
-                        static fn() => throw new \LogicException("Unkown collection '{$specification->collection()}'"),
+                        static fn() => throw new \LogicException("Unknown collection '{$specification->collection()}'"),
                     ),
             );
         }
@@ -407,7 +407,7 @@ final class MainTable
                     ->optional($specification->optional())
                     ->match(
                         static fn($optional) => $optional->where($specification->specification()),
-                        static fn() => throw new \LogicException("Unkown optional '{$specification->optional()}'"),
+                        static fn() => throw new \LogicException("Unknown optional '{$specification->optional()}'"),
                     ),
             );
         }
@@ -419,7 +419,7 @@ final class MainTable
                     ->optional($specification->optional())
                     ->match(
                         static fn($optional) => $optional->whereAny(),
-                        static fn() => throw new \LogicException("Unkown optional '{$specification->optional()}'"),
+                        static fn() => throw new \LogicException("Unknown optional '{$specification->optional()}'"),
                     ),
             );
         }
@@ -526,7 +526,7 @@ final class MainTable
             ->get($entity)
             ->match(
                 static fn($table) => $table->effect($properties, $select),
-                static fn() => throw new \LogicException("Unkown entity $entity"),
+                static fn() => throw new \LogicException("Unknown entity $entity"),
             );
     }
 
@@ -553,7 +553,7 @@ final class MainTable
             ->get($optional)
             ->match(
                 static fn($table) => $table->effectProperties($properties, $select),
-                static fn() => throw new \LogicException("Unkown optional $optional"),
+                static fn() => throw new \LogicException("Unknown optional $optional"),
             );
     }
 
