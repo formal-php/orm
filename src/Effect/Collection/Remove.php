@@ -1,9 +1,9 @@
 <?php
 declare(strict_types = 1);
 
-namespace Formal\ORM\Effect\Normalized\Child;
+namespace Formal\ORM\Effect\Collection;
 
-use Formal\ORM\Specification\Property;
+use Innmind\Specification\Comparator;
 
 /**
  * @internal
@@ -16,7 +16,7 @@ final class Remove
      */
     private function __construct(
         private string $property,
-        private Property $specification,
+        private Comparator $specification,
     ) {
     }
 
@@ -26,7 +26,7 @@ final class Remove
      *
      * @param non-empty-string $property
      */
-    public static function of(string $property, Property $specification): self
+    public static function of(string $property, Comparator $specification): self
     {
         return new self($property, $specification);
     }
@@ -39,7 +39,7 @@ final class Remove
         return $this->property;
     }
 
-    public function specification(): Property
+    public function specification(): Comparator
     {
         return $this->specification;
     }

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Formal\ORM\Effect\Child;
+namespace Formal\ORM\Effect\Collection;
 
 use Innmind\Immutable\Sequence;
 

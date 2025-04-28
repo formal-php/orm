@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Formal\ORM\Effect\Normalized\Child;
+namespace Formal\ORM\Effect\Normalized\Collection;
 
 use Formal\ORM\Raw\Aggregate\Collection\Entity;
 use Innmind\Immutable\Sequence;

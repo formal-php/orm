@@ -77,7 +77,7 @@ final class EffectChildAddOnAggregate implements Property
                 $manager
                     ->repository(User::class)
                     ->effect(
-                        Effect::child('addresses')->add(
+                        Effect::collection('addresses')->add(
                             User\Address::new($this->address),
                         ),
                         $specification,

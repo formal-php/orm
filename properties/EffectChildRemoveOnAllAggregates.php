@@ -82,7 +82,7 @@ final class EffectChildRemoveOnAllAggregates implements Property
                 $manager
                     ->repository(User::class)
                     ->effect(
-                        Effect::child('addresses')->add(
+                        Effect::collection('addresses')->add(
                             User\Address::new($address),
                         ),
                     ),
@@ -116,7 +116,7 @@ final class EffectChildRemoveOnAllAggregates implements Property
                 $manager
                     ->repository(User::class)
                     ->effect(
-                        Effect::child('addresses')->remove(
+                        Effect::collection('addresses')->remove(
                             Comparator\Property::of(
                                 'value',
                                 $this->sign,

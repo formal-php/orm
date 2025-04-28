@@ -5,15 +5,15 @@ namespace Formal\ORM\Effect\Provider;
 
 use Formal\ORM\{
     Effect,
-    Effect\Child\Add,
-    Effect\Child\Remove,
+    Effect\Collection\Add,
+    Effect\Collection\Remove,
 };
 use Innmind\Specification\Comparator;
 
 /**
  * @psalm-immutable
  */
-final class Child
+final class Collection
 {
     /**
      * @param pure-Closure(Add|Remove): Effect $build

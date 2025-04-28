@@ -8,7 +8,7 @@ use Formal\ORM\{
     Effect\Normalized\Property,
     Effect\Normalized\Entity,
     Effect\Normalized\Optional,
-    Effect\Normalized\Child,
+    Effect\Normalized\Collection,
     Raw\Aggregate\Collection\Entity as RawEntity,
     Specification,
 };
@@ -21,7 +21,7 @@ use Innmind\Immutable\Sequence;
 final class Normalized
 {
     private function __construct(
-        private Properties|Entity|Optional|Optional\Nothing|Child\Add|Child\Remove $effect,
+        private Properties|Entity|Optional|Optional\Nothing|Collection\Add|Collection\Remove $effect,
     ) {
     }
 
@@ -88,7 +88,7 @@ final class Normalized
      */
     public static function addChildren(string $collection, Sequence $effects): self
     {
-        return new self(Child\Add::of(
+        return new self(Collection\Add::of(
             $collection,
             $effects,
         ));
@@ -104,7 +104,7 @@ final class Normalized
         string $collection,
         Specification\Property $specification,
     ): self {
-        return new self(Child\Remove::of(
+        return new self(Collection\Remove::of(
             $collection,
             $specification,
         ));
@@ -156,7 +156,7 @@ final class Normalized
             return $optionalNothing($this->effect->property());
         }
 
-        if ($this->effect instanceof Child\Add) {
+        if ($this->effect instanceof Collection\Add) {
             /** @psalm-suppress ImpureFunctionCall */
             return $addChild(
                 $this->effect->property(),

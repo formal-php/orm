@@ -4,7 +4,7 @@ declare(strict_types = 1);
 namespace Formal\ORM;
 
 use Formal\ORM\{
-    Effect\Child,
+    Effect\Collection,
     Effect\Entity,
     Effect\Optional,
     Effect\Property,
@@ -21,7 +21,7 @@ use Innmind\Immutable\Sequence;
 final class Effect
 {
     private function __construct(
-        private Properties|Entity|Optional|Optional\Nothing|Child\Add|Child\Remove $effect,
+        private Properties|Entity|Optional|Optional\Nothing|Collection\Add|Collection\Remove $effect,
     ) {
     }
 
@@ -69,9 +69,9 @@ final class Effect
      *
      * @param non-empty-string $property
      */
-    public static function child(string $property): Effect\Provider\Child
+    public static function collection(string $property): Effect\Provider\Collection
     {
-        return Effect\Provider\Child::of(
+        return Effect\Provider\Collection::of(
             self::build(...),
             $property,
         );
@@ -128,7 +128,7 @@ final class Effect
             );
         }
 
-        if ($this->effect instanceof Child\Add) {
+        if ($this->effect instanceof Collection\Add) {
             /** @psalm-suppress ImpureFunctionCall */
             return Normalized::addChildren(
                 $this->effect->property(),
@@ -153,7 +153,7 @@ final class Effect
      * @psalm-pure
      */
     private static function build(
-        Properties|Entity|Optional|Optional\Nothing|Child\Add|Child\Remove $effect,
+        Properties|Entity|Optional|Optional\Nothing|Collection\Add|Collection\Remove $effect,
     ): self {
         return new self($effect);
     }
