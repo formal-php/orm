@@ -67,6 +67,9 @@ You can define the following effects:
     );
     ```
 
+    ??? warning
+        Since the object is added directly at the adapter level, there's not check on the object unicity as would be done when added in a `Set`.
+
 === "Remove entities from a collection"
     ```php
     use Formal\ORM\Effect;

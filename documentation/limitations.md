@@ -28,4 +28,6 @@ This is due to a current limitation of the SQL adapter.
 
 To apply multiple effects would require to execute multiple queries. But the aggregates matched by the specification could change between each query in the case an effect change a value being matched by the specification.
 
+For the same reason it's not possible to overwrite a whole optional entity. In SQL it would require to execute a delete before an insert, but the matched aggregates could also change between the queries.
+
 To lift this limitation requires a significant change of the SQL adapter.
