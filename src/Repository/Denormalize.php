@@ -82,7 +82,7 @@ final class Denormalize
      *
      * @return callable(Aggregate): Denormalized<T>
      */
-    public function __invoke(Id $id = null): callable
+    public function __invoke(?Id $id = null): callable
     {
         $denormalize = match ($id) {
             null => $this->denormalizeId,

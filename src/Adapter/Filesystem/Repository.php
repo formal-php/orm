@@ -5,10 +5,12 @@ namespace Formal\ORM\Adapter\Filesystem;
 
 use Formal\ORM\{
     Adapter\Repository as RepositoryInterface,
+    Adapter\Repository\Effectful,
     Definition\Aggregate as Definition,
     Raw\Aggregate,
     Raw\Diff,
     Sort,
+    Effect,
 };
 use Innmind\Filesystem\{
     Name,
@@ -26,7 +28,7 @@ use Innmind\Immutable\{
  * @template T of object
  * @implements RepositoryInterface<T>
  */
-final class Repository implements RepositoryInterface
+final class Repository implements RepositoryInterface, Effectful
 {
     private Transaction $transaction;
     /** @var Definition<T> */
@@ -36,6 +38,7 @@ final class Repository implements RepositoryInterface
     private Encode $encode;
     /** @var Decode<T> */
     private Decode $decode;
+    private EncodeEffect $encodeEffect;
 
     /**
      * @param Definition<T> $definition
@@ -47,6 +50,7 @@ final class Repository implements RepositoryInterface
         $this->fold = Fold::of($definition);
         $this->encode = Encode::new();
         $this->decode = Decode::of($definition);
+        $this->encodeEffect = EncodeEffect::new();
     }
 
     /**
@@ -62,6 +66,7 @@ final class Repository implements RepositoryInterface
         return new self($transaction, $definition);
     }
 
+    #[\Override]
     public function get(Aggregate\Id $id): Maybe
     {
         return $this
@@ -71,6 +76,7 @@ final class Repository implements RepositoryInterface
             ->flatMap(($this->decode)($id));
     }
 
+    #[\Override]
     public function contains(Aggregate\Id $id): bool
     {
         return $this
@@ -78,6 +84,7 @@ final class Repository implements RepositoryInterface
             ->contains(Name::of($id->value()));
     }
 
+    #[\Override]
     public function add(Aggregate $data): void
     {
         $encoded = Directory::named($this->definition->name())->add(
@@ -89,6 +96,7 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
     public function update(Diff $data): void
     {
         $encoded = Directory::named($this->definition->name())->add(
@@ -100,6 +108,25 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
+    public function effect(
+        Effect\Normalized $effect,
+        ?Specification $specification,
+    ): void {
+        $effect = ($this->encodeEffect)($effect);
+
+        $this
+            ->fetch(
+                $specification,
+                null,
+                null,
+                null,
+            )
+            ->map($effect)
+            ->foreach($this->update(...));
+    }
+
+    #[\Override]
     public function remove(Aggregate\Id $id): void
     {
         $mutated = Directory::named($this->definition->name())->remove(
@@ -111,6 +138,7 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
     public function removeAll(Specification $specification): void
     {
         $this
@@ -124,6 +152,7 @@ final class Repository implements RepositoryInterface
             ->foreach($this->remove(...));
     }
 
+    #[\Override]
     public function fetch(
         ?Specification $specification,
         null|Sort\Property|Sort\Entity $sort,
@@ -182,14 +211,16 @@ final class Repository implements RepositoryInterface
         return $aggregates;
     }
 
-    public function size(Specification $specification = null): int
+    #[\Override]
+    public function size(?Specification $specification = null): int
     {
         return $this
             ->fetch($specification, null, null, null)
             ->size();
     }
 
-    public function any(Specification $specification = null): bool
+    #[\Override]
+    public function any(?Specification $specification = null): bool
     {
         return $this
             ->fetch($specification, null, null, 1)

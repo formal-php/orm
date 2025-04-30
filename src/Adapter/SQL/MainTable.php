@@ -14,6 +14,7 @@ use Formal\ORM\{
     Specification\Just,
     Specification\Has,
     Specification\CrossMatch,
+    Effect,
 };
 use Formal\AccessLayer\{
     Table,
@@ -183,7 +184,7 @@ final class MainTable
     /**
      * @internal
      */
-    public function select(Specification $specification = null): Select
+    public function select(?Specification $specification = null): Select
     {
         return match ($specification) {
             null => $this->select,
@@ -194,7 +195,7 @@ final class MainTable
     /**
      * @internal
      */
-    public function search(Specification $specification = null): Select
+    public function search(?Specification $specification = null): Select
     {
         $select = $this
             ->select
@@ -220,7 +221,7 @@ final class MainTable
     /**
      * @internal
      */
-    public function count(Specification $specification = null): Select
+    public function count(?Specification $specification = null): Select
     {
         return match ($specification) {
             null => $this->count,
@@ -288,7 +289,24 @@ final class MainTable
     /**
      * @internal
      */
-    public function delete(Specification $specification = null): Delete
+    public function effect(
+        Effect\Normalized $effect,
+        ?Specification $specification,
+    ): Query {
+        return $effect->match(
+            fn($properties) => $this->effectProperties($properties, $specification),
+            fn($entity, $properties) => $this->effectEntity($entity, $properties, $specification),
+            fn($optional, $properties) => $this->effectOptionalProperties($optional, $properties, $specification),
+            fn($optional) => $this->effectOptionalNothing($optional, $specification),
+            fn($collection, $entities) => $this->effectAddChildren($collection, $entities, $specification),
+            fn($collection, $comparator) => $this->effectRemoveChildren($collection, $comparator, $specification),
+        );
+    }
+
+    /**
+     * @internal
+     */
+    public function delete(?Specification $specification = null): Delete
     {
         return match ($specification) {
             null => $this->delete,
@@ -377,7 +395,7 @@ final class MainTable
                     ->collection($specification->collection())
                     ->match(
                         static fn($collection) => $collection->where($specification->specification()),
-                        static fn() => throw new \LogicException("Unkown collection '{$specification->collection()}'"),
+                        static fn() => throw new \LogicException("Unknown collection '{$specification->collection()}'"),
                     ),
             );
         }
@@ -389,7 +407,7 @@ final class MainTable
                     ->optional($specification->optional())
                     ->match(
                         static fn($optional) => $optional->where($specification->specification()),
-                        static fn() => throw new \LogicException("Unkown optional '{$specification->optional()}'"),
+                        static fn() => throw new \LogicException("Unknown optional '{$specification->optional()}'"),
                     ),
             );
         }
@@ -401,7 +419,7 @@ final class MainTable
                     ->optional($specification->optional())
                     ->match(
                         static fn($optional) => $optional->whereAny(),
-                        static fn() => throw new \LogicException("Unkown optional '{$specification->optional()}'"),
+                        static fn() => throw new \LogicException("Unknown optional '{$specification->optional()}'"),
                     ),
             );
         }
@@ -483,5 +501,172 @@ final class MainTable
             $underlying->sign(),
             $underlying->value(),
         );
+    }
+
+    /**
+     * @param non-empty-string $entity
+     * @param Sequence<Effect\Normalized\Property> $properties
+     */
+    private function effectEntity(
+        string $entity,
+        Sequence $properties,
+        ?Specification $specification,
+    ): Query {
+        $select = match ($specification) {
+            null => null,
+            default => $this
+                ->select($specification)
+                ->columns(
+                    Column\Name::of($this->definition->id()->property())->in($this->name),
+                ),
+        };
+
+        return $this
+            ->entities
+            ->get($entity)
+            ->match(
+                static fn($table) => $table->effect($properties, $select),
+                static fn() => throw new \LogicException("Unknown entity $entity"),
+            );
+    }
+
+    /**
+     * @param non-empty-string $optional
+     * @param Sequence<Effect\Normalized\Property> $properties
+     */
+    private function effectOptionalProperties(
+        string $optional,
+        Sequence $properties,
+        ?Specification $specification,
+    ): Query {
+        $select = match ($specification) {
+            null => null,
+            default => $this
+                ->select($specification)
+                ->columns(
+                    Column\Name::of($this->definition->id()->property())->in($this->name),
+                ),
+        };
+
+        return $this
+            ->optionals
+            ->get($optional)
+            ->match(
+                static fn($table) => $table->effectProperties($properties, $select),
+                static fn() => throw new \LogicException("Unknown optional $optional"),
+            );
+    }
+
+    /**
+     * @param non-empty-string $optional
+     */
+    private function effectOptionalNothing(
+        string $optional,
+        ?Specification $specification,
+    ): Query {
+        $select = match ($specification) {
+            null => null,
+            default => $this
+                ->select($specification)
+                ->columns(
+                    Column\Name::of($this->definition->id()->property())->in($this->name),
+                ),
+        };
+
+        return $this
+            ->optionals
+            ->get($optional)
+            ->match(
+                static fn($table) => $table->effectNothing($select),
+                static fn() => throw new \LogicException("Unknown optional $optional"),
+            );
+    }
+
+    /**
+     * @param non-empty-string $collection
+     * @param Sequence<Aggregate\Collection\Entity> $entities
+     */
+    private function effectAddChildren(
+        string $collection,
+        Sequence $entities,
+        ?Specification $specification,
+    ): Query {
+        $select = match ($specification) {
+            null => null,
+            default => $this
+                ->select($specification)
+                ->columns(
+                    Column\Name::of($this->definition->id()->property())->in($this->name),
+                ),
+        };
+        $id = Column\Name::of($this->definition->id()->property());
+        $name = $this->name;
+
+        return $this
+            ->collections
+            ->get($collection)
+            ->match(
+                static fn($table) => $table->effectAddChildren(
+                    $entities,
+                    $id,
+                    $name,
+                    $select,
+                ),
+                static fn() => throw new \LogicException("Unknown collection {$collection}"),
+            );
+    }
+
+    /**
+     * @param non-empty-string $collection
+     */
+    private function effectRemoveChildren(
+        string $collection,
+        Property $comparator,
+        ?Specification $specification,
+    ): Query {
+        $select = match ($specification) {
+            null => null,
+            default => $this
+                ->select($specification)
+                ->columns(
+                    Column\Name::of($this->definition->id()->property())->in($this->name),
+                ),
+        };
+
+        return $this
+            ->collections
+            ->get($collection)
+            ->match(
+                static fn($table) => $table->effectRemoveChildren(
+                    $comparator,
+                    $select,
+                ),
+                static fn() => throw new \LogicException("Unknown collection {$collection}"),
+            );
+    }
+
+    /**
+     * @param Sequence<Effect\Normalized\Property> $properties
+     */
+    private function effectProperties(
+        Sequence $properties,
+        ?Specification $specification,
+    ): Query {
+        $update = Update::set(
+            $this->name,
+            Row::new(
+                ...$properties
+                    ->map(static fn($effect) => Row\Value::of(
+                        Column\Name::of($effect->property()),
+                        $effect->value(),
+                    ))
+                    ->toList(),
+            ),
+        );
+
+        return match ($specification) {
+            null => $update,
+            default => $update->where($this->where($specification)),
+        };
     }
 }

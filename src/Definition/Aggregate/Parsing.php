@@ -226,9 +226,16 @@ final class Parsing
                 $property->type()->type(),
                 $property
                     ->attributes()
-                    ->find(static fn($attribute) => $attribute->class() === Contains::class)
+                    ->find(static fn($attribute) => match ($attribute->class()) {
+                        Contains::class, Contains\Primitive::class => true,
+                        default => false,
+                    })
                     ->map(static fn($attribute) => $attribute->instance())
-                    ->keep(Instance::of(Contains::class))
+                    ->keep(
+                        Instance::of(Contains::class)->or(
+                            Instance::of(Contains\Primitive::class),
+                        ),
+                    )
                     ->match(
                         static fn($contains) => $contains,
                         static fn() => null,

@@ -29,12 +29,14 @@ final class UpdateOptionalWithoutChangingInnerProperties implements Property
         $this->name = $name;
     }
 
-    public static function any(): Set
+    public static function any(): Set\Provider
     {
-        return Set\Composite::immutable(
+        return Set::compose(
             static fn(...$args) => new self(...$args),
             PointInTime::any(),
-            Set\Strings::madeOf(Set\Chars::alphanumerical())->between(10, 100),
+            Set::strings()
+                ->madeOf(Set::strings()->chars()->alphanumerical())
+                ->between(10, 100),
         );
     }
 

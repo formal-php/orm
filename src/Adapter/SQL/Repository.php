@@ -7,11 +7,13 @@ use Formal\ORM\{
     Adapter\Repository as RepositoryInterface,
     Adapter\Repository\CrossAggregateMatching,
     Adapter\Repository\SubMatch,
+    Adapter\Repository\Effectful,
     Definition\Aggregate as Definition,
     Raw\Aggregate,
     Raw\Diff,
     Specification\Property,
     Sort,
+    Effect,
 };
 use Formal\AccessLayer\{
     Connection,
@@ -33,7 +35,7 @@ use Innmind\Immutable\{
  * @template T of object
  * @implements RepositoryInterface<T>
  */
-final class Repository implements RepositoryInterface, CrossAggregateMatching
+final class Repository implements RepositoryInterface, CrossAggregateMatching, Effectful
 {
     private Connection $connection;
     /** @var Definition<T> */
@@ -80,6 +82,7 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching
         return new self($connection, $definition);
     }
 
+    #[\Override]
     public function get(Aggregate\Id $id): Maybe
     {
         $select = $this
@@ -92,6 +95,7 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching
             ->flatMap(($this->decode)($id));
     }
 
+    #[\Override]
     public function contains(Aggregate\Id $id): bool
     {
         $select = $this
@@ -107,16 +111,27 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching
             );
     }
 
+    #[\Override]
     public function add(Aggregate $data): void
     {
         $_ = ($this->encode)($data)->foreach($this->connection);
     }
 
+    #[\Override]
     public function update(Diff $data): void
     {
         $_ = ($this->update)($data)->foreach($this->connection);
     }
 
+    #[\Override]
+    public function effect(
+        Effect\Normalized $effect,
+        ?Specification $specification,
+    ): void {
+        ($this->connection)($this->mainTable->effect($effect, $specification))->memoize();
+    }
+
+    #[\Override]
     public function remove(Aggregate\Id $id): void
     {
         $_ = ($this->connection)(
@@ -127,6 +142,7 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching
         );
     }
 
+    #[\Override]
     public function removeAll(Specification $specification): void
     {
         $_ = ($this->connection)(
@@ -134,6 +150,7 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching
         );
     }
 
+    #[\Override]
     public function fetch(
         ?Specification $specification,
         null|Sort\Property|Sort\Entity $sort,
@@ -168,6 +185,7 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching
     /**
      * @psalm-mutation-free
      */
+    #[\Override]
     public function crossAggregateMatching(
         ?Specification $specification,
         null|Sort\Property|Sort\Entity $sort,
@@ -195,7 +213,8 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching
         return Maybe::just(SubMatch::of($select));
     }
 
-    public function size(Specification $specification = null): int
+    #[\Override]
+    public function size(?Specification $specification = null): int
     {
         $count = $this->mainTable->count($specification);
 
@@ -211,7 +230,8 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching
             );
     }
 
-    public function any(Specification $specification = null): bool
+    #[\Override]
+    public function any(?Specification $specification = null): bool
     {
         $count = $this
             ->mainTable

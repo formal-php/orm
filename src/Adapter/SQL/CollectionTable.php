@@ -192,4 +192,55 @@ final class CollectionTable
             ->columns($this->id)
             ->where($specification);
     }
+
+    /**
+     * @internal
+     *
+     * @param Sequence<Entity> $entities
+     */
+    public function effectAddChildren(
+        Sequence $entities,
+        Column\Name $id,
+        Table\Name\Aliased $main,
+        ?Select $select,
+    ): Query {
+        $insertSelect = Select::from($main)->columns(
+            $id->in($main)->as($this->id->column()->toString()),
+            ...$entities
+                ->take(1) // todo change implementation when multi add is supported
+                ->flatMap(static fn($entity) => $entity->properties())
+                ->map(static fn($property) => Row\Value::of(
+                    Column\Name::of($property->name()),
+                    $property->value(),
+                ))
+                ->toList(),
+        );
+
+        if ($select) {
+            $insertSelect = $insertSelect->where(SubQuery::of(
+                $id->toString(),
+                $select,
+            ));
+        }
+
+        return Query\Insert::into($this->name->name(), $insertSelect);
+    }
+
+    /**
+     * @internal
+     */
+    public function effectRemoveChildren(
+        PropertySpecification $comparator,
+        ?Select $select,
+    ): Query {
+        $where = match ($select) {
+            null => $comparator,
+            default => $comparator->and(SubQuery::of(
+                $this->id->column()->toString(),
+                $select,
+            )),
+        };
+
+        return Delete::from($this->name)->where($where);
+    }
 }

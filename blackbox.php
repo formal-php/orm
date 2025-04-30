@@ -42,6 +42,10 @@ Application::new($argv)
         false => 100,
         default => 1,
     })
+    ->when(
+        \getenv('CI') !== false,
+        static fn($app) => $app->allowProofsToNotMakeAnyAssertions(),
+    )
     ->parseTagWith(Storage::of(...))
     ->disableShrinking()
     ->tryToProve(Load::everythingIn(__DIR__.'/proofs/'))

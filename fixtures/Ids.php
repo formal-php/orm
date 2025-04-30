@@ -39,11 +39,13 @@ final class Ids implements Comparator
         return new self($values);
     }
 
+    #[\Override]
     public function property(): string
     {
         return 'id';
     }
 
+    #[\Override]
     public function sign(): Sign
     {
         return Sign::in;
@@ -52,6 +54,7 @@ final class Ids implements Comparator
     /**
      * @return Sequence<Id<User>>
      */
+    #[\Override]
     public function value(): Sequence
     {
         return $this->values;

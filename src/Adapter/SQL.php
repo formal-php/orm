@@ -42,6 +42,7 @@ final class SQL implements Adapter
         return new self($establish);
     }
 
+    #[\Override]
     public function repository(Aggregate $definition): Repository
     {
         return SQL\Repository::of(
@@ -50,6 +51,7 @@ final class SQL implements Adapter
         );
     }
 
+    #[\Override]
     public function transaction(): Transaction
     {
         return SQL\Transaction::of($this->connection());

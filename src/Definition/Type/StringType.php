@@ -17,18 +17,16 @@ use Innmind\Immutable\Maybe;
  * @psalm-immutable
  * @implements Type<string>
  */
-final class StringType implements Type
+enum StringType implements Type
 {
-    private function __construct()
-    {
-    }
+    case instance;
 
     /**
      * @psalm-pure
      */
     public static function new(): self
     {
-        return new self;
+        return self::instance;
     }
 
     /**
@@ -40,14 +38,16 @@ final class StringType implements Type
     {
         return Maybe::just($type)
             ->filter(static fn($type) => $type->accepts(Primitive::string()))
-            ->map(static fn() => new self);
+            ->map(static fn() => self::instance);
     }
 
+    #[\Override]
     public function normalize(mixed $value): null|string|int|float|bool
     {
         return $value;
     }
 
+    #[\Override]
     public function denormalize(null|string|int|float|bool $value): mixed
     {
         if (!\is_string($value)) {

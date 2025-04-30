@@ -44,16 +44,19 @@ final class SubQuery implements Comparator
         return new self($property, $query);
     }
 
+    #[\Override]
     public function property(): string
     {
         return $this->property;
     }
 
+    #[\Override]
     public function sign(): Sign
     {
         return Sign::in;
     }
 
+    #[\Override]
     public function value(): Query
     {
         return $this->query;

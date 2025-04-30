@@ -37,8 +37,11 @@ final class MaybeType implements Type
      *
      * @return Maybe<self>
      */
-    public static function of(Types $types, Concrete $type, Contains $contains = null): Maybe
-    {
+    public static function of(
+        Types $types,
+        Concrete $type,
+        Contains|Contains\Primitive|null $contains = null,
+    ): Maybe {
         return Maybe::just($type)
             ->filter(static fn($type) => $type->accepts(ClassName::of(Maybe::class)))
             ->flatMap(static fn() => Maybe::of($contains))
@@ -54,6 +57,7 @@ final class MaybeType implements Type
         return $this->inner;
     }
 
+    #[\Override]
     public function normalize(mixed $value): null|string|int|float|bool
     {
         return $value->match(
@@ -62,6 +66,7 @@ final class MaybeType implements Type
         );
     }
 
+    #[\Override]
     public function denormalize(null|string|int|float|bool $value): mixed
     {
         return Maybe::of($value)->map($this->inner->denormalize(...));

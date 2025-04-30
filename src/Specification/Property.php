@@ -54,11 +54,13 @@ final class Property implements Comparator
         return new self($property, $sign, $value);
     }
 
+    #[\Override]
     public function property(): string
     {
         return $this->property;
     }
 
+    #[\Override]
     public function sign(): Sign
     {
         return $this->sign;
@@ -67,6 +69,7 @@ final class Property implements Comparator
     /**
      * @return null|string|int|float|bool|list<string|int|float|bool|null>
      */
+    #[\Override]
     public function value(): null|string|int|float|bool|array
     {
         return $this->value;

@@ -29,6 +29,8 @@ nav:
     - Count multiple aggregates: specifications/count.md
     - Remove multiple aggregates: specifications/remove.md
     - Matching across aggregates: specifications/cross-matching.md
+  - Effects:
+    - effects/index.md
   - Enums: enums.md
   - Pagination: pagination.md
   - Adapters:

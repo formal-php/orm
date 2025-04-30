@@ -17,11 +17,9 @@ use Innmind\Immutable\Maybe;
  * @psalm-immutable
  * @implements Type<bool>
  */
-final class BoolType implements Type
+enum BoolType implements Type
 {
-    private function __construct()
-    {
-    }
+    case instance;
 
     /**
      * @psalm-pure
@@ -32,14 +30,16 @@ final class BoolType implements Type
     {
         return Maybe::just($type)
             ->filter(static fn($type) => $type->accepts(Primitive::bool()))
-            ->map(static fn() => new self);
+            ->map(static fn() => self::instance);
     }
 
+    #[\Override]
     public function normalize(mixed $value): null|string|int|float|bool
     {
         return $value;
     }
 
+    #[\Override]
     public function denormalize(null|string|int|float|bool $value): mixed
     {
         return match ($value) {

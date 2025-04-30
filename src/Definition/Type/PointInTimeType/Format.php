@@ -28,6 +28,7 @@ final class Format implements FormatInterface
         return $self;
     }
 
+    #[\Override]
     public function toString(): string
     {
         return $this->format;

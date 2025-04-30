@@ -33,16 +33,19 @@ final class AddressValue implements Comparator
         return new self($sign, $value);
     }
 
+    #[\Override]
     public function property(): string
     {
         return 'value';
     }
 
+    #[\Override]
     public function sign(): Sign
     {
         return $this->sign;
     }
 
+    #[\Override]
     public function value(): string
     {
         return $this->value;

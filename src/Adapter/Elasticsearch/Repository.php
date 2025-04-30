@@ -5,10 +5,12 @@ namespace Formal\ORM\Adapter\Elasticsearch;
 
 use Formal\ORM\{
     Adapter\Repository as RepositoryInterface,
+    Adapter\Repository\Effectful,
     Definition\Aggregate as Definition,
     Raw\Aggregate,
     Raw\Diff,
     Sort,
+    Effect,
 };
 use Innmind\Filesystem\File\Content;
 use Innmind\HttpTransport\Transport;
@@ -43,7 +45,7 @@ use Innmind\Immutable\{
  * @template T of object
  * @implements RepositoryInterface<T>
  */
-final class Repository implements RepositoryInterface
+final class Repository implements RepositoryInterface, Effectful
 {
     private Transport $http;
     /** @var Definition<T> */
@@ -51,6 +53,7 @@ final class Repository implements RepositoryInterface
     private Encode $encode;
     /** @var Decode<T> */
     private Decode $decode;
+    private Painless $script;
     private Query $query;
     /** @var Constraint<mixed, 0|positive-int> */
     private Constraint $pluckCount;
@@ -72,6 +75,7 @@ final class Repository implements RepositoryInterface
         $this->encode = Encode::new();
         $this->decode = Decode::of($definition);
         $this->query = Query::new(Mapping::new(), $definition);
+        $this->script = Painless::new();
         /**
          * @psalm-suppress MixedInferredReturnType
          * @psalm-suppress MixedArrayAccess
@@ -133,6 +137,7 @@ final class Repository implements RepositoryInterface
         return new self($transport, $definition, $url);
     }
 
+    #[\Override]
     public function get(Aggregate\Id $id): Maybe
     {
         return ($this->http)(Request::of(
@@ -151,6 +156,7 @@ final class Repository implements RepositoryInterface
             ->flatMap(($this->decode)($id));
     }
 
+    #[\Override]
     public function contains(Aggregate\Id $id): bool
     {
         return ($this->http)(Request::of(
@@ -168,6 +174,7 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
     public function add(Aggregate $data): void
     {
         $_ = ($this->http)(Request::of(
@@ -189,6 +196,7 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
     public function update(Diff $data): void
     {
         $_ = ($this->http)(Request::of(
@@ -210,6 +218,38 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
+    public function effect(
+        Effect\Normalized $effect,
+        ?Specification $specification,
+    ): void {
+        $payload = [
+            'script' => ($this->script)($effect),
+        ];
+
+        if ($specification) {
+            $payload['query'] = ($this->query)($specification);
+        }
+
+        $_ = ($this->http)(Request::of(
+            self::url(
+                $this->url,
+                $this->path,
+                '_update_by_query',
+            ),
+            Method::post,
+            ProtocolVersion::v11,
+            Headers::of(
+                ContentType::of('application', 'json'),
+            ),
+            Content::ofString(Json::encode($payload)),
+        ))->match(
+            static fn() => null,
+            static fn() => throw new \RuntimeException('Unable to update multiple aggregates'),
+        );
+    }
+
+    #[\Override]
     public function remove(Aggregate\Id $id): void
     {
         $_ = ($this->http)(Request::of(
@@ -227,6 +267,7 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
     public function removeAll(Specification $specification): void
     {
         $_ = ($this->http)(Request::of(
@@ -249,6 +290,7 @@ final class Repository implements RepositoryInterface
         );
     }
 
+    #[\Override]
     public function fetch(
         ?Specification $specification,
         null|Sort\Property|Sort\Entity $sort,
@@ -302,7 +344,8 @@ final class Repository implements RepositoryInterface
         );
     }
 
-    public function size(Specification $specification = null): int
+    #[\Override]
+    public function size(?Specification $specification = null): int
     {
         $content = null;
 
@@ -343,7 +386,8 @@ final class Repository implements RepositoryInterface
             );
     }
 
-    public function any(Specification $specification = null): bool
+    #[\Override]
+    public function any(?Specification $specification = null): bool
     {
         return !$this
             ->fetch($specification, null, null, 1)
@@ -358,7 +402,7 @@ final class Repository implements RepositoryInterface
         Url $url,
         Template $path,
         string $action,
-        string $id = null,
+        ?string $id = null,
     ): Url {
         /** @var Map<non-empty-string, non-empty-string> */
         $map = Map::of(['action', $action]);

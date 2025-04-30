@@ -43,17 +43,17 @@ final class UpdateCollection implements Property
         $this->address3 = $address3;
     }
 
-    public static function any(): Set
+    public static function any(): Set\Provider
     {
-        return Set\Composite::immutable(
+        return Set::compose(
             static fn($name, $createdAt, $addresses) => new self($name, $createdAt, ...$addresses),
-            Set\Strings::madeOf(Set\Chars::alphanumerical()),
+            Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()),
             PointInTime::any(),
-            Set\Composite::immutable(
+            Set::compose(
                 static fn(...$addresses) => $addresses,
-                Set\Strings::madeOf(Set\Chars::alphanumerical()),
-                Set\Strings::madeOf(Set\Chars::alphanumerical()),
-                Set\Strings::madeOf(Set\Chars::alphanumerical()),
+                Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()),
+                Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()),
+                Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()),
             )->filter(
                 static fn($addresses) => $addresses[0] !== $addresses[1] &&
                     $addresses[1] !== $addresses[2] &&

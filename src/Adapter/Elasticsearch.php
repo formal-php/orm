@@ -23,11 +23,12 @@ final class Elasticsearch implements Adapter
         $this->transaction = Elasticsearch\Transaction::of();
     }
 
-    public static function of(Transport $transport, Url $url = null): self
+    public static function of(Transport $transport, ?Url $url = null): self
     {
         return new self($transport, $url ?? Url::of('http://localhost:9200/'));
     }
 
+    #[\Override]
     public function repository(Aggregate $definition): Repository
     {
         return Elasticsearch\Repository::of(
@@ -37,6 +38,7 @@ final class Elasticsearch implements Adapter
         );
     }
 
+    #[\Override]
     public function transaction(): Transaction
     {
         return $this->transaction;

@@ -1,5 +1,7 @@
 # Limitations
 
+## Entity collection
+
 Due to the current design of entities not having ids it is not possible to build a diff of collections of entities. This means that as soon as a collection is modified the whole collection is persisted to the storage.
 
 For small sets of entities this is fine but can become quite time consuming if you store a lot of data inside a given collection.
@@ -17,3 +19,15 @@ The Elasticsearch api doesn't allow a pagination above 10k documents. This is a 
 
 !!! warning ""
     These limitations mean that you can't swap another adapter by this one without behaviours changes in your app.
+
+## Effects
+
+It's not possible to apply multiple effects at once. You'll need to apply each one of them individually, and can still be done in a same transaction.
+
+This is due to a current limitation of the SQL adapter.
+
+To apply multiple effects would require to execute multiple queries. But the aggregates matched by the specification could change between each query in the case an effect change a value being matched by the specification.
+
+For the same reason it's not possible to overwrite a whole optional entity. In SQL it would require to execute a delete before an insert, but the matched aggregates could also change between the queries.
+
+To lift this limitation requires a significant change of the SQL adapter.
