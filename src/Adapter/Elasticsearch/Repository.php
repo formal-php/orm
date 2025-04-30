@@ -5,10 +5,12 @@ namespace Formal\ORM\Adapter\Elasticsearch;
 
 use Formal\ORM\{
     Adapter\Repository as RepositoryInterface,
+    Adapter\Repository\Effectful,
     Definition\Aggregate as Definition,
     Raw\Aggregate,
     Raw\Diff,
     Sort,
+    Effect,
 };
 use Innmind\Filesystem\File\Content;
 use Innmind\HttpTransport\Transport;
@@ -43,7 +45,7 @@ use Innmind\Immutable\{
  * @template T of object
  * @implements RepositoryInterface<T>
  */
-final class Repository implements RepositoryInterface
+final class Repository implements RepositoryInterface, Effectful
 {
     private Transport $http;
     /** @var Definition<T> */
@@ -51,6 +53,7 @@ final class Repository implements RepositoryInterface
     private Encode $encode;
     /** @var Decode<T> */
     private Decode $decode;
+    private Painless $script;
     private Query $query;
     /** @var Constraint<mixed, 0|positive-int> */
     private Constraint $pluckCount;
@@ -72,6 +75,7 @@ final class Repository implements RepositoryInterface
         $this->encode = Encode::new();
         $this->decode = Decode::of($definition);
         $this->query = Query::new(Mapping::new(), $definition);
+        $this->script = Painless::new();
         /**
          * @psalm-suppress MixedInferredReturnType
          * @psalm-suppress MixedArrayAccess
@@ -211,6 +215,37 @@ final class Repository implements RepositoryInterface
         ))->match(
             static fn() => null,
             static fn() => throw new \RuntimeException('Unable to update the aggregate'),
+        );
+    }
+
+    #[\Override]
+    public function effect(
+        Effect\Normalized $effect,
+        ?Specification $specification,
+    ): void {
+        $payload = [
+            'script' => ($this->script)($effect),
+        ];
+
+        if ($specification) {
+            $payload['query'] = ($this->query)($specification);
+        }
+
+        $_ = ($this->http)(Request::of(
+            self::url(
+                $this->url,
+                $this->path,
+                '_update_by_query',
+            ),
+            Method::post,
+            ProtocolVersion::v11,
+            Headers::of(
+                ContentType::of('application', 'json'),
+            ),
+            Content::ofString(Json::encode($payload)),
+        ))->match(
+            static fn() => null,
+            static fn() => throw new \RuntimeException('Unable to update multiple aggregates'),
         );
     }
 

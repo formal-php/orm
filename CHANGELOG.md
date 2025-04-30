@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- `Formal\ORM\Repository::effect()`
+- `Formal\ORM\Effect`
+
 ### Changed
 
 - The following types are now enums with a single case to avoid creating too many objects in large projects

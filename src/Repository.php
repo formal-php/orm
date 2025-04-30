@@ -13,6 +13,7 @@ use Formal\ORM\{
     Repository\Diff,
     Repository\Sort,
     Specification\Normalize as NormalizeSpecification,
+    Effect\Normalize as NormalizeEffect,
 };
 use Innmind\Specification\Specification;
 use Innmind\Immutable\Maybe;
@@ -31,6 +32,8 @@ final class Repository
     private \Closure $inTransaction;
     /** @var NormalizeSpecification<T> */
     private NormalizeSpecification $normalizeSpecification;
+    /** @var NormalizeEffect<T> */
+    private NormalizeEffect $normalizeEffect;
     /** @var Loaded<T> */
     private Loaded $loaded;
     /** @var Normalize<T> */
@@ -63,6 +66,10 @@ final class Repository
         $this->id = $definition->id();
         $this->inTransaction = $inTransaction;
         $this->normalizeSpecification = NormalizeSpecification::of($definition, $context);
+        $this->normalizeEffect = NormalizeEffect::of(
+            $definition,
+            $this->normalizeSpecification,
+        );
         $this->loaded = Loaded::of($repositories, $definition);
         $this->normalize = Normalize::of($definition);
         $this->denormalize = Denormalize::of($definition);
@@ -150,6 +157,31 @@ final class Repository
             fn() => $this->adapter->add(
                 ($this->normalize)($now),
             ),
+        );
+    }
+
+    public function effect(
+        Effect|Effect\Provider $effect,
+        ?Specification $specification = null,
+    ): void {
+        if (!($this->inTransaction)()) {
+            throw new \LogicException('Mutation outside of a transaction');
+        }
+
+        if (!($this->adapter instanceof Adapter\Repository\Effectful)) {
+            throw new \LogicException('Effects not supported by the adapter');
+        }
+
+        if ($effect instanceof Effect\Provider) {
+            $effect = $effect->toEffect();
+        }
+
+        $this->adapter->effect(
+            ($this->normalizeEffect)($effect),
+            match ($specification) {
+                null => null,
+                default => ($this->normalizeSpecification)($specification),
+            },
         );
     }
 

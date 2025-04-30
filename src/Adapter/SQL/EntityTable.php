@@ -8,12 +8,14 @@ use Formal\ORM\{
     Raw\Aggregate\Id,
     Raw\Aggregate\Property,
     Specification,
+    Effect,
 };
 use Formal\AccessLayer\{
     Table,
     Table\Column,
     Query,
     Query\Update,
+    Query\Select,
     Row,
 };
 use Innmind\Specification\Sign;
@@ -157,5 +159,36 @@ final class EntityTable
                     $id->value(),
                 )),
             );
+    }
+
+    /**
+     * @internal
+     *
+     * @param Sequence<Effect\Normalized\Property> $properties
+     */
+    public function effect(
+        Sequence $properties,
+        ?Select $select,
+    ): Query {
+        $update = Update::set(
+            $this->name,
+            Row::new(
+                ...$properties
+                    ->map(static fn($effect) => Row\Value::of(
+                        Column\Name::of($effect->property()),
+                        $effect->value(),
+                    ))
+                    ->toList(),
+            ),
+        );
+
+        if ($select) {
+            $update = $update->where(SubQuery::of(
+                'aggregateId',
+                $select,
+            ));
+        }
+
+        return $update;
     }
 }

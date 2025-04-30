@@ -5,10 +5,12 @@ namespace Formal\ORM\Adapter\Filesystem;
 
 use Formal\ORM\{
     Adapter\Repository as RepositoryInterface,
+    Adapter\Repository\Effectful,
     Definition\Aggregate as Definition,
     Raw\Aggregate,
     Raw\Diff,
     Sort,
+    Effect,
 };
 use Innmind\Filesystem\{
     Name,
@@ -26,7 +28,7 @@ use Innmind\Immutable\{
  * @template T of object
  * @implements RepositoryInterface<T>
  */
-final class Repository implements RepositoryInterface
+final class Repository implements RepositoryInterface, Effectful
 {
     private Transaction $transaction;
     /** @var Definition<T> */
@@ -36,6 +38,7 @@ final class Repository implements RepositoryInterface
     private Encode $encode;
     /** @var Decode<T> */
     private Decode $decode;
+    private EncodeEffect $encodeEffect;
 
     /**
      * @param Definition<T> $definition
@@ -47,6 +50,7 @@ final class Repository implements RepositoryInterface
         $this->fold = Fold::of($definition);
         $this->encode = Encode::new();
         $this->decode = Decode::of($definition);
+        $this->encodeEffect = EncodeEffect::new();
     }
 
     /**
@@ -102,6 +106,24 @@ final class Repository implements RepositoryInterface
         $this->transaction->mutate(
             static fn($adapter) => $adapter->add($encoded),
         );
+    }
+
+    #[\Override]
+    public function effect(
+        Effect\Normalized $effect,
+        ?Specification $specification,
+    ): void {
+        $effect = ($this->encodeEffect)($effect);
+
+        $this
+            ->fetch(
+                $specification,
+                null,
+                null,
+                null,
+            )
+            ->map($effect)
+            ->foreach($this->update(...));
     }
 
     #[\Override]

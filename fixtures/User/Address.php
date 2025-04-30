@@ -38,6 +38,11 @@ final class Address
         return new self($this->value, false);
     }
 
+    public function enabled(): bool
+    {
+        return $this->enabled;
+    }
+
     public function toString(): string
     {
         return $this->value;

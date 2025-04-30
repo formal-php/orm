@@ -29,7 +29,8 @@ final class Refresh implements Transport
             !$request->method()->safe() &&
             (
                 $path->matches('~[a-zA-Z0-9]{8}(-[a-zA-Z0-9]{4}){3}-[a-zA-Z0-9]{12}$~') ||
-                $path->endsWith('_delete_by_query')
+                $path->endsWith('_delete_by_query') ||
+                $path->endsWith('_update_by_query')
             )
         ) {
             $request = Request::of(

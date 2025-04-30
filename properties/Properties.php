@@ -68,6 +68,18 @@ final class Properties
             AddElementToCollections::class,
             ListingAggregatesUseConstantMemory::class,
             UpdateOptionalWithoutChangingInnerProperties::class,
+            EffectPropertyOnAllAggregates::class,
+            EffectPropertyOnAggregate::class,
+            EffectPropertiesOnAggregate::class,
+            EffectEntityPropertyOnAggregate::class,
+            EffectEntityPropertiesOnAggregate::class,
+            EffectEntityPropertiesOnAllAggregates::class,
+            EffectChildAddOnAggregate::class,
+            EffectChildAddOnAllAggregates::class,
+            EffectChildRemoveOnAllAggregates::class,
+            EffectOptionalNothingOnAllAggregates::class,
+            EffectOptionalPropertiesOnAggregate::class,
+            EffectOptionalPropertiesOnAllAggregates::class,
         ];
     }
 
@@ -132,6 +144,18 @@ final class Properties
             AddingOutsideOfTransactionIsNotAllowed::class,
             IncrementallyAddElementsToACollection::class,
             UpdateOptionalWithoutChangingInnerProperties::class,
+            EffectPropertyOnAllAggregates::class,
+            EffectPropertyOnAggregate::class,
+            EffectPropertiesOnAggregate::class,
+            EffectEntityPropertyOnAggregate::class,
+            EffectEntityPropertiesOnAggregate::class,
+            EffectEntityPropertiesOnAllAggregates::class,
+            EffectChildAddOnAggregate::class,
+            EffectChildAddOnAllAggregates::class,
+            EffectChildRemoveOnAllAggregates::class,
+            EffectOptionalNothingOnAllAggregates::class,
+            EffectOptionalPropertiesOnAggregate::class,
+            EffectOptionalPropertiesOnAllAggregates::class,
         ];
     }
 }
