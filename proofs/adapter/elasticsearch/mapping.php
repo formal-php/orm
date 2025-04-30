@@ -49,6 +49,9 @@ return static function() {
                         'nameStr' => [
                             'type' => 'text',
                         ],
+                        'nameString' => [
+                            'type' => 'text',
+                        ],
                         'role' => [
                             'type' => 'text',
                         ],
