@@ -38,7 +38,7 @@ final class Support
     public function __invoke(
         Types $types,
         Concrete $type,
-        ?Contains $contains = null,
+        Contains|Contains\Primitive|null $contains = null,
     ): Maybe {
         return Maybe::just($type)
             ->filter(fn($type) => $type->accepts(ClassName::of($this->class)))

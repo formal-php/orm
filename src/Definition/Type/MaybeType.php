@@ -37,8 +37,11 @@ final class MaybeType implements Type
      *
      * @return Maybe<self>
      */
-    public static function of(Types $types, Concrete $type, ?Contains $contains = null): Maybe
-    {
+    public static function of(
+        Types $types,
+        Concrete $type,
+        Contains|Contains\Primitive|null $contains = null,
+    ): Maybe {
         return Maybe::just($type)
             ->filter(static fn($type) => $type->accepts(ClassName::of(Maybe::class)))
             ->flatMap(static fn() => Maybe::of($contains))

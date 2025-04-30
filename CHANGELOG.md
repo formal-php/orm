@@ -6,6 +6,7 @@
 
 - `Formal\ORM\Repository::effect()`
 - `Formal\ORM\Effect`
+- `Formal\ORM\Definition\Contains\Primitive` to be used on a `Maybe` property
 
 ### Changed
 

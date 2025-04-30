@@ -26,6 +26,9 @@ final class User
     /** @var Maybe<Str> */
     #[Contains(Str::class)]
     private Maybe $nameStr;
+    /** @var Maybe<string> */
+    #[Contains\Primitive('string')]
+    private Maybe $nameString;
     /**
      * This property is necessary for the Elasticsearch adapter that requires
      * the field being sorted on to be a keyword
@@ -77,6 +80,7 @@ final class User
         $this->wrappedCreatedAt = new CreatedAt($this->createdAtFloat);
         $this->name = $name;
         $this->nameStr = Maybe::of($name)->map(Str::of(...));
+        $this->nameString = Maybe::of($name);
         $this->sortableName = Sortable::of($name);
         $this->mainAddress = $mainAddress;
         $this->billingAddress = $billingAddress;
