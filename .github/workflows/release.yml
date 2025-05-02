@@ -1,7 +1,9 @@
 name: Create release
 
 on:
-  workflow_call
+  push:
+    tags:
+      - '*'
 
 permissions:
   contents: write

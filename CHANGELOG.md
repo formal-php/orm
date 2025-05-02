@@ -1,5 +1,11 @@
 # Changelog
 
+## 4.1.1 - 2025-05-02
+
+### Fixed
+
+- Collections of entities weren't stored correctly by the SQL adapter
+
 ## 4.1.0 - 2025-04-30
 
 ### Added
