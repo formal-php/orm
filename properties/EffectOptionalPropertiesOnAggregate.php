@@ -59,9 +59,6 @@ final class EffectOptionalPropertiesOnAggregate implements Property
 
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
-        $current = $manager
-            ->repository(User::class)
-            ->size();
         $user = User::new($this->createdAt, $this->name)->changeBillingAddress(
             $this->address,
         );
