@@ -6,7 +6,7 @@ namespace Properties\Formal\ORM;
 use Formal\ORM\{
     Manager,
     Id,
-    Definition\Type\PointInTimeType\Format,
+    Definition\Type\PointInTimeType\Formats,
 };
 use Fixtures\Formal\ORM\{
     User,
@@ -17,9 +17,9 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\TimeContinuum\Earth\Timezone\UTC;
+use Innmind\TimeContinuum\Offset;
 use Innmind\Immutable\Either;
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
+use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
  * @implements Property<Manager>
@@ -105,14 +105,14 @@ final class UpdateAggregate implements Property
             ->expected(
                 $this
                     ->createdAt
-                    ->changeTimezone(new UTC)
-                    ->format(new Format),
+                    ->changeOffset(Offset::utc())
+                    ->format(Formats::default),
             )
             ->same(
                 $reloaded
                     ->createdAt()
-                    ->changeTimezone(new UTC)
-                    ->format(new Format),
+                    ->changeOffset(Offset::utc())
+                    ->format(Formats::default),
             );
         $assert->same(
             $this->role,

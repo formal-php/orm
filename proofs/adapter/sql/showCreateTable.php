@@ -10,7 +10,7 @@ use Formal\ORM\{
 };
 use Formal\AccessLayer\Driver;
 use Innmind\TimeContinuum\{
-    Earth\Clock,
+    Clock,
     PointInTime,
 };
 use Fixtures\Formal\ORM\{
@@ -26,7 +26,7 @@ return static function() {
                 Aggregates::of(Types::of(
                     Type\Support::class(
                         PointInTime::class,
-                        Type\PointInTimeType::new(new Clock),
+                        Type\PointInTimeType::new(Clock::live()),
                     ),
                     CreatedAtType::of(...),
                 )),
@@ -95,7 +95,7 @@ return static function() {
                 Aggregates::of(Types::of(
                     Type\Support::class(
                         PointInTime::class,
-                        Type\PointInTimeType::new(new Clock),
+                        Type\PointInTimeType::new(Clock::live()),
                     ),
                     CreatedAtType::of(...),
                 ))->mapName(static fn($string) => match ($string) {

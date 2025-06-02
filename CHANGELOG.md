@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+### Changed
+
+- Requires `innmind/foundation:~1.1`
+- `Formal\ORM\Definition\Type\PointInTimeType\Format` has been renamed `Formats` and is now an enum
+
+### Fixed
+
+- Float properties couldn't not be loaded from Elasticsearch
+
 ## 4.1.1 - 2025-05-02
 
 ### Fixed

@@ -92,7 +92,7 @@ final class Repository implements RepositoryInterface, Effectful
         );
 
         $this->transaction->mutate(
-            static fn($adapter) => $adapter->add($encoded),
+            static fn($adapter) => $adapter->add($encoded)->unwrap(),
         );
     }
 
@@ -104,7 +104,7 @@ final class Repository implements RepositoryInterface, Effectful
         );
 
         $this->transaction->mutate(
-            static fn($adapter) => $adapter->add($encoded),
+            static fn($adapter) => $adapter->add($encoded)->unwrap(),
         );
     }
 
@@ -134,7 +134,7 @@ final class Repository implements RepositoryInterface, Effectful
         );
 
         $this->transaction->mutate(
-            static fn($adapter) => $adapter->add($mutated),
+            static fn($adapter) => $adapter->add($mutated)->unwrap(),
         );
     }
 

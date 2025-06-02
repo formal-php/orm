@@ -6,7 +6,7 @@ namespace Properties\Formal\ORM;
 use Formal\ORM\{
     Manager,
     Id,
-    Definition\Type\PointInTimeType\Format,
+    Definition\Type\PointInTimeType\Formats,
 };
 use Fixtures\Formal\ORM\User;
 use Innmind\BlackBox\{
@@ -14,12 +14,12 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\TimeContinuum\Earth\Timezone\UTC;
+use Innmind\TimeContinuum\Offset;
 use Innmind\Immutable\{
     Str,
     Either,
 };
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
+use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
  * @implements Property<Manager>
@@ -105,14 +105,14 @@ final class AddAggregate implements Property
             ->expected(
                 $this
                     ->createdAt
-                    ->changeTimezone(new UTC)
-                    ->format(new Format),
+                    ->changeOffset(Offset::utc())
+                    ->format(Formats::default),
             )
             ->same(
                 $fetched
                     ->createdAt()
-                    ->changeTimezone(new UTC)
-                    ->format(new Format),
+                    ->changeOffset(Offset::utc())
+                    ->format(Formats::default),
             );
 
         if (!\is_null($fetched->name())) {

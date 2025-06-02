@@ -19,7 +19,7 @@ use Innmind\Specification\{
     Sign,
 };
 use Innmind\Immutable\Either;
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
+use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
  * @implements Property<Manager>

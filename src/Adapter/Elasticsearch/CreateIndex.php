@@ -6,6 +6,7 @@ namespace Formal\ORM\Adapter\Elasticsearch;
 use Formal\ORM\Definition\Aggregates;
 use Innmind\HttpTransport\Transport;
 use Innmind\Filesystem\File\Content;
+use Innmind\MediaType\MediaType;
 use Innmind\Http\{
     Request,
     Method,
@@ -57,7 +58,7 @@ final class CreateIndex
             Method::put,
             ProtocolVersion::v11,
             Headers::of(
-                ContentType::of('application', 'json'),
+                ContentType::of(new MediaType('application', 'json')),
             ),
             Content::ofString(Json::encode([
                 'mappings' => ($this->mapping)($definition),

@@ -23,7 +23,7 @@ use Innmind\Immutable\{
     Maybe,
     Str,
 };
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
+use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
  * @implements Property<Manager>

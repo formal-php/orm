@@ -7,7 +7,7 @@ use Formal\ORM\Definition\{
     Contains,
     Type,
     Types,
-    Type\PointInTimeType\Format,
+    Type\PointInTimeType\Formats,
 };
 use Innmind\TimeContinuum\{
     Clock,
@@ -26,9 +26,9 @@ use Innmind\Immutable\Maybe;
 final class PointInTimeType implements Type
 {
     private Clock $clock;
-    private Format $format;
+    private Formats $format;
 
-    private function __construct(Clock $clock, Format $format)
+    private function __construct(Clock $clock, Formats $format)
     {
         $this->clock = $clock;
         $this->format = $format;
@@ -39,7 +39,7 @@ final class PointInTimeType implements Type
      */
     public static function new(Clock $clock): self
     {
-        return new self($clock, Format::new());
+        return new self($clock, Formats::default);
     }
 
     /**
@@ -52,7 +52,7 @@ final class PointInTimeType implements Type
     {
         return static fn(Types $types, Concrete $type) => Maybe::just($type)
             ->filter(static fn($type) => $type->accepts(ClassName::of(PointInTime::class)))
-            ->map(static fn() => new self($clock, new Format));
+            ->map(static fn() => new self($clock, Formats::default));
     }
 
     #[\Override]
@@ -66,6 +66,10 @@ final class PointInTimeType implements Type
     {
         if (!\is_string($value)) {
             throw new \LogicException("'$value' is not a string");
+        }
+
+        if ($value === '') {
+            throw new \LogicException('Date cannot be empty');
         }
 
         return $this
