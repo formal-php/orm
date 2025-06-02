@@ -9,10 +9,8 @@ use Formal\ORM\{
 };
 use Innmind\Validation\{
     Constraint,
-    Shape,
+    Constraint\Provider\Arr\Shape,
     Is,
-    Each,
-    Of,
 };
 use Innmind\Immutable\{
     Maybe,
@@ -51,7 +49,7 @@ final class Decode
             ->match(
                 static fn($entity, $entities) => $entities
                     ->reduce(
-                        Shape::of(
+                        Is::shape(
                             $entity->name(),
                             self::entity($entity),
                         ),
@@ -63,7 +61,7 @@ final class Decode
                     ->map(static fn(array $entities) => Sequence::of(
                         ...\array_values($entities),
                     )),
-                static fn() => Of::callable(static fn() => Validation::success(Sequence::of())),
+                static fn() => Constraint::of(static fn() => Validation::success(Sequence::of())),
             );
         /** @var Constraint<array, Sequence<Aggregate\Optional>> */
         $this->optionals = $definition
@@ -71,7 +69,7 @@ final class Decode
             ->match(
                 static fn($optional, $optionals) => $optionals
                     ->reduce(
-                        Shape::of(
+                        Is::shape(
                             $optional->name(),
                             self::optional($optional),
                         ),
@@ -83,7 +81,7 @@ final class Decode
                     ->map(static fn(array $optionals) => Sequence::of(
                         ...\array_values($optionals),
                     )),
-                static fn() => Of::callable(static fn() => Validation::success(Sequence::of())),
+                static fn() => Constraint::of(static fn() => Validation::success(Sequence::of())),
             );
         /** @var Constraint<array, Sequence<Aggregate\Collection>> */
         $this->collections = $definition
@@ -91,7 +89,7 @@ final class Decode
             ->match(
                 static fn($collection, $collections) => $collections
                     ->reduce(
-                        Shape::of(
+                        Is::shape(
                             $collection->name(),
                             self::collection($collection),
                         ),
@@ -103,7 +101,7 @@ final class Decode
                     ->map(static fn(array $collections) => Sequence::of(
                         ...\array_values($collections),
                     )),
-                static fn() => Of::callable(static fn() => Validation::success(Sequence::of())),
+                static fn() => Constraint::of(static fn() => Validation::success(Sequence::of())),
             );
     }
 
@@ -118,14 +116,14 @@ final class Decode
          * @var Constraint<array, Aggregate\Id>
          */
         $id = match ($id) {
-            null => Shape::of(
+            null => Is::shape(
                 $property,
                 Is::string(),
             )->map(static fn(array $content) => Aggregate\Id::of(
                 $property,
                 $content[$property],
             )),
-            default => Of::callable(static fn() => Validation::success($id)),
+            default => Constraint::of(static fn() => Validation::success($id)),
         };
 
         $properties = $this->properties;
@@ -189,13 +187,11 @@ final class Decode
      */
     private static function collection(Definition\Collection $collection): Constraint
     {
-        /** @psalm-suppress MixedArgument Due to the array keys */
-        return Is::list()
-            ->and(Each::of(
-                self::properties($collection->properties())->map(
-                    Aggregate\Collection\Entity::of(...),
-                ),
-            ))
+        return Is::list(
+            self::properties($collection->properties())->map(
+                Aggregate\Collection\Entity::of(...),
+            ),
+        )
             ->map(static fn($entities) => Set::of(...$entities))
             ->map(
                 static fn($entities) => Aggregate\Collection::of(
@@ -216,7 +212,7 @@ final class Decode
         return $properties->match(
             static fn($property, $properties) => $properties
                 ->reduce(
-                    Shape::of($property->name(), self::property($property)),
+                    Is::shape($property->name(), self::property($property)),
                     static fn(Shape $constraint, $property) => $constraint->with(
                         $property->name(),
                         self::property($property),
@@ -225,7 +221,7 @@ final class Decode
                 ->map(static fn(array $properties) => Sequence::of(
                     ...\array_values($properties),
                 )),
-            static fn() => Of::callable(static fn() => Validation::success(Sequence::of())),
+            static fn() => Constraint::of(static fn() => Validation::success(Sequence::of())),
         );
     }
 
@@ -238,6 +234,7 @@ final class Decode
             ->or(Is::string())
             ->or(Is::int())
             ->or(Is::bool())
+            ->or(Is::float())
             ->map(static fn($value) => Aggregate\Property::of(
                 $property->name(),
                 $value,

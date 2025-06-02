@@ -10,7 +10,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
+use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
  * @implements Property<Manager>

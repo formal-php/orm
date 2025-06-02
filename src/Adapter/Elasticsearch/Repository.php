@@ -14,6 +14,7 @@ use Formal\ORM\{
 };
 use Innmind\Filesystem\File\Content;
 use Innmind\HttpTransport\Transport;
+use Innmind\MediaType\MediaType;
 use Innmind\Http\{
     Request,
     Method,
@@ -26,18 +27,13 @@ use Innmind\Url\Url;
 use Innmind\Json\Json;
 use Innmind\Validation\{
     Constraint,
-    Failure,
     Is,
-    Shape,
-    Of,
-    Each,
 };
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{
     Sequence,
     Maybe,
     Map,
-    Validation,
 };
 
 /**
@@ -77,44 +73,28 @@ final class Repository implements RepositoryInterface, Effectful
         $this->query = Query::new(Mapping::new(), $definition);
         $this->script = Painless::new();
         /**
-         * @psalm-suppress MixedInferredReturnType
-         * @psalm-suppress MixedArrayAccess
          * @psalm-suppress MixedReturnStatement
          * @var Constraint<mixed, 0|positive-int>
          */
-        $this->pluckCount = Is::array()
-            ->and(
-                Shape::of(
-                    'count',
-                    Is::int()->and(Of::callable(static fn(int $value) => match (true) {
-                        $value >= 0 => Validation::success($value),
-                        default => Validation::fail(Failure::of('Count is negative')),
-                    })),
-                ),
-            )
-            ->map(static fn($body): int => $body['count']);
+        $this->pluckCount = Is::shape(
+            'count',
+            Is::int()->positive()->or(Is::value(0)),
+        )->map(static fn($body): int => $body['count']);
         /**
-         * @psalm-suppress MixedInferredReturnType
          * @psalm-suppress MixedArrayAccess
          * @psalm-suppress MixedReturnStatement
          * @var Constraint<mixed, Sequence<array>>
          */
-        $this->pluckHits = Is::array()
-            ->and(Shape::of(
+        $this->pluckHits = Is::shape(
+            'hits',
+            Is::shape(
                 'hits',
-                Is::array()->and(Shape::of(
-                    'hits',
-                    Is::list()
-                        ->and(Each::of(Shape::of(
-                            '_source',
-                            Is::array(),
-                        )))
-                        ->map(static fn($hits) => Sequence::of(...$hits)->map(
-                            static fn($hit): array => $hit['_source'],
-                        )),
-                )),
-            ))
-            ->map(static fn($body): Sequence => $body['hits']['hits']);
+                Is::list(Is::shape('_source', Is::array()))
+                    ->map(static fn($hits) => Sequence::of(...$hits)->map(
+                        static fn($hit): array => $hit['_source'],
+                    )),
+            ),
+        )->map(static fn($body): Sequence => $body['hits']['hits']);
         $this->url = $url;
         $index = $definition->name();
         /** @psalm-suppress ArgumentTypeCoercion */
@@ -187,7 +167,7 @@ final class Repository implements RepositoryInterface, Effectful
             Method::put,
             ProtocolVersion::v11,
             Headers::of(
-                ContentType::of('application', 'json'),
+                ContentType::of(new MediaType('application', 'json')),
             ),
             ($this->encode)($data),
         ))->match(
@@ -209,7 +189,7 @@ final class Repository implements RepositoryInterface, Effectful
             Method::post,
             ProtocolVersion::v11,
             Headers::of(
-                ContentType::of('application', 'json'),
+                ContentType::of(new MediaType('application', 'json')),
             ),
             ($this->encode)($data),
         ))->match(
@@ -240,7 +220,7 @@ final class Repository implements RepositoryInterface, Effectful
             Method::post,
             ProtocolVersion::v11,
             Headers::of(
-                ContentType::of('application', 'json'),
+                ContentType::of(new MediaType('application', 'json')),
             ),
             Content::ofString(Json::encode($payload)),
         ))->match(
@@ -279,7 +259,7 @@ final class Repository implements RepositoryInterface, Effectful
             Method::post,
             ProtocolVersion::v11,
             Headers::of(
-                ContentType::of('application', 'json'),
+                ContentType::of(new MediaType('application', 'json')),
             ),
             Content::ofString(Json::encode([
                 'query' => ($this->query)($specification),
@@ -368,7 +348,7 @@ final class Repository implements RepositoryInterface, Effectful
             match ($content) {
                 null => null,
                 default => Headers::of(
-                    ContentType::of('application', 'json'),
+                    ContentType::of(new MediaType('application', 'json')),
                 ),
             },
             match ($content) {
@@ -518,7 +498,7 @@ final class Repository implements RepositoryInterface, Effectful
             Method::post,
             ProtocolVersion::v11,
             Headers::of(
-                ContentType::of('application', 'json'),
+                ContentType::of(new MediaType('application', 'json')),
             ),
             Content::ofString(Json::encode($payload)),
         ))
