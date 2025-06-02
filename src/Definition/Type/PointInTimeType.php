@@ -4,20 +4,13 @@ declare(strict_types = 1);
 namespace Formal\ORM\Definition\Type;
 
 use Formal\ORM\Definition\{
-    Contains,
     Type,
-    Types,
     Type\PointInTimeType\Formats,
 };
 use Innmind\TimeContinuum\{
     Clock,
     PointInTime,
 };
-use Innmind\Type\{
-    Type as Concrete,
-    ClassName,
-};
-use Innmind\Immutable\Maybe;
 
 /**
  * @psalm-immutable
@@ -40,19 +33,6 @@ final class PointInTimeType implements Type
     public static function new(Clock $clock): self
     {
         return new self($clock, Formats::default);
-    }
-
-    /**
-     * @psalm-pure
-     * @deprecated Use ::new() instead
-     *
-     * @return callable(Types, Concrete, ?Contains): Maybe<self>
-     */
-    public static function of(Clock $clock): callable
-    {
-        return static fn(Types $types, Concrete $type) => Maybe::just($type)
-            ->filter(static fn($type) => $type->accepts(ClassName::of(PointInTime::class)))
-            ->map(static fn() => new self($clock, Formats::default));
     }
 
     #[\Override]
