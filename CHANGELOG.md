@@ -7,6 +7,10 @@
 - Requires `innmind/foundation:~1.1`
 - `Formal\ORM\Definition\Type\PointInTimeType\Format` has been renamed `Formats` and is now an enum
 
+### Removed
+
+- `Formal\ORM\Definition\Type\PointInTimeType::of()`
+
 ### Fixed
 
 - Float properties couldn't not be loaded from Elasticsearch
