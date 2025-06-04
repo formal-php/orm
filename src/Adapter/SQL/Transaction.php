@@ -10,6 +10,10 @@ use Formal\AccessLayer\{
     Query\Commit,
     Query\Rollback,
 };
+use Innmind\Immutable\{
+    Attempt,
+    SideEffect,
+};
 
 /**
  * @internal
@@ -32,45 +36,43 @@ final class Transaction implements TransactionInterface
     }
 
     #[\Override]
-    public function start(): void
+    public function start(): Attempt
     {
-        // memoize to force unwrap the monad
-        $_ = ($this->connection)(new StartTransaction)->memoize();
+        return Attempt::of(
+            // memoize to force unwrap the monad
+            fn() => ($this->connection)(new StartTransaction)->memoize(),
+        )->map(static fn() => SideEffect::identity());
     }
 
     /**
      * @template R
      *
-     * @return callable(R): R
+     * @return callable(R): Attempt<R>
      */
     #[\Override]
     public function commit(): callable
     {
         $connection = $this->connection;
 
-        return static function(mixed $value) use ($connection) {
+        return static fn(mixed $value) => Attempt::of(
             // memoize to force unwrap the monad
-            $_ = $connection(new Commit)->memoize();
-
-            return $value;
-        };
+            static fn() =>  $connection(new Commit)->memoize(),
+        )->map(static fn() => $value);
     }
 
     /**
      * @template R
      *
-     * @return callable(R): R
+     * @return callable(R): Attempt<R>
      */
     #[\Override]
     public function rollback(): callable
     {
         $connection = $this->connection;
 
-        return static function(mixed $value) use ($connection) {
+        return static fn(mixed $value) => Attempt::of(
             // memoize to force unwrap the monad
-            $_ = $connection(new Rollback)->memoize();
-
-            return $value;
-        };
+            static fn() =>  $connection(new Rollback)->memoize(),
+        )->map(static fn() => $value);
     }
 }

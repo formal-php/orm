@@ -9,7 +9,10 @@ use Formal\ORM\Definition\{
 };
 use Formal\AccessLayer\Connection;
 use Innmind\Filesystem\Adapter as Storage;
-use Innmind\Immutable\Either;
+use Innmind\Immutable\{
+    Attempt,
+    Either,
+};
 
 final class Manager
 {
@@ -96,19 +99,28 @@ final class Manager
 
         $this->inTransaction = true;
         $transactionAdapter = $this->adapter->transaction();
-        $transactionAdapter->start();
+        $transactionAdapter->start()->unwrap();
+        /** @var callable(R): Attempt<R> */
+        $commit = $transactionAdapter->commit();
+        /** @var callable(E): Attempt<E> */
+        $rollback = $transactionAdapter->rollback();
 
         try {
             // We force unwrapping the Either monad to prevent leaving this
             // method with a deferred Either meaning the system would have an
             // opened transaction hanging around
+            /** @psalm-suppress MixedArgument */
             return $transaction()
                 ->memoize()
-                ->map($transactionAdapter->commit())
-                ->leftMap($transactionAdapter->rollback());
+                ->map(
+                    static fn($value) => $commit($value)->unwrap(),
+                )
+                ->leftMap(
+                    static fn($value) => $rollback($value)->unwrap(),
+                );
         } catch (\Throwable $e) {
             /** @psalm-suppress InvalidArgument */
-            throw $transactionAdapter->rollback()($e);
+            throw $transactionAdapter->rollback()($e)->unwrap();
         } finally {
             $this->inTransaction = false;
         }
