@@ -97,13 +97,16 @@ final class Manager
 
         $this->inTransaction = true;
         $transactionAdapter = $this->adapter->transaction();
-        $transactionAdapter->start()->unwrap();
 
         try {
             // We force unwrapping the Either monad to prevent leaving this
             // method with a deferred Either meaning the system would have an
             // opened transaction hanging around
-            return $transaction()
+            return $transactionAdapter
+                ->start()
+                ->either()
+                ->leftMap(Failure::of(...))
+                ->flatMap(static fn() => $transaction())
                 ->memoize()
                 ->flatMap(
                     static fn($value) => $transactionAdapter
