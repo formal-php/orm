@@ -47,10 +47,12 @@ final class SavingAggregateTwiceAddsItOnce implements Property
             static function() use ($manager, $user) {
                 $manager
                     ->repository(User::class)
-                    ->put($user);
+                    ->put($user)
+                    ->unwrap();
                 $manager
                     ->repository(User::class)
-                    ->put($user);
+                    ->put($user)
+                    ->unwrap();
 
                 return Either::right(null);
             },

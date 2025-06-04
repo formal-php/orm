@@ -44,10 +44,12 @@ final class FailingTransactionDueToLeftSide implements Property
             function() use ($manager, $user, $assert, $initialSize) {
                 $manager
                     ->repository(User::class)
-                    ->put($user);
+                    ->put($user)
+                    ->unwrap();
                 $manager
                     ->repository(User::class)
-                    ->remove($user->id());
+                    ->remove($user->id())
+                    ->unwrap();
                 $this->validate($assert, $manager, $user, $initialSize);
 
                 return Either::left(null);

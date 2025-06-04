@@ -18,7 +18,6 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\Immutable\Either;
 use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
@@ -63,11 +62,10 @@ final class EffectOptionalPropertiesOnAggregate implements Property
             $this->address,
         );
         $manager->transactional(
-            static fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->put($user),
-            ),
+            static fn() => $manager
+                ->repository(User::class)
+                ->put($user)
+                ->either(),
         );
         $id = $user->id()->toString();
         unset($user); // to make sure there is no in memory cache somewhere

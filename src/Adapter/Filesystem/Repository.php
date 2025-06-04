@@ -87,27 +87,31 @@ final class Repository implements RepositoryInterface, Effectful
     }
 
     #[\Override]
-    public function add(Aggregate $data): void
+    public function add(Aggregate $data): Attempt
     {
         $encoded = Directory::named($this->definition->name())->add(
             ($this->encode)($data),
         );
 
-        $this->transaction->mutate(
-            static fn($adapter) => $adapter->add($encoded)->unwrap(),
-        );
+        return Attempt::of(
+            fn() => $this->transaction->mutate(
+                static fn($adapter) => $adapter->add($encoded)->unwrap(),
+            ),
+        )->map(static fn() => SideEffect::identity());
     }
 
     #[\Override]
-    public function update(Diff $data): void
+    public function update(Diff $data): Attempt
     {
         $encoded = Directory::named($this->definition->name())->add(
             ($this->encode)($data),
         );
 
-        $this->transaction->mutate(
-            static fn($adapter) => $adapter->add($encoded)->unwrap(),
-        );
+        return Attempt::of(
+            fn() => $this->transaction->mutate(
+                static fn($adapter) => $adapter->add($encoded)->unwrap(),
+            ),
+        )->map(static fn() => SideEffect::identity());
     }
 
     #[\Override]
@@ -126,27 +130,27 @@ final class Repository implements RepositoryInterface, Effectful
             )
             ->map($effect)
             ->sink(SideEffect::identity())
-            ->attempt(fn($_, $data) => Attempt::of(
-                fn() => $this->update($data),
-            )->map(static fn() => SideEffect::identity()));
+            ->attempt(fn($_, $data) => $this->update($data));
     }
 
     #[\Override]
-    public function remove(Aggregate\Id $id): void
+    public function remove(Aggregate\Id $id): Attempt
     {
         $mutated = Directory::named($this->definition->name())->remove(
             Name::of($id->value()),
         );
 
-        $this->transaction->mutate(
-            static fn($adapter) => $adapter->add($mutated)->unwrap(),
-        );
+        return Attempt::of(
+            fn() => $this->transaction->mutate(
+                static fn($adapter) => $adapter->add($mutated)->unwrap(),
+            ),
+        )->map(static fn() => SideEffect::identity());
     }
 
     #[\Override]
-    public function removeAll(Specification $specification): void
+    public function removeAll(Specification $specification): Attempt
     {
-        $this
+        return $this
             ->fetch(
                 $specification,
                 null,
@@ -154,7 +158,8 @@ final class Repository implements RepositoryInterface, Effectful
                 null,
             )
             ->map(static fn($aggregate) => $aggregate->id())
-            ->foreach($this->remove(...));
+            ->sink(SideEffect::identity())
+            ->attempt(fn($_, $id) => $this->remove($id));
     }
 
     #[\Override]

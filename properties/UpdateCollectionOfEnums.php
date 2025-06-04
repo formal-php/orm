@@ -16,7 +16,6 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\Immutable\Either;
 use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
@@ -69,7 +68,9 @@ final class UpdateCollectionOfEnums implements Property
         $user = User::new($this->createdAt)->useRoles(...$this->roles);
 
         $manager->transactional(
-            static fn() => Either::right($repository->put($user)),
+            static fn() => $repository
+                ->put($user)
+                ->either(),
         );
         $id = $user->id()->toString();
         unset($user); // to make sure there is no in memory cache somewhere
@@ -90,7 +91,9 @@ final class UpdateCollectionOfEnums implements Property
         $user = $loaded->useRoles(...$this->newRoles);
 
         $manager->transactional(
-            static fn() => Either::right($repository->put($user)),
+            static fn() => $repository
+                ->put($user)
+                ->either(),
         );
 
         $reloaded = $repository

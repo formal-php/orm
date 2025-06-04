@@ -114,15 +114,19 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching, E
     }
 
     #[\Override]
-    public function add(Aggregate $data): void
+    public function add(Aggregate $data): Attempt
     {
-        $_ = ($this->encode)($data)->foreach($this->connection);
+        return Attempt::of(
+            fn() => ($this->encode)($data)->foreach($this->connection),
+        );
     }
 
     #[\Override]
-    public function update(Diff $data): void
+    public function update(Diff $data): Attempt
     {
-        $_ = ($this->update)($data)->foreach($this->connection);
+        return Attempt::of(
+            fn() => ($this->update)($data)->foreach($this->connection),
+        );
     }
 
     #[\Override]
@@ -136,22 +140,26 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching, E
     }
 
     #[\Override]
-    public function remove(Aggregate\Id $id): void
+    public function remove(Aggregate\Id $id): Attempt
     {
-        $_ = ($this->connection)(
-            $this
-                ->mainTable
-                ->delete()
-                ->where(Property::of($this->idColumn, Sign::equality, $id->value())),
-        );
+        return Attempt::of(
+            fn() => ($this->connection)(
+                $this
+                    ->mainTable
+                    ->delete()
+                    ->where(Property::of($this->idColumn, Sign::equality, $id->value())),
+            )->memoize(),
+        )->map(static fn() => SideEffect::identity());
     }
 
     #[\Override]
-    public function removeAll(Specification $specification): void
+    public function removeAll(Specification $specification): Attempt
     {
-        $_ = ($this->connection)(
-            $this->mainTable->delete($specification),
-        );
+        return Attempt::of(
+            fn() => ($this->connection)(
+                $this->mainTable->delete($specification),
+            )->memoize(),
+        )->map(static fn() => SideEffect::identity());
     }
 
     #[\Override]

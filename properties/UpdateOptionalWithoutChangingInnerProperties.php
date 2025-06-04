@@ -52,7 +52,7 @@ final class UpdateOptionalWithoutChangingInnerProperties implements Property
         $repository = $manager->repository(User::class);
         $manager->transactional(
             static function() use ($repository, $user) {
-                $repository->put($user);
+                $repository->put($user)->unwrap();
 
                 return Either::right(null);
             },
@@ -63,7 +63,7 @@ final class UpdateOptionalWithoutChangingInnerProperties implements Property
         $assert->not()->throws(
             static fn() => $manager->transactional(
                 static function() use ($repository, $user) {
-                    $repository->put($user);
+                    $repository->put($user)->unwrap();
 
                     return Either::right(null);
                 },

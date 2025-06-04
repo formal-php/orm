@@ -45,10 +45,12 @@ final class FailingTransactionDueToException implements Property
                 function() use ($manager, $user, $assert, $initialSize, $expected) {
                     $manager
                         ->repository(User::class)
-                        ->put($user);
+                        ->put($user)
+                        ->unwrap();
                     $manager
                         ->repository(User::class)
-                        ->remove($user->id());
+                        ->remove($user->id())
+                        ->unwrap();
                     $this->validate($assert, $manager, $user, $initialSize);
 
                     throw $expected;

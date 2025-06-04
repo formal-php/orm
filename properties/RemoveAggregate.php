@@ -10,7 +10,6 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\Immutable\Either;
 use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
@@ -43,19 +42,17 @@ final class RemoveAggregate implements Property
 
         $user = User::new($this->createdAt);
         $manager->transactional(
-            static fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->put($user),
-            ),
+            static fn() => $manager
+                ->repository(User::class)
+                ->put($user)
+                ->either(),
         );
 
         $manager->transactional(
-            static fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->remove($user->id()),
-            ),
+            static fn() => $manager
+                ->repository(User::class)
+                ->remove($user->id())
+                ->either(),
         );
 
         $assert->false(

@@ -15,7 +15,6 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\Immutable\Either;
 use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
@@ -56,7 +55,9 @@ final class MatchingExclusion implements Property
 
         $repository = $manager->repository(User::class);
         $manager->transactional(
-            static fn() => Either::right($repository->put($user)),
+            static fn() => $repository
+                ->put($user)
+                ->either(),
         );
 
         $found = $repository

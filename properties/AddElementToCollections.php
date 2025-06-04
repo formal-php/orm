@@ -5,12 +5,12 @@ namespace Properties\Formal\ORM;
 
 use Formal\ORM\Manager;
 use Fixtures\Formal\ORM\User;
+use Innmind\Immutable\SideEffect;
 use Innmind\BlackBox\{
     Set,
     Property,
     Runner\Assert,
 };
-use Innmind\Immutable\Either;
 use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
@@ -49,12 +49,12 @@ final class AddElementToCollections implements Property
         $user = User::new($this->createdAt);
 
         $manager->transactional(
-            fn() => Either::right(
-                $repository
-                    ->all()
-                    ->map(fn($user) => $user->addAddress($this->address))
-                    ->foreach($repository->put(...)),
-            ),
+            fn() => $repository
+                ->all()
+                ->map(fn($user) => $user->addAddress($this->address))
+                ->sink(SideEffect::identity())
+                ->attempt(static fn($_, $user) => $repository->put($user))
+                ->either(),
         );
 
         $repository

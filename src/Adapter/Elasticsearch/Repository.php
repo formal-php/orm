@@ -157,9 +157,9 @@ final class Repository implements RepositoryInterface, Effectful
     }
 
     #[\Override]
-    public function add(Aggregate $data): void
+    public function add(Aggregate $data): Attempt
     {
-        $_ = ($this->http)(Request::of(
+        return ($this->http)(Request::of(
             self::url(
                 $this->url,
                 $this->path,
@@ -172,16 +172,17 @@ final class Repository implements RepositoryInterface, Effectful
                 ContentType::of(new MediaType('application', 'json')),
             ),
             ($this->encode)($data),
-        ))->match(
-            static fn() => null,
-            static fn() => throw new \RuntimeException('Unable to persist the aggregate'),
-        );
+        ))
+            ->attempt(
+                static fn() => new \RuntimeException('Unable to persist the aggregate'),
+            )
+            ->map(static fn() => SideEffect::identity());
     }
 
     #[\Override]
-    public function update(Diff $data): void
+    public function update(Diff $data): Attempt
     {
-        $_ = ($this->http)(Request::of(
+        return ($this->http)(Request::of(
             self::url(
                 $this->url,
                 $this->path,
@@ -198,7 +199,7 @@ final class Repository implements RepositoryInterface, Effectful
             ->attempt(
                 static fn() => new \RuntimeException('Unable to update the aggregate'),
             )
-            ->unwrap();
+            ->map(static fn() => SideEffect::identity());
     }
 
     #[\Override]
@@ -234,9 +235,9 @@ final class Repository implements RepositoryInterface, Effectful
     }
 
     #[\Override]
-    public function remove(Aggregate\Id $id): void
+    public function remove(Aggregate\Id $id): Attempt
     {
-        $_ = ($this->http)(Request::of(
+        return ($this->http)(Request::of(
             self::url(
                 $this->url,
                 $this->path,
@@ -245,16 +246,18 @@ final class Repository implements RepositoryInterface, Effectful
             ),
             Method::delete,
             ProtocolVersion::v11,
-        ))->match(
-            static fn() => null,
-            static fn() => null,
-        );
+        ))
+            ->attempt(
+                static fn() => new \RuntimeException('Failed to remove aggregate'),
+            )
+            ->recover(static fn() => Attempt::result(SideEffect::identity()))
+            ->map(static fn() => SideEffect::identity());
     }
 
     #[\Override]
-    public function removeAll(Specification $specification): void
+    public function removeAll(Specification $specification): Attempt
     {
-        $_ = ($this->http)(Request::of(
+        return ($this->http)(Request::of(
             self::url(
                 $this->url,
                 $this->path,
@@ -268,10 +271,11 @@ final class Repository implements RepositoryInterface, Effectful
             Content::ofString(Json::encode([
                 'query' => ($this->query)($specification),
             ])),
-        ))->match(
-            static fn() => null,
-            static fn() => throw new \RuntimeException('Unable to remove multiple aggregates'),
-        );
+        ))
+            ->attempt(
+                static fn() => new \RuntimeException('Unable to remove multiple aggregates'),
+            )
+            ->map(static fn() => SideEffect::identity());
     }
 
     #[\Override]

@@ -7,6 +7,8 @@
 - Requires `innmind/foundation:~1.1`
 - `Formal\ORM\Definition\Type\PointInTimeType\Format` has been renamed `Formats` and is now an enum
 - `Formal\ORM\Repository::effect()` now returns an `Innmind\Immutable\Attempt<Innmind\Immutable\SideEffect>`
+- `Formal\ORM\Repository::put()` now returns an `Innmind\Immutable\Attempt<Innmind\Immutable\SideEffect>`
+- `Formal\ORM\Repository::remove()` now returns an `Innmind\Immutable\Attempt<Innmind\Immutable\SideEffect>`
 
 ### Removed
 

@@ -44,7 +44,8 @@ final class SuccessfulTransaction implements Property
             function() use ($manager, $user, $assert, $initialSize) {
                 $manager
                     ->repository(User::class)
-                    ->put($user);
+                    ->put($user)
+                    ->unwrap();
                 $this->validate($assert, $manager, $user, $initialSize);
 
                 return Either::right(null);
