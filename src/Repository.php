@@ -16,7 +16,11 @@ use Formal\ORM\{
     Effect\Normalize as NormalizeEffect,
 };
 use Innmind\Specification\Specification;
-use Innmind\Immutable\Maybe;
+use Innmind\Immutable\{
+    Maybe,
+    Attempt,
+    SideEffect,
+};
 
 /**
  * @template T of object
@@ -138,8 +142,10 @@ final class Repository
 
     /**
      * @param T $aggregate
+     *
+     * @return Attempt<SideEffect>
      */
-    public function put(object $aggregate): void
+    public function put(object $aggregate): Attempt
     {
         if (!($this->inTransaction)()) {
             throw new \LogicException('Mutation outside of a transaction');
@@ -150,7 +156,7 @@ final class Repository
 
         $this->loaded->add($this, $now);
 
-        $_ = $then->match(
+        return $then->match(
             fn($then) => $this->adapter->update(
                 ($this->diff)($then, $now),
             ),
@@ -160,15 +166,22 @@ final class Repository
         );
     }
 
+    /**
+     * @return Attempt<SideEffect>
+     */
     public function effect(
         Effect|Effect\Provider $effect,
         ?Specification $specification = null,
-    ): void {
+    ): Attempt {
         if (!($this->inTransaction)()) {
+            // This exception is not returned as an Attempt error because this
+            // should never reach production code.
             throw new \LogicException('Mutation outside of a transaction');
         }
 
         if (!($this->adapter instanceof Adapter\Repository\Effectful)) {
+            // This exception is not returned as an Attempt error because this
+            // should never reach production code.
             throw new \LogicException('Effects not supported by the adapter');
         }
 
@@ -176,7 +189,7 @@ final class Repository
             $effect = $effect->toEffect();
         }
 
-        $this->adapter->effect(
+        return $this->adapter->effect(
             ($this->normalizeEffect)($effect),
             match ($specification) {
                 null => null,
@@ -187,23 +200,27 @@ final class Repository
 
     /**
      * @param Id<T>|Specification $criteria
+     *
+     * @return Attempt<SideEffect>
      */
-    public function remove(Id|Specification $criteria): void
+    public function remove(Id|Specification $criteria): Attempt
     {
         if (!($this->inTransaction)()) {
             throw new \LogicException('Mutation outside of a transaction');
         }
 
         if (!($criteria instanceof Specification)) {
-            $this->adapter->remove(
-                $this->id->normalize($criteria),
-            );
-            $this->loaded->remove($criteria);
+            return $this
+                ->adapter
+                ->remove($this->id->normalize($criteria))
+                ->map(function($sideEffect) use ($criteria) {
+                    $this->loaded->remove($criteria);
 
-            return;
+                    return $sideEffect;
+                });
         }
 
-        $this->adapter->removeAll(
+        return $this->adapter->removeAll(
             ($this->normalizeSpecification)($criteria),
         );
     }

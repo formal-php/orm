@@ -18,6 +18,8 @@ use Innmind\Filesystem\{
 };
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{
+    Attempt,
+    SideEffect,
     Maybe,
     Sequence,
     Predicate\Instance,
@@ -85,37 +87,41 @@ final class Repository implements RepositoryInterface, Effectful
     }
 
     #[\Override]
-    public function add(Aggregate $data): void
+    public function add(Aggregate $data): Attempt
     {
         $encoded = Directory::named($this->definition->name())->add(
             ($this->encode)($data),
         );
 
-        $this->transaction->mutate(
-            static fn($adapter) => $adapter->add($encoded),
-        );
+        return Attempt::of(
+            fn() => $this->transaction->mutate(
+                static fn($adapter) => $adapter->add($encoded)->unwrap(),
+            ),
+        )->map(static fn() => SideEffect::identity());
     }
 
     #[\Override]
-    public function update(Diff $data): void
+    public function update(Diff $data): Attempt
     {
         $encoded = Directory::named($this->definition->name())->add(
             ($this->encode)($data),
         );
 
-        $this->transaction->mutate(
-            static fn($adapter) => $adapter->add($encoded),
-        );
+        return Attempt::of(
+            fn() => $this->transaction->mutate(
+                static fn($adapter) => $adapter->add($encoded)->unwrap(),
+            ),
+        )->map(static fn() => SideEffect::identity());
     }
 
     #[\Override]
     public function effect(
         Effect\Normalized $effect,
         ?Specification $specification,
-    ): void {
+    ): Attempt {
         $effect = ($this->encodeEffect)($effect);
 
-        $this
+        return $this
             ->fetch(
                 $specification,
                 null,
@@ -123,25 +129,28 @@ final class Repository implements RepositoryInterface, Effectful
                 null,
             )
             ->map($effect)
-            ->foreach($this->update(...));
+            ->sink(SideEffect::identity())
+            ->attempt(fn($_, $data) => $this->update($data));
     }
 
     #[\Override]
-    public function remove(Aggregate\Id $id): void
+    public function remove(Aggregate\Id $id): Attempt
     {
         $mutated = Directory::named($this->definition->name())->remove(
             Name::of($id->value()),
         );
 
-        $this->transaction->mutate(
-            static fn($adapter) => $adapter->add($mutated),
-        );
+        return Attempt::of(
+            fn() => $this->transaction->mutate(
+                static fn($adapter) => $adapter->add($mutated)->unwrap(),
+            ),
+        )->map(static fn() => SideEffect::identity());
     }
 
     #[\Override]
-    public function removeAll(Specification $specification): void
+    public function removeAll(Specification $specification): Attempt
     {
-        $this
+        return $this
             ->fetch(
                 $specification,
                 null,
@@ -149,7 +158,8 @@ final class Repository implements RepositoryInterface, Effectful
                 null,
             )
             ->map(static fn($aggregate) => $aggregate->id())
-            ->foreach($this->remove(...));
+            ->sink(SideEffect::identity())
+            ->attempt(fn($_, $id) => $this->remove($id));
     }
 
     #[\Override]

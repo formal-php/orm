@@ -4,6 +4,10 @@ declare(strict_types = 1);
 namespace Formal\ORM\Adapter\Elasticsearch;
 
 use Formal\ORM\Adapter\Transaction as TransactionInterface;
+use Innmind\Immutable\{
+    Attempt,
+    SideEffect,
+};
 
 /**
  * @internal
@@ -23,33 +27,34 @@ final class Transaction implements TransactionInterface
     }
 
     #[\Override]
-    public function start(): void
+    public function start(): Attempt
     {
+        return Attempt::result(SideEffect::identity());
     }
 
     /**
      * @template R
      *
-     * @return callable(R): R
+     * @param R $value
+     *
+     * @return Attempt<R>
      */
     #[\Override]
-    public function commit(): callable
+    public function commit(mixed $value): Attempt
     {
-        return static function(mixed $value) {
-            return $value;
-        };
+        return Attempt::result($value);
     }
 
     /**
      * @template R
      *
-     * @return callable(R): R
+     * @param R $value
+     *
+     * @return Attempt<R>
      */
     #[\Override]
-    public function rollback(): callable
+    public function rollback(mixed $value): Attempt
     {
-        return static function(mixed $value) {
-            return $value;
-        };
+        return Attempt::result($value);
     }
 }

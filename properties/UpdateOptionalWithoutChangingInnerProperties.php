@@ -11,7 +11,7 @@ use Innmind\BlackBox\{
     Runner\Assert,
 };
 use Innmind\Immutable\Either;
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
+use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
  * @implements Property<Manager>
@@ -52,7 +52,7 @@ final class UpdateOptionalWithoutChangingInnerProperties implements Property
         $repository = $manager->repository(User::class);
         $manager->transactional(
             static function() use ($repository, $user) {
-                $repository->put($user);
+                $repository->put($user)->unwrap();
 
                 return Either::right(null);
             },
@@ -63,7 +63,7 @@ final class UpdateOptionalWithoutChangingInnerProperties implements Property
         $assert->not()->throws(
             static fn() => $manager->transactional(
                 static function() use ($repository, $user) {
-                    $repository->put($user);
+                    $repository->put($user)->unwrap();
 
                     return Either::right(null);
                 },

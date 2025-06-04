@@ -16,8 +16,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\Immutable\Either;
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
+use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
  * @implements Property<Manager>
@@ -50,9 +49,11 @@ final class MatchingCollectionOfEnums implements Property
         $guest = User::new($this->createdAt)->useRoles(Role::guest);
 
         $manager->transactional(
-            static fn() => Either::right($repository->put($admin))
-                ->map(static fn() => $repository->put($user))
-                ->map(static fn() => $repository->put($guest)),
+            static fn() => $repository
+                ->put($admin)
+                ->either()
+                ->flatMap(static fn() => $repository->put($user)->either())
+                ->flatMap(static fn() => $repository->put($guest)->either()),
         );
 
         $found = $repository

@@ -18,8 +18,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\Immutable\Either;
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
+use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
  * @implements Property<Manager>
@@ -59,18 +58,14 @@ final class EffectOptionalPropertiesOnAggregate implements Property
 
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
-        $current = $manager
-            ->repository(User::class)
-            ->size();
         $user = User::new($this->createdAt, $this->name)->changeBillingAddress(
             $this->address,
         );
         $manager->transactional(
-            static fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->put($user),
-            ),
+            static fn() => $manager
+                ->repository(User::class)
+                ->put($user)
+                ->either(),
         );
         $id = $user->id()->toString();
         unset($user); // to make sure there is no in memory cache somewhere
@@ -81,16 +76,15 @@ final class EffectOptionalPropertiesOnAggregate implements Property
         );
 
         $manager->transactional(
-            fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->effect(
-                        Effect::optional('billingAddress')->properties(
-                            Effect::property('value')->assign($this->newAddress),
-                        ),
-                        $specification,
+            fn() => $manager
+                ->repository(User::class)
+                ->effect(
+                    Effect::optional('billingAddress')->properties(
+                        Effect::property('value')->assign($this->newAddress),
                     ),
-            ),
+                    $specification,
+                )
+                ->either(),
         );
 
         $manager

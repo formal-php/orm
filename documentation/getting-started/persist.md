@@ -9,16 +9,12 @@ In order to persist an aggregate you need 3 things:
 Translated into code this gives:
 
 ```php
-use Innmind\Immutable\Either;
-
 $user = User::new('alice');
 $users = $orm->repository(User::class);
 $result = $orm->transactional(
-    static function() use ($repository, $user) {
-        $repository->put($user);
-
-        return Either::right(null);
-    };
+    static fn() $repository
+        ->put($user)
+        ->either(),
 );
 ```
 
@@ -33,14 +29,17 @@ The `$users` repository is the abstraction that _represent all users_ in the sto
 
     Use your best judgment to choose the best option for your need.
 
-`$orm->transactional()` will start a transaction via the storage used by the ORM. It will then call the callable you passed to it. If the returned value is an `Either` with a value on the right side it will commit the transaction and return the `Either` object as the `$result` variable. If the `Either` contains a value on the left side it will rollback the transaction and return the `Either` object as the `$result` variable. If the callable throws an exception it will rollback as well an rethrow the exception.
+`$orm->transactional()` will start a transaction via the storage used by the ORM. It will then call the callable you passed to it. If the returned value is an `Either` with a value on the right side it will commit the transaction and return the `Either` object as the `$result` variable. If the `Either` contains a value on the left side it will rollback the transaction and return the `Either` object as the `$result` variable. If the callable throws an exception it will rollback as well and rethrow the exception.
+
+??? note
+    The left side of the `$result` `Either` may also contain a `Formal\ORM\Adapter\Transaction\Failure` if the commit or rollback failed itself.
 
 `$repository->put()` will call the storage to persist the aggregate. At this point the ORM knows to create the aggregate because it's unaware before that of its `Id` object reference. After the `put` the ORM is now aware of this id and if you do another `put` it will try to update the same entry in the storage. (1)
 { .annotate }
 
 1. That's why you can't clone an `Id` object as the ORM would no longer know if it needs to insert or update the aggregate.
 
-Finally we return `Either::right(null)` to tell the ORM to commit the transaction. We use `null` because there's no business logic done here. But you could imagine returning a computed value instead, or return a business error object on the left side of the `Either`.
+Finally we return `->either()` to tell the ORM to commit the transaction. We use the `SideEffect` returned by the `->put()` call because there's no business logic done here. But you could imagine returning a computed value instead, or return a business error object on the left side of the `Either`.
 
 This example only persist one aggregate but you can persist as many as you want.
 

@@ -1,5 +1,25 @@
 # Changelog
 
+## 5.0.0 - 2025-06-04
+
+### Changed
+
+- Requires `innmind/foundation:~1.1`
+- `Formal\ORM\Definition\Type\PointInTimeType\Format` has been renamed `Formats` and is now an enum
+- `Formal\ORM\Repository::effect()` now returns an `Innmind\Immutable\Attempt<Innmind\Immutable\SideEffect>`
+- `Formal\ORM\Repository::put()` now returns an `Innmind\Immutable\Attempt<Innmind\Immutable\SideEffect>`
+- `Formal\ORM\Repository::remove()` now returns an `Innmind\Immutable\Attempt<Innmind\Immutable\SideEffect>`
+- `Formal\ORM\Adapter\Transaction` methods now uses `Innmind\Immutable\Attempt` to handle errors
+- `Formal\ORM\Manager::transactional()` may also return a `Formal\ORM\Adapter\Transaction\Failure` as a left value
+
+### Removed
+
+- `Formal\ORM\Definition\Type\PointInTimeType::of()`
+
+### Fixed
+
+- Float properties couldn't not be loaded from Elasticsearch
+
 ## 4.1.1 - 2025-05-02
 
 ### Fixed

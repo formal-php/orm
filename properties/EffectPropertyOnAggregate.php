@@ -18,8 +18,7 @@ use Innmind\Specification\{
     Comparator,
     Sign,
 };
-use Innmind\Immutable\Either;
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
+use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
  * @implements Property<Manager>
@@ -59,16 +58,12 @@ final class EffectPropertyOnAggregate implements Property
 
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
-        $current = $manager
-            ->repository(User::class)
-            ->size();
         $user = User::new($this->createdAt, $this->name);
         $manager->transactional(
-            static fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->put($user),
-            ),
+            static fn() => $manager
+                ->repository(User::class)
+                ->put($user)
+                ->either(),
         );
         $id = $user->id()->toString();
         unset($user); // to make sure there is no in memory cache somewhere
@@ -80,16 +75,15 @@ final class EffectPropertyOnAggregate implements Property
         );
 
         $manager->transactional(
-            fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->effect(
-                        Effect::property('name')->assign(
-                            $this->newName,
-                        ),
-                        $specification,
+            fn() => $manager
+                ->repository(User::class)
+                ->effect(
+                    Effect::property('name')->assign(
+                        $this->newName,
                     ),
-            ),
+                    $specification,
+                )
+                ->either(),
         );
 
         $manager

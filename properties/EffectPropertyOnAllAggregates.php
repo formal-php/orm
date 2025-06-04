@@ -13,8 +13,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\Immutable\Either;
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
+use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
  * @implements Property<Manager>
@@ -55,27 +54,22 @@ final class EffectPropertyOnAllAggregates implements Property
 
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
-        $current = $manager
-            ->repository(User::class)
-            ->size();
         $user = User::new($this->createdAt, $this->name);
         $manager->transactional(
-            static fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->put($user),
-            ),
+            static fn() => $manager
+                ->repository(User::class)
+                ->put($user)
+                ->either(),
         );
         unset($user); // to make sure there is no in memory cache somewhere
 
         $manager->transactional(
-            fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->effect(Effect::property('name')->assign(
-                        $this->newName,
-                    )),
-            ),
+            fn() => $manager
+                ->repository(User::class)
+                ->effect(Effect::property('name')->assign(
+                    $this->newName,
+                ))
+                ->either(),
         );
 
         $manager

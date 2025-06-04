@@ -9,7 +9,7 @@ use Formal\ORM\{
     Definition\Types,
 };
 use Innmind\TimeContinuum\{
-    Earth\Clock,
+    Clock,
     PointInTime,
 };
 use Fixtures\Formal\ORM\{
@@ -24,7 +24,7 @@ return static function() {
             $aggregates = Aggregates::of(Types::of(
                 Type\Support::class(
                     PointInTime::class,
-                    Type\PointInTimeType::new(new Clock),
+                    Type\PointInTimeType::new(Clock::live()),
                 ),
                 CreatedAtType::of(...),
             ));

@@ -3,9 +3,10 @@ declare(strict_types = 1);
 
 namespace Formal\ORM;
 
-use Formal\ORM\Definition\{
-    Aggregates,
-    Types,
+use Formal\ORM\{
+    Definition\Aggregates,
+    Definition\Types,
+    Adapter\Transaction\Failure,
 };
 use Formal\AccessLayer\Connection;
 use Innmind\Filesystem\Adapter as Storage;
@@ -86,7 +87,7 @@ final class Manager
      *
      * @param callable(): Either<E, R> $transaction
      *
-     * @return Either<E, R>
+     * @return Either<E|Failure, R>
      */
     public function transactional(callable $transaction): Either
     {
@@ -96,19 +97,33 @@ final class Manager
 
         $this->inTransaction = true;
         $transactionAdapter = $this->adapter->transaction();
-        $transactionAdapter->start();
 
         try {
             // We force unwrapping the Either monad to prevent leaving this
             // method with a deferred Either meaning the system would have an
             // opened transaction hanging around
-            return $transaction()
+            return $transactionAdapter
+                ->start()
+                ->either()
+                ->leftMap(Failure::of(...))
+                ->flatMap(static fn() => $transaction())
                 ->memoize()
-                ->map($transactionAdapter->commit())
-                ->leftMap($transactionAdapter->rollback());
+                ->flatMap(
+                    static fn($value) => $transactionAdapter
+                        ->commit($value)
+                        ->either()
+                        ->leftMap(Failure::of(...)),
+                )
+                ->leftMap(
+                    static fn($value) => $transactionAdapter
+                        ->rollback($value)
+                        ->match(
+                            static fn($value) => $value,
+                            Failure::of(...),
+                        ),
+                );
         } catch (\Throwable $e) {
-            /** @psalm-suppress InvalidArgument */
-            throw $transactionAdapter->rollback()($e);
+            throw $transactionAdapter->rollback($e)->unwrap();
         } finally {
             $this->inTransaction = false;
         }

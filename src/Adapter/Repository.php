@@ -12,6 +12,8 @@ use Innmind\Specification\Specification;
 use Innmind\Immutable\{
     Sequence,
     Maybe,
+    Attempt,
+    SideEffect,
 };
 
 /**
@@ -24,10 +26,26 @@ interface Repository
      */
     public function get(Aggregate\Id $id): Maybe;
     public function contains(Aggregate\Id $id): bool;
-    public function add(Aggregate $data): void;
-    public function update(Diff $data): void;
-    public function remove(Aggregate\Id $id): void;
-    public function removeAll(Specification $specification): void;
+
+    /**
+     * @return Attempt<SideEffect>
+     */
+    public function add(Aggregate $data): Attempt;
+
+    /**
+     * @return Attempt<SideEffect>
+     */
+    public function update(Diff $data): Attempt;
+
+    /**
+     * @return Attempt<SideEffect>
+     */
+    public function remove(Aggregate\Id $id): Attempt;
+
+    /**
+     * @return Attempt<SideEffect>
+     */
+    public function removeAll(Specification $specification): Attempt;
 
     /**
      * @param ?positive-int $drop

@@ -9,7 +9,11 @@ use Innmind\Filesystem\{
     Directory,
     Name,
 };
-use Innmind\Immutable\Predicate\Instance;
+use Innmind\Immutable\{
+    Attempt,
+    SideEffect,
+    Predicate\Instance,
+};
 
 /**
  * @internal
@@ -34,42 +38,46 @@ final class Transaction implements TransactionInterface
     }
 
     #[\Override]
-    public function start(): void
+    public function start(): Attempt
     {
         $this->notCommitted = $this->reset();
+
+        return Attempt::result(SideEffect::identity());
     }
 
     /**
      * @template R
      *
-     * @return callable(R): R
+     * @param R $value
+     *
+     * @return Attempt<R>
      */
     #[\Override]
-    public function commit(): callable
+    public function commit(mixed $value): Attempt
     {
-        return function(mixed $value) {
-            $this->notCommitted->root()->all()->foreach(
-                fn($file) => $this->committed->add($file),
-            );
-            $this->notCommitted = $this->reset();
-
-            return $value;
-        };
+        return $this
+            ->notCommitted
+            ->root()
+            ->all()
+            ->sink(SideEffect::identity())
+            ->attempt(fn($_, $file) => $this->committed->add($file))
+            ->map(fn() => $this->notCommitted = $this->reset())
+            ->map(static fn() => $value);
     }
 
     /**
      * @template R
      *
-     * @return callable(R): R
+     * @param R $value
+     *
+     * @return Attempt<R>
      */
     #[\Override]
-    public function rollback(): callable
+    public function rollback(mixed $value): Attempt
     {
-        return function(mixed $value) {
-            $this->notCommitted = $this->reset();
+        $this->notCommitted = $this->reset();
 
-            return $value;
-        };
+        return Attempt::result($value);
     }
 
     /**

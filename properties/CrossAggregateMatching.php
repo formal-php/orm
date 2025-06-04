@@ -24,7 +24,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
+use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
  * @implements Property<Manager>
@@ -74,10 +74,10 @@ final class CrossAggregateMatching implements Property
         $repository = $manager->repository(User::class);
         $manager->transactional(
             static function() use ($repository, $child1, $child2, $parent1, $parent2) {
-                $repository->put($child1);
-                $repository->put($child2);
-                $repository->put($parent1);
-                $repository->put($parent2);
+                $repository->put($child1)->unwrap();
+                $repository->put($child2)->unwrap();
+                $repository->put($parent1)->unwrap();
+                $repository->put($parent2)->unwrap();
 
                 return Either::right(null);
             },

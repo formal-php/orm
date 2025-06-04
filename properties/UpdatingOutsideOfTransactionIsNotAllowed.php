@@ -45,7 +45,8 @@ final class UpdatingOutsideOfTransactionIsNotAllowed implements Property
         $assert->throws(
             static fn() => $manager
                 ->repository(User::class)
-                ->put($user),
+                ->put($user)
+                ->unwrap(),
             \LogicException::class,
             'Mutation outside of a transaction',
         );

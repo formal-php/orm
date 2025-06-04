@@ -57,6 +57,7 @@ final class Id
      */
     public static function of(string $class, string $value): self
     {
+        /** @psalm-suppress ImpureMethodCall */
         if (!Uuid::isValid($value)) {
             throw new \LogicException("Invalid id value '$value'");
         }

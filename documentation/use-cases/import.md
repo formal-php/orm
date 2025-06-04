@@ -11,28 +11,26 @@ use Innmind\Filesystem\{
 };
 use Innmind\Url\Path;
 use Innmind\Immutable\{
-    Either,
+    SideEffect,
     Predicate\Instance,
 };
 
 $os = Factory::of();
 $repository = $orm->repository(User::class);
 $orm->transactional(
-    static function() use ($os, $repository) {
-        $_ = $os
-            ->filesystem()
-            ->mount(Path::of('somewhere'))
-            ->get(FileName::of('users.csv'))
-            ->keep(Instance::of(File::class))
-            ->toSequence()
-            ->flatMap(static fn(File $users) => $users->content()->lines())
-            ->map(static fn(Line $line) => User::new(Name::of(
-                $line->toString(), //(1)
-            )))
-            ->foreach($repository->put(...));
-
-        return Either::right(null);
-    },
+    static fn() => $os
+        ->filesystem()
+        ->mount(Path::of('somewhere'))
+        ->get(FileName::of('users.csv'))
+        ->keep(Instance::of(File::class))
+        ->toSequence()
+        ->flatMap(static fn(File $users) => $users->content()->lines())
+        ->map(static fn(Line $line) => User::new(Name::of(
+            $line->toString(), //(1)
+        )))
+        ->sink(SideEffect::identity())
+        ->attempt(static fn($_, User $user) => $repository->put($user))
+        ->either(),
 );
 ```
 
@@ -49,7 +47,7 @@ use Innmind\Filesystem\{
 };
 use Innmind\Url\Path;
 use Innmind\Immutable\{
-    Either,
+    SideEffect,
     Sequence,
     Predicate\Instance,
 };
@@ -70,11 +68,10 @@ $_ = $os
     ->chunk(100)
     ->foreach(
         static fn(Sequence $users) => $orm->transactional(
-            static function() use ($users, $repository) {
-                $users->foreach($repository->put(...));
-
-                return Either::right(null);
-            },
+            static fn() => $users
+                ->sink(SideEffect::identity())
+                ->attempt(static fn($_, User $user) => $repository->put($user))
+                ->either(),
         ),
     );
 ```

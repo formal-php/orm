@@ -46,7 +46,8 @@ final class RemoveUnknownAggregateDoesNothing implements Property
                     fn() => Either::right(
                         $manager
                             ->repository(User::class)
-                            ->remove(Id::of(User::class, $this->uuid)),
+                            ->remove(Id::of(User::class, $this->uuid))
+                            ->unwrap(),
                     ),
                 ),
             );

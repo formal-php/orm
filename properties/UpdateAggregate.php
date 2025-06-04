@@ -6,7 +6,7 @@ namespace Properties\Formal\ORM;
 use Formal\ORM\{
     Manager,
     Id,
-    Definition\Type\PointInTimeType\Format,
+    Definition\Type\PointInTimeType\Formats,
 };
 use Fixtures\Formal\ORM\{
     User,
@@ -17,9 +17,8 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\TimeContinuum\Earth\Timezone\UTC;
-use Innmind\Immutable\Either;
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
+use Innmind\TimeContinuum\Offset;
+use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
  * @implements Property<Manager>
@@ -65,7 +64,9 @@ final class UpdateAggregate implements Property
         $user = User::new($this->createdAt, $this->name);
 
         $manager->transactional(
-            static fn() => Either::right($repository->put($user)),
+            static fn() => $repository
+                ->put($user)
+                ->either(),
         );
 
         $id = $user->id()->toString();
@@ -83,11 +84,10 @@ final class UpdateAggregate implements Property
             ->rename($this->newName)
             ->useRole($this->role);
         $manager->transactional(
-            static fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->put($user),
-            ),
+            static fn() => $manager
+                ->repository(User::class)
+                ->put($user)
+                ->either(),
         );
 
         $reloaded = $repository
@@ -105,14 +105,14 @@ final class UpdateAggregate implements Property
             ->expected(
                 $this
                     ->createdAt
-                    ->changeTimezone(new UTC)
-                    ->format(new Format),
+                    ->changeOffset(Offset::utc())
+                    ->format(Formats::default),
             )
             ->same(
                 $reloaded
                     ->createdAt()
-                    ->changeTimezone(new UTC)
-                    ->format(new Format),
+                    ->changeOffset(Offset::utc())
+                    ->format(Formats::default),
             );
         $assert->same(
             $this->role,
@@ -126,9 +126,9 @@ final class UpdateAggregate implements Property
         $user = $reloaded->rename($this->name);
 
         $manager->transactional(
-            static fn() => Either::right(
-                $repository->put($user),
-            ),
+            static fn() => $repository
+                ->put($user)
+                ->either(),
         );
 
         $back = $repository

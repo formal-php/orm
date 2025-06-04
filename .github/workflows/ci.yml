@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        php-version: ['8.2', '8.3']
+        php-version: ['8.2', '8.3', '8.4']
         dependency-versions: ['lowest', 'highest']
         mariadb: ['10', '11']
         elasticsearch: ['7.17.18']
@@ -60,7 +60,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        php-version: ['8.2', '8.3']
+        php-version: ['8.2', '8.3', '8.4']
         dependency-versions: ['lowest', 'highest']
     name: 'Coverage'
     services:
@@ -113,7 +113,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ['8.2', '8.3']
+        php-version: ['8.2', '8.3', '8.4']
         dependency-versions: ['lowest', 'highest']
     name: 'Psalm'
     steps:

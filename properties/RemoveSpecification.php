@@ -19,7 +19,7 @@ use Innmind\BlackBox\{
     Runner\Assert,
 };
 use Innmind\Immutable\Either;
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
+use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
  * @implements Property<Manager>
@@ -67,8 +67,8 @@ final class RemoveSpecification implements Property
         $repository = $manager->repository(User::class);
         $manager->transactional(
             static function() use ($repository, $user1, $user2) {
-                $repository->put($user1);
-                $repository->put($user2);
+                $repository->put($user1)->unwrap();
+                $repository->put($user2)->unwrap();
 
                 return Either::right(null);
             },
@@ -83,7 +83,7 @@ final class RemoveSpecification implements Property
                 $repository->remove(Username::of(
                     Sign::equality,
                     Str::of($this->name1),
-                ));
+                ))->unwrap();
 
                 return Either::right(null);
             },

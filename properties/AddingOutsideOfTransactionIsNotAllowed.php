@@ -10,7 +10,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
+use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
  * @implements Property<Manager>
@@ -41,7 +41,8 @@ final class AddingOutsideOfTransactionIsNotAllowed implements Property
         $assert->throws(
             static fn() => $manager
                 ->repository(User::class)
-                ->put($user),
+                ->put($user)
+                ->unwrap(),
             \LogicException::class,
             'Mutation outside of a transaction',
         );

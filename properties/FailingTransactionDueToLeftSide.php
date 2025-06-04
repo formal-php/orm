@@ -11,7 +11,7 @@ use Innmind\BlackBox\{
     Runner\Assert,
 };
 use Innmind\Immutable\Either;
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime;
+use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
  * @implements Property<Manager>
@@ -44,10 +44,12 @@ final class FailingTransactionDueToLeftSide implements Property
             function() use ($manager, $user, $assert, $initialSize) {
                 $manager
                     ->repository(User::class)
-                    ->put($user);
+                    ->put($user)
+                    ->unwrap();
                 $manager
                     ->repository(User::class)
-                    ->remove($user->id());
+                    ->remove($user->id())
+                    ->unwrap();
                 $this->validate($assert, $manager, $user, $initialSize);
 
                 return Either::left(null);
