@@ -73,16 +73,15 @@ final class EffectChildAddOnAggregate implements Property
         );
 
         $manager->transactional(
-            fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->effect(
-                        Effect::collection('addresses')->add(
-                            User\Address::new($this->address),
-                        ),
-                        $specification,
+            fn() => $manager
+                ->repository(User::class)
+                ->effect(
+                    Effect::collection('addresses')->add(
+                        User\Address::new($this->address),
                     ),
-            ),
+                    $specification,
+                )
+                ->either(),
         );
 
         $manager

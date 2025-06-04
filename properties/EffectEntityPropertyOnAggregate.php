@@ -77,18 +77,17 @@ final class EffectEntityPropertyOnAggregate implements Property
         );
 
         $manager->transactional(
-            fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->effect(
-                        Effect::entity('mainAddress')->properties(
-                            Effect::property('value')->assign(
-                                $this->address,
-                            ),
+            fn() => $manager
+                ->repository(User::class)
+                ->effect(
+                    Effect::entity('mainAddress')->properties(
+                        Effect::property('value')->assign(
+                            $this->address,
                         ),
-                        $specification,
                     ),
-            ),
+                    $specification,
+                )
+                ->either(),
         );
 
         $manager

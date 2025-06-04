@@ -66,13 +66,12 @@ final class EffectPropertyOnAllAggregates implements Property
         unset($user); // to make sure there is no in memory cache somewhere
 
         $manager->transactional(
-            fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->effect(Effect::property('name')->assign(
-                        $this->newName,
-                    )),
-            ),
+            fn() => $manager
+                ->repository(User::class)
+                ->effect(Effect::property('name')->assign(
+                    $this->newName,
+                ))
+                ->either(),
         );
 
         $manager

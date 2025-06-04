@@ -28,6 +28,8 @@ use Innmind\Specification\{
 use Innmind\Immutable\{
     Sequence,
     Maybe,
+    Attempt,
+    SideEffect,
 };
 
 /**
@@ -127,8 +129,10 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching, E
     public function effect(
         Effect\Normalized $effect,
         ?Specification $specification,
-    ): void {
-        ($this->connection)($this->mainTable->effect($effect, $specification))->memoize();
+    ): Attempt {
+        return Attempt::of(
+            fn() => ($this->connection)($this->mainTable->effect($effect, $specification))->memoize(),
+        )->map(static fn() => SideEffect::identity());
     }
 
     #[\Override]

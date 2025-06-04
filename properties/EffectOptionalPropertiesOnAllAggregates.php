@@ -68,15 +68,14 @@ final class EffectOptionalPropertiesOnAllAggregates implements Property
         unset($user); // to make sure there is no in memory cache somewhere
 
         $manager->transactional(
-            fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->effect(
-                        Effect::optional('billingAddress')->properties(
-                            Effect::property('value')->assign($this->newAddress),
-                        ),
+            fn() => $manager
+                ->repository(User::class)
+                ->effect(
+                    Effect::optional('billingAddress')->properties(
+                        Effect::property('value')->assign($this->newAddress),
                     ),
-            ),
+                )
+                ->either(),
         );
 
         $manager

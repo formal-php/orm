@@ -77,16 +77,15 @@ final class EffectPropertyOnAggregate implements Property
         );
 
         $manager->transactional(
-            fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->effect(
-                        Effect::property('name')->assign(
-                            $this->newName,
-                        ),
-                        $specification,
+            fn() => $manager
+                ->repository(User::class)
+                ->effect(
+                    Effect::property('name')->assign(
+                        $this->newName,
                     ),
-            ),
+                    $specification,
+                )
+                ->either(),
         );
 
         $manager

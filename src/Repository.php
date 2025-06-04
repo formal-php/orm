@@ -16,7 +16,11 @@ use Formal\ORM\{
     Effect\Normalize as NormalizeEffect,
 };
 use Innmind\Specification\Specification;
-use Innmind\Immutable\Maybe;
+use Innmind\Immutable\{
+    Maybe,
+    Attempt,
+    SideEffect,
+};
 
 /**
  * @template T of object
@@ -160,15 +164,22 @@ final class Repository
         );
     }
 
+    /**
+     * @return Attempt<SideEffect>
+     */
     public function effect(
         Effect|Effect\Provider $effect,
         ?Specification $specification = null,
-    ): void {
+    ): Attempt {
         if (!($this->inTransaction)()) {
+            // This exception is not returned as an Attempt error because this
+            // should never reach production code.
             throw new \LogicException('Mutation outside of a transaction');
         }
 
         if (!($this->adapter instanceof Adapter\Repository\Effectful)) {
+            // This exception is not returned as an Attempt error because this
+            // should never reach production code.
             throw new \LogicException('Effects not supported by the adapter');
         }
 
@@ -176,7 +187,7 @@ final class Repository
             $effect = $effect->toEffect();
         }
 
-        $this->adapter->effect(
+        return $this->adapter->effect(
             ($this->normalizeEffect)($effect),
             match ($specification) {
                 null => null,

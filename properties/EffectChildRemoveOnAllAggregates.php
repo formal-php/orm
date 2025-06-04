@@ -78,15 +78,14 @@ final class EffectChildRemoveOnAllAggregates implements Property
 
         $address = $this->prefix.$this->suffix;
         $manager->transactional(
-            static fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->effect(
-                        Effect::collection('addresses')->add(
-                            User\Address::new($address),
-                        ),
+            static fn() => $manager
+                ->repository(User::class)
+                ->effect(
+                    Effect::collection('addresses')->add(
+                        User\Address::new($address),
                     ),
-            ),
+                )
+                ->either(),
         );
 
         $manager
@@ -112,19 +111,18 @@ final class EffectChildRemoveOnAllAggregates implements Property
         };
 
         $manager->transactional(
-            fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->effect(
-                        Effect::collection('addresses')->remove(
-                            Comparator\Property::of(
-                                'value',
-                                $this->sign,
-                                $value,
-                            ),
+            fn() => $manager
+                ->repository(User::class)
+                ->effect(
+                    Effect::collection('addresses')->remove(
+                        Comparator\Property::of(
+                            'value',
+                            $this->sign,
+                            $value,
                         ),
                     ),
-            ),
+                )
+                ->either(),
         );
 
         $manager

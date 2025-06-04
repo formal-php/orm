@@ -18,6 +18,8 @@ use Innmind\Filesystem\{
 };
 use Innmind\Specification\Specification;
 use Innmind\Immutable\{
+    Attempt,
+    SideEffect,
     Maybe,
     Sequence,
     Predicate\Instance,
@@ -112,10 +114,10 @@ final class Repository implements RepositoryInterface, Effectful
     public function effect(
         Effect\Normalized $effect,
         ?Specification $specification,
-    ): void {
+    ): Attempt {
         $effect = ($this->encodeEffect)($effect);
 
-        $this
+        return $this
             ->fetch(
                 $specification,
                 null,
@@ -123,7 +125,10 @@ final class Repository implements RepositoryInterface, Effectful
                 null,
             )
             ->map($effect)
-            ->foreach($this->update(...));
+            ->sink(SideEffect::identity())
+            ->attempt(fn($_, $data) => Attempt::of(
+                fn() => $this->update($data),
+            )->map(static fn() => SideEffect::identity()));
     }
 
     #[\Override]

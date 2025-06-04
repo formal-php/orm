@@ -34,6 +34,8 @@ use Innmind\Immutable\{
     Sequence,
     Maybe,
     Map,
+    Attempt,
+    SideEffect,
 };
 
 /**
@@ -192,17 +194,18 @@ final class Repository implements RepositoryInterface, Effectful
                 ContentType::of(new MediaType('application', 'json')),
             ),
             ($this->encode)($data),
-        ))->match(
-            static fn() => null,
-            static fn() => throw new \RuntimeException('Unable to update the aggregate'),
-        );
+        ))
+            ->attempt(
+                static fn() => new \RuntimeException('Unable to update the aggregate'),
+            )
+            ->unwrap();
     }
 
     #[\Override]
     public function effect(
         Effect\Normalized $effect,
         ?Specification $specification,
-    ): void {
+    ): Attempt {
         $payload = [
             'script' => ($this->script)($effect),
         ];
@@ -211,7 +214,7 @@ final class Repository implements RepositoryInterface, Effectful
             $payload['query'] = ($this->query)($specification);
         }
 
-        $_ = ($this->http)(Request::of(
+        return ($this->http)(Request::of(
             self::url(
                 $this->url,
                 $this->path,
@@ -223,10 +226,11 @@ final class Repository implements RepositoryInterface, Effectful
                 ContentType::of(new MediaType('application', 'json')),
             ),
             Content::ofString(Json::encode($payload)),
-        ))->match(
-            static fn() => null,
-            static fn() => throw new \RuntimeException('Unable to update multiple aggregates'),
-        );
+        ))
+            ->attempt(
+                static fn() => new \RuntimeException('Unable to update multiple aggregates'),
+            )
+            ->map(static fn() => SideEffect::identity());
     }
 
     #[\Override]

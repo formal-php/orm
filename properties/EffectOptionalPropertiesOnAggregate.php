@@ -78,16 +78,15 @@ final class EffectOptionalPropertiesOnAggregate implements Property
         );
 
         $manager->transactional(
-            fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->effect(
-                        Effect::optional('billingAddress')->properties(
-                            Effect::property('value')->assign($this->newAddress),
-                        ),
-                        $specification,
+            fn() => $manager
+                ->repository(User::class)
+                ->effect(
+                    Effect::optional('billingAddress')->properties(
+                        Effect::property('value')->assign($this->newAddress),
                     ),
-            ),
+                    $specification,
+                )
+                ->either(),
         );
 
         $manager

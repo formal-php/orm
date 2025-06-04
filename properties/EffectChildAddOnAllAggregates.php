@@ -61,15 +61,14 @@ final class EffectChildAddOnAllAggregates implements Property
         unset($user); // to make sure there is no in memory cache somewhere
 
         $manager->transactional(
-            fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->effect(
-                        Effect::collection('addresses')->add(
-                            User\Address::new($this->address),
-                        ),
+            fn() => $manager
+                ->repository(User::class)
+                ->effect(
+                    Effect::collection('addresses')->add(
+                        User\Address::new($this->address),
                     ),
-            ),
+                )
+                ->either(),
         );
 
         $manager

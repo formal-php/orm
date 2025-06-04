@@ -64,13 +64,10 @@ final class EffectOptionalNothingOnAllAggregates implements Property
         unset($user); // to make sure there is no in memory cache somewhere
 
         $manager->transactional(
-            static fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->effect(
-                        Effect::optional('billingAddress')->nothing(),
-                    ),
-            ),
+            static fn() => $manager
+                ->repository(User::class)
+                ->effect(Effect::optional('billingAddress')->nothing())
+                ->either(),
         );
 
         $manager
