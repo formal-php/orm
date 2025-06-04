@@ -47,14 +47,16 @@ final class Transaction implements TransactionInterface
     /**
      * @template R
      *
-     * @return callable(R): Attempt<R>
+     * @param R $value
+     *
+     * @return Attempt<R>
      */
     #[\Override]
-    public function commit(): callable
+    public function commit(mixed $value): Attempt
     {
         $connection = $this->connection;
 
-        return static fn(mixed $value) => Attempt::of(
+        return Attempt::of(
             // memoize to force unwrap the monad
             static fn() =>  $connection(new Commit)->memoize(),
         )->map(static fn() => $value);
@@ -63,14 +65,16 @@ final class Transaction implements TransactionInterface
     /**
      * @template R
      *
-     * @return callable(R): Attempt<R>
+     * @param R $value
+     *
+     * @return Attempt<R>
      */
     #[\Override]
-    public function rollback(): callable
+    public function rollback(mixed $value): Attempt
     {
         $connection = $this->connection;
 
-        return static fn(mixed $value) => Attempt::of(
+        return Attempt::of(
             // memoize to force unwrap the monad
             static fn() =>  $connection(new Rollback)->memoize(),
         )->map(static fn() => $value);

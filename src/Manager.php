@@ -3,16 +3,14 @@ declare(strict_types = 1);
 
 namespace Formal\ORM;
 
-use Formal\ORM\Definition\{
-    Aggregates,
-    Types,
+use Formal\ORM\{
+    Definition\Aggregates,
+    Definition\Types,
+    Adapter\Transaction\Failure,
 };
 use Formal\AccessLayer\Connection;
 use Innmind\Filesystem\Adapter as Storage;
-use Innmind\Immutable\{
-    Attempt,
-    Either,
-};
+use Innmind\Immutable\Either;
 
 final class Manager
 {
@@ -89,7 +87,7 @@ final class Manager
      *
      * @param callable(): Either<E, R> $transaction
      *
-     * @return Either<E, R>
+     * @return Either<E|Failure, R>
      */
     public function transactional(callable $transaction): Either
     {
@@ -100,27 +98,29 @@ final class Manager
         $this->inTransaction = true;
         $transactionAdapter = $this->adapter->transaction();
         $transactionAdapter->start()->unwrap();
-        /** @var callable(R): Attempt<R> */
-        $commit = $transactionAdapter->commit();
-        /** @var callable(E): Attempt<E> */
-        $rollback = $transactionAdapter->rollback();
 
         try {
             // We force unwrapping the Either monad to prevent leaving this
             // method with a deferred Either meaning the system would have an
             // opened transaction hanging around
-            /** @psalm-suppress MixedArgument */
             return $transaction()
                 ->memoize()
-                ->map(
-                    static fn($value) => $commit($value)->unwrap(),
+                ->flatMap(
+                    static fn($value) => $transactionAdapter
+                        ->commit($value)
+                        ->either()
+                        ->leftMap(Failure::of(...)),
                 )
                 ->leftMap(
-                    static fn($value) => $rollback($value)->unwrap(),
+                    static fn($value) => $transactionAdapter
+                        ->rollback($value)
+                        ->match(
+                            static fn($value) => $value,
+                            Failure::of(...),
+                        ),
                 );
         } catch (\Throwable $e) {
-            /** @psalm-suppress InvalidArgument */
-            throw $transactionAdapter->rollback()($e)->unwrap();
+            throw $transactionAdapter->rollback($e)->unwrap();
         } finally {
             $this->inTransaction = false;
         }

@@ -18,14 +18,18 @@ interface Transaction
     /**
      * @template R
      *
-     * @return callable(R): Attempt<R>
+     * @param R $value
+     *
+     * @return Attempt<R>
      */
-    public function commit(): callable;
+    public function commit(mixed $value): Attempt;
 
     /**
      * @template R
      *
-     * @return callable(R): Attempt<R>
+     * @param R $value
+     *
+     * @return Attempt<R>
      */
-    public function rollback(): callable;
+    public function rollback(mixed $value): Attempt;
 }

@@ -35,22 +35,26 @@ final class Transaction implements TransactionInterface
     /**
      * @template R
      *
-     * @return callable(R): Attempt<R>
+     * @param R $value
+     *
+     * @return Attempt<R>
      */
     #[\Override]
-    public function commit(): callable
+    public function commit(mixed $value): Attempt
     {
-        return static fn(mixed $value) => Attempt::result($value);
+        return Attempt::result($value);
     }
 
     /**
      * @template R
      *
-     * @return callable(R): Attempt<R>
+     * @param R $value
+     *
+     * @return Attempt<R>
      */
     #[\Override]
-    public function rollback(): callable
+    public function rollback(mixed $value): Attempt
     {
-        return static fn(mixed $value) => Attempt::result($value);
+        return Attempt::result($value);
     }
 }

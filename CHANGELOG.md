@@ -10,6 +10,7 @@
 - `Formal\ORM\Repository::put()` now returns an `Innmind\Immutable\Attempt<Innmind\Immutable\SideEffect>`
 - `Formal\ORM\Repository::remove()` now returns an `Innmind\Immutable\Attempt<Innmind\Immutable\SideEffect>`
 - `Formal\ORM\Adapter\Transaction` methods now uses `Innmind\Immutable\Attempt` to handle errors
+- `Formal\ORM\Manager::transactional()` may also return a `Formal\ORM\Adapter\Transaction\Failure` as a left value
 
 ### Removed
 
