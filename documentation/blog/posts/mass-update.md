@@ -12,11 +12,15 @@ In the latest release Formal now offers a way to update multiple aggregates dire
 Until now to update multiple aggregates you'd have to fetch all of them, update each one and then put them back in the repository. It would look something like this:
 
 ```php
+use Innmind\Immutable\SideEffect;
+
 $users = $orm->repository(User::class);
 $users
     ->all() #(1)
     ->map(static fn(User $user): User => $user->rename('Alice'))
-    ->foreach($users->put(...)); #(2)
+    ->sink(SideEffect::identity())
+    ->attempt(static fn($_, User $user) => $users->put($user))
+    ->unwrap(); #(2)
 ```
 
 1. or `->matching()` with some [specification](../../specifications/index.md)

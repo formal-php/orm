@@ -18,7 +18,6 @@ use Innmind\Specification\{
     Comparator,
     Sign,
 };
-use Innmind\Immutable\Either;
 use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
@@ -61,11 +60,10 @@ final class EffectEntityPropertyOnAggregate implements Property
     {
         $user = User::new($this->createdAt, $this->name);
         $manager->transactional(
-            static fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->put($user),
-            ),
+            static fn() => $manager
+                ->repository(User::class)
+                ->put($user)
+                ->either(),
         );
         $id = $user->id()->toString();
         unset($user); // to make sure there is no in memory cache somewhere
@@ -77,18 +75,17 @@ final class EffectEntityPropertyOnAggregate implements Property
         );
 
         $manager->transactional(
-            fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->effect(
-                        Effect::entity('mainAddress')->properties(
-                            Effect::property('value')->assign(
-                                $this->address,
-                            ),
+            fn() => $manager
+                ->repository(User::class)
+                ->effect(
+                    Effect::entity('mainAddress')->properties(
+                        Effect::property('value')->assign(
+                            $this->address,
                         ),
-                        $specification,
                     ),
-            ),
+                    $specification,
+                )
+                ->either(),
         );
 
         $manager

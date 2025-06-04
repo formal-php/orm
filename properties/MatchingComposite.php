@@ -71,9 +71,9 @@ final class MatchingComposite implements Property
         $repository = $manager->repository(User::class);
         $manager->transactional(
             static function() use ($repository, $user1, $user2, $user3) {
-                $repository->put($user1);
-                $repository->put($user2);
-                $repository->put($user3);
+                $repository->put($user1)->unwrap();
+                $repository->put($user2)->unwrap();
+                $repository->put($user3)->unwrap();
 
                 return Either::right(null);
             },

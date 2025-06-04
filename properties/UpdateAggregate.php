@@ -18,7 +18,6 @@ use Innmind\BlackBox\{
     Runner\Assert,
 };
 use Innmind\TimeContinuum\Offset;
-use Innmind\Immutable\Either;
 use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
@@ -65,7 +64,9 @@ final class UpdateAggregate implements Property
         $user = User::new($this->createdAt, $this->name);
 
         $manager->transactional(
-            static fn() => Either::right($repository->put($user)),
+            static fn() => $repository
+                ->put($user)
+                ->either(),
         );
 
         $id = $user->id()->toString();
@@ -83,11 +84,10 @@ final class UpdateAggregate implements Property
             ->rename($this->newName)
             ->useRole($this->role);
         $manager->transactional(
-            static fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->put($user),
-            ),
+            static fn() => $manager
+                ->repository(User::class)
+                ->put($user)
+                ->either(),
         );
 
         $reloaded = $repository
@@ -126,9 +126,9 @@ final class UpdateAggregate implements Property
         $user = $reloaded->rename($this->name);
 
         $manager->transactional(
-            static fn() => Either::right(
-                $repository->put($user),
-            ),
+            static fn() => $repository
+                ->put($user)
+                ->either(),
         );
 
         $back = $repository

@@ -13,7 +13,6 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\Immutable\Either;
 use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
@@ -54,7 +53,7 @@ final class IncrementallyAddElementsToACollection implements Property
         $user = User::new($this->createdAt);
 
         $manager->transactional(
-            static fn() => Either::right($repository->put($user)),
+            static fn() => $repository->put($user)->either(),
         );
         $id = $user->id()->toString();
         unset($user); // to make sure there is no in memory cache somewhere
@@ -73,9 +72,10 @@ final class IncrementallyAddElementsToACollection implements Property
                         $user->addresses(),
                         'Previous addresses have been lost',
                     );
-                    $repository->put($user->addAddress($address));
 
-                    return Either::right(null);
+                    return $repository
+                        ->put($user->addAddress($address))
+                        ->either();
                 },
             );
         }

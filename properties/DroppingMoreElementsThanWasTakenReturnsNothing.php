@@ -10,7 +10,6 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\Immutable\Either;
 use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
@@ -59,11 +58,7 @@ final class DroppingMoreElementsThanWasTakenReturnsNothing implements Property
 
         $repository = $manager->repository(User::class);
         $manager->transactional(
-            static function() use ($repository, $user) {
-                $repository->put($user);
-
-                return Either::right(null);
-            },
+            static fn() => $repository->put($user)->either(),
         );
 
         $found = $repository

@@ -9,19 +9,15 @@ In order to remove an aggregate you need 3 things:
 Translated into code this gives:
 
 ```php
-use Innmind\Immutable\Either;
-
 $users = $orm->repository(User::class);
 $result = $orm->transactional(
-    static function() use ($repository) {
-        $repository->remove(Id::of(User::class, 'alice-uuid'));
-
-        return Either::right(null);
-    };
+    static fn() => $repository
+        ->remove(Id::of(User::class, 'alice-uuid'))
+        ->either(),
 );
 ```
 
-If alice exists in the storage it will remove it and if it doesn't then nothing will happen. And like for [persisting](persist.md) the `Either::right(null)` will indicate to `transactional` to commit the transaction.
+If alice exists in the storage it will remove it and if it doesn't then nothing will happen. And like for [persisting](persist.md) the `->either()` will indicate to `transactional` to commit the transaction.
 
 ??? note
     If you want to remove multiple aggregates at once corresponding to a set of criteria head to the [Specification chapter](../specifications/index.md).

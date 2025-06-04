@@ -3,21 +3,33 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Adapter;
 
+use Innmind\Immutable\{
+    Attempt,
+    SideEffect,
+};
+
 interface Transaction
 {
-    public function start(): void;
+    /**
+     * @return Attempt<SideEffect>
+     */
+    public function start(): Attempt;
 
     /**
      * @template R
      *
-     * @return callable(R): R
+     * @param R $value
+     *
+     * @return Attempt<R>
      */
-    public function commit(): callable;
+    public function commit(mixed $value): Attempt;
 
     /**
      * @template R
      *
-     * @return callable(R): R
+     * @param R $value
+     *
+     * @return Attempt<R>
      */
-    public function rollback(): callable;
+    public function rollback(mixed $value): Attempt;
 }

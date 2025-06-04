@@ -87,7 +87,7 @@ use Formal\ORM\{
 };
 use Innmind\OperatingSystem\Factory;
 use Innmind\Url\Url;
-use Innmind\Immutable\Either;
+use Innmind\Immutable\SideEffect;
 
 $os = Factory::build();
 $sql = Manager::sql(
@@ -115,11 +115,10 @@ $searchableProducts = $sql
 
 $repository = $elasticsearch->repository(Search\Product::class);
 $elasticsearch->transactional(
-    static function() use ($repository, $searchableProducts) {
-        $_ = $searchableProducts->foreach($repository->put(...));
-
-        return Either::right(null);
-    },
+    static fn() => $searchableProducts
+        ->sink(SideEffect::identity())
+        ->attempt(static fn($_, Search\Product $product) => $repository->put($product))
+        ->either(),
 );
 ```
 

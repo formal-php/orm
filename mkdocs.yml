@@ -46,6 +46,8 @@ nav:
   - Benchmark: benchmark.md
   - Blog:
     - blog/index.md
+  - Upgrade:
+    - upgrade/v4-to-v5.md
 
 theme:
   name: material

@@ -15,7 +15,6 @@ use Innmind\BlackBox\{
     Runner\Assert,
 };
 use Innmind\TimeContinuum\Offset;
-use Innmind\Immutable\Either;
 use Fixtures\Innmind\TimeContinuum\PointInTime;
 
 /**
@@ -55,7 +54,9 @@ final class UpdateEntity implements Property
         $user = User::new($this->createdAt, $this->name);
 
         $manager->transactional(
-            static fn() => Either::right($repository->put($user)),
+            static fn() => $repository
+                ->put($user)
+                ->either(),
         );
         $id = $user->id()->toString();
         unset($user); // to make sure there is no in memory cache somewhere
@@ -71,7 +72,9 @@ final class UpdateEntity implements Property
         $user = $loaded->changeAddress($this->address);
 
         $manager->transactional(
-            static fn() => Either::right($repository->put($user)),
+            static fn() => $repository
+                ->put($user)
+                ->either(),
         );
 
         $reloaded = $repository

@@ -45,7 +45,8 @@ final class RemovingOutsideOfTransactionIsNotAllowed implements Property
         $assert->throws(
             static fn() => $manager
                 ->repository(User::class)
-                ->remove($user->id()),
+                ->remove($user->id())
+                ->unwrap(),
             \LogicException::class,
             'Mutation outside of a transaction',
         );

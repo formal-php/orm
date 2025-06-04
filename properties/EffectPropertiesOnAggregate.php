@@ -19,7 +19,6 @@ use Innmind\Specification\{
     Sign,
 };
 use Innmind\Immutable\{
-    Either,
     Maybe,
     Str,
 };
@@ -65,11 +64,10 @@ final class EffectPropertiesOnAggregate implements Property
     {
         $user = User::new($this->createdAt, $this->name);
         $manager->transactional(
-            static fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->put($user),
-            ),
+            static fn() => $manager
+                ->repository(User::class)
+                ->put($user)
+                ->either(),
         );
         $id = $user->id()->toString();
         unset($user); // to make sure there is no in memory cache somewhere
@@ -81,20 +79,19 @@ final class EffectPropertiesOnAggregate implements Property
         );
 
         $manager->transactional(
-            fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->effect(
-                        Effect::property('name')
-                            ->assign($this->newName)
-                            ->and(
-                                Effect::property('nameStr')->assign(
-                                    Maybe::just(Str::of($this->newName)),
-                                ),
+            fn() => $manager
+                ->repository(User::class)
+                ->effect(
+                    Effect::property('name')
+                        ->assign($this->newName)
+                        ->and(
+                            Effect::property('nameStr')->assign(
+                                Maybe::just(Str::of($this->newName)),
                             ),
-                        $specification,
-                    ),
-            ),
+                        ),
+                    $specification,
+                )
+                ->either(),
         );
 
         $manager

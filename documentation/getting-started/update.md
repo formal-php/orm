@@ -59,7 +59,7 @@ $orm->transactional(
             ->get(Id::of(User::class, 'alice-uuid'))
             ->map(static fn(User $alice) => $alice->rename('bob'))
             ->match(
-                static fn(User $bob) => $repository->put($bob),
+                static fn(User $bob) => $repository->put($bob)->unwrap(),
                 static fn() => null,
             );
 
@@ -88,7 +88,8 @@ And like for persisting an aggregate we return `Either::right(null)` to commit t
         static fn() => $repository
             ->get(Id::of(User::class, 'alice-uuid'))
             ->map(static fn(User $alice) => $alice->rename('bob'))
-            ->map($repository->put(...))
+            ->attempt(static fn() => new \Exception('User not found'))
+            ->flatMap($repository->put(...))
             ->either(),
         },
     );
@@ -96,8 +97,8 @@ And like for persisting an aggregate we return `Either::right(null)` to commit t
 
     This does the same thing except one thing. If alice doesn't exist it will rollback the transaction instead of committing it, but this doesn't change the end result.
 
-    `->map($repository->put(...))` this will call the `put` method if there was an alice that has been renamed to bob on the line before. 
+    `->flatMap($repository->put(...))` this will call the `put` method if there was an alice that has been renamed to bob on the line before.
 
-    `->either()` this transforms the `Maybe<void>` to an `Either<null, void>`. The `void` type is the return type of the `put` method and the `null` is when alice doesn't exist. That's why we rollback if alice doesn't exist, the returned `Either` contains `null` on the left side.
+    `->either()` this transforms the `Attempt<SideEffect>` to an `Either<\Throwable, SideEffect>`. That's why we rollback if alice doesn't exist, the returned `Either` contains `\Throwable` on the left side.
 
     Also note that all this is lazy evaluated, the `get` and eventually `put` occur when `transactional` checks the `Either` returned by the callable.

@@ -55,6 +55,6 @@ This simple example will retrieve from the database `50` elements (from index `1
 
 ## Documentation
 
-Full documentation available in the [here](https://formal-php.github.io/orm/).
+Full documentation available [here](https://formal-php.github.io/orm/).
 
 [^1]: Object Relational Mapping

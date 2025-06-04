@@ -10,7 +10,6 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\Immutable\Either;
 
 /**
  * @implements Property<Manager>
@@ -39,17 +38,17 @@ final class StreamUpdate implements Property
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
         $manager->transactional(
-            fn() => Either::right(
-                $manager
-                    ->repository(User::class)
-                    ->all()
-                    ->map(fn($user) => $user->rename($this->name))
-                    ->foreach(
-                        $manager
-                            ->repository(User::class)
-                            ->put(...),
-                    ),
-            ),
+            fn() => $manager
+                ->repository(User::class)
+                ->all()
+                ->map(fn($user) => $user->rename($this->name))
+                ->sink(null)
+                ->attempt(
+                    static fn($_, $user) => $manager
+                        ->repository(User::class)
+                        ->put($user),
+                )
+                ->either(),
         );
 
         $_ = $manager
