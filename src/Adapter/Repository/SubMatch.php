@@ -9,11 +9,8 @@ namespace Formal\ORM\Adapter\Repository;
  */
 final class SubMatch
 {
-    private mixed $value;
-
-    private function __construct(mixed $value)
+    private function __construct(private mixed $value)
     {
-        $this->value = $value;
     }
 
     /**

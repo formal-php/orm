@@ -12,20 +12,16 @@ use Formal\ORM\Definition\Type;
  */
 final class Property
 {
-    /** @var non-empty-string */
-    private string $name;
-    /** @var Type<K> */
-    private Type $type;
-
     /**
      * @param class-string<T> $class
      * @param non-empty-string $name
      * @param Type<K> $type
      */
-    private function __construct(string $class, string $name, Type $type)
-    {
-        $this->name = $name;
-        $this->type = $type;
+    private function __construct(
+        string $class, // only here for the template
+        private string $name,
+        private Type $type,
+    ) {
     }
 
     /**

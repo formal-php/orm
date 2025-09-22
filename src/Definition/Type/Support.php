@@ -19,17 +19,13 @@ use Innmind\Immutable\Maybe;
  */
 final class Support
 {
-    /** @var class-string */
-    private string $class;
-    private Type $via;
-
     /**
      * @param class-string $class
      */
-    private function __construct(string $class, Type $via)
-    {
-        $this->class = $class;
-        $this->via = $via;
+    private function __construct(
+        private string $class,
+        private Type $via,
+    ) {
     }
 
     /**

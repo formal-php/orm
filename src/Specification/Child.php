@@ -15,17 +15,13 @@ final class Child implements Specification
 {
     use Composable;
 
-    /** @var non-empty-string */
-    private string $collection;
-    private Specification $specification;
-
     /**
      * @param non-empty-string $collection
      */
-    private function __construct(string $collection, Specification $specification)
-    {
-        $this->collection = $collection;
-        $this->specification = $specification;
+    private function __construct(
+        private string $collection,
+        private Specification $specification,
+    ) {
     }
 
     /**

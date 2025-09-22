@@ -11,16 +11,14 @@ use Ramsey\Uuid\Uuid;
  */
 final class Id
 {
-    /** @var non-empty-string */
-    private string $value;
-
     /**
      * @param class-string<T> $class
      * @param non-empty-string $value
      */
-    private function __construct(string $class, string $value)
-    {
-        $this->value = $value;
+    private function __construct(
+        string $class, // only here for the template
+        private string $value,
+    ) {
     }
 
     public function __clone()

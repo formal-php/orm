@@ -22,18 +22,11 @@ use Innmind\Immutable\{
 
 final class DropIndex
 {
-    private Transport $http;
-    private Aggregates $aggregates;
-    private Url $url;
-
     private function __construct(
-        Transport $http,
-        Aggregates $aggregates,
-        Url $url,
+        private Transport $http,
+        private Aggregates $aggregates,
+        private Url $url,
     ) {
-        $this->http = $http;
-        $this->aggregates = $aggregates;
-        $this->url = $url;
     }
 
     /**

@@ -53,7 +53,7 @@ final class Repository implements RepositoryInterface, Effectful
     private Decode $decode;
     private Painless $script;
     private Query $query;
-    /** @var Constraint<mixed, 0|positive-int> */
+    /** @var Constraint<mixed, int<0, max>> */
     private Constraint $pluckCount;
     /** @var Constraint<mixed, Sequence<array>> */
     private Constraint $pluckHits;
@@ -76,7 +76,7 @@ final class Repository implements RepositoryInterface, Effectful
         $this->script = Painless::new();
         /**
          * @psalm-suppress MixedReturnStatement
-         * @var Constraint<mixed, 0|positive-int>
+         * @var Constraint<mixed, int<0, max>>
          */
         $this->pluckCount = Is::shape(
             'count',
@@ -406,7 +406,7 @@ final class Repository implements RepositoryInterface, Effectful
     }
 
     /**
-     * @param 0|positive-int $drop
+     * @param int<0, max> $drop
      * @return Sequence<Aggregate>
      */
     private function stream(int $drop, ?array $sort, ?array $query): Sequence
@@ -463,8 +463,8 @@ final class Repository implements RepositoryInterface, Effectful
     /**
      * @param callable(mixed): Maybe<Aggregate> $decode
      * @param Constraint<mixed, Sequence<array>> $pluckHits
-     * @param 0|positive-int $drop
-     * @param positive-int $take
+     * @param int<0, max> $drop
+     * @param int<1, max> $take
      *
      * @return Sequence<Aggregate>
      */

@@ -14,15 +14,11 @@ use Innmind\Immutable\Sequence;
  */
 final class Update
 {
-    /** @var MainTable<T> */
-    private MainTable $mainTable;
-
     /**
      * @param MainTable<T> $mainTable
      */
-    private function __construct(MainTable $mainTable)
+    private function __construct(private MainTable $mainTable)
     {
-        $this->mainTable = $mainTable;
     }
 
     /**

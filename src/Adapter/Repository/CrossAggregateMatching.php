@@ -12,8 +12,8 @@ interface CrossAggregateMatching
     /**
      * @psalm-mutation-free
      *
-     * @param ?positive-int $drop
-     * @param ?positive-int $take
+     * @param ?int<1, max> $drop
+     * @param ?int<1, max> $take
      *
      * @return Maybe<SubMatch>
      */

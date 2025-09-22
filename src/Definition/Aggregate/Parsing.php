@@ -26,19 +26,6 @@ use Innmind\Immutable\{
  */
 final class Parsing
 {
-    /** @var class-string<T> */
-    private string $class;
-    /** @var Maybe<Identity<T>> */
-    private Maybe $id;
-    /** @var Sequence<Property<T, mixed>> */
-    private Sequence $properties;
-    /** @var Sequence<Entity> */
-    private Sequence $entities;
-    /** @var Sequence<Optional> */
-    private Sequence $optionals;
-    /** @var Sequence<Collection> */
-    private Sequence $collections;
-
     /**
      * @param class-string<T> $class
      * @param Maybe<Identity<T>> $id
@@ -48,19 +35,13 @@ final class Parsing
      * @param Sequence<Collection> $collections
      */
     private function __construct(
-        string $class,
-        Maybe $id,
-        Sequence $properties,
-        Sequence $entities,
-        Sequence $optionals,
-        Sequence $collections,
+        private string $class,
+        private Maybe $id,
+        private Sequence $properties,
+        private Sequence $entities,
+        private Sequence $optionals,
+        private Sequence $collections,
     ) {
-        $this->class = $class;
-        $this->id = $id;
-        $this->properties = $properties;
-        $this->entities = $entities;
-        $this->optionals = $optionals;
-        $this->collections = $collections;
     }
 
     /**

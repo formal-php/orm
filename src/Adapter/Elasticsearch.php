@@ -12,20 +12,20 @@ use Innmind\Url\Url;
 
 final class Elasticsearch implements Adapter
 {
-    private Transport $transport;
-    private Url $url;
-    private Elasticsearch\Transaction $transaction;
-
-    private function __construct(Transport $transport, Url $url)
-    {
-        $this->transport = $transport;
-        $this->url = $url;
-        $this->transaction = Elasticsearch\Transaction::of();
+    private function __construct(
+        private Transport $transport,
+        private Url $url,
+        private Elasticsearch\Transaction $transaction,
+    ) {
     }
 
     public static function of(Transport $transport, ?Url $url = null): self
     {
-        return new self($transport, $url ?? Url::of('http://localhost:9200/'));
+        return new self(
+            $transport,
+            $url ?? Url::of('http://localhost:9200/'),
+            Elasticsearch\Transaction::of(),
+        );
     }
 
     #[\Override]

@@ -12,17 +12,13 @@ use Formal\ORM\{
  */
 final class Entity
 {
-    /** @var non-empty-string */
-    private string $name;
-    private Property $property;
-
     /**
      * @param non-empty-string $name
      */
-    private function __construct(string $name, Property $property)
-    {
-        $this->name = $name;
-        $this->property = $property;
+    private function __construct(
+        private string $name,
+        private Property $property,
+    ) {
     }
 
     /**

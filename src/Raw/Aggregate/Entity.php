@@ -10,19 +10,14 @@ use Innmind\Immutable\Sequence;
  */
 final class Entity
 {
-    /** @var non-empty-string */
-    private string $name;
-    /** @var Sequence<Property> */
-    private Sequence $properties;
-
     /**
      * @param non-empty-string $name
      * @param Sequence<Property> $properties
      */
-    private function __construct(string $name, Sequence $properties)
-    {
-        $this->name = $name;
-        $this->properties = $properties;
+    private function __construct(
+        private string $name,
+        private Sequence $properties,
+    ) {
     }
 
     /**

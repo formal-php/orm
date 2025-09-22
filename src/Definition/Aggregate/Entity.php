@@ -11,26 +11,16 @@ use Innmind\Immutable\Sequence;
  */
 final class Entity
 {
-    /** @var class-string<T> */
-    private string $class;
-    /** @var non-empty-string */
-    private string $name;
-    /** @var Sequence<Property<T, mixed>> */
-    private Sequence $properties;
-
     /**
      * @param class-string<T> $class
      * @param non-empty-string $name
      * @param Sequence<Property<T, mixed>> $properties
      */
     private function __construct(
-        string $class,
-        string $name,
-        Sequence $properties,
+        private string $class,
+        private string $name,
+        private Sequence $properties,
     ) {
-        $this->class = $class;
-        $this->name = $name;
-        $this->properties = $properties;
     }
 
     /**

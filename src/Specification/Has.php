@@ -15,15 +15,11 @@ final class Has implements Specification
 {
     use Composable;
 
-    /** @var non-empty-string */
-    private string $optional;
-
     /**
      * @param non-empty-string $optional
      */
-    private function __construct(string $optional)
+    private function __construct(private string $optional)
     {
-        $this->optional = $optional;
     }
 
     /**

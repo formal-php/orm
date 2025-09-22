@@ -8,19 +8,14 @@ namespace Formal\ORM\Repository\Diff;
  */
 final class Property
 {
-    /** @var non-empty-string */
-    private string $name;
-    private mixed $then;
-    private mixed $now;
-
     /**
      * @param non-empty-string $name
      */
-    private function __construct(string $name, mixed $then, mixed $now)
-    {
-        $this->name = $name;
-        $this->then = $then;
-        $this->now = $now;
+    private function __construct(
+        private string $name,
+        private mixed $then,
+        private mixed $now,
+    ) {
     }
 
     /**

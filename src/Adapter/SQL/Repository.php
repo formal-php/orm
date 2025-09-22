@@ -230,7 +230,7 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching, E
     {
         $count = $this->mainTable->count($specification);
 
-        /** @var 0|positive-int SQL count() should never return a negative value */
+        /** @var int<0, max> SQL count() should never return a negative value */
         return ($this->connection)($count)
             ->first()
             ->flatMap(static fn($row) => $row->column('count'))

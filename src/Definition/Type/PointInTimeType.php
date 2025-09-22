@@ -18,13 +18,10 @@ use Innmind\TimeContinuum\{
  */
 final class PointInTimeType implements Type
 {
-    private Clock $clock;
-    private Formats $format;
-
-    private function __construct(Clock $clock, Formats $format)
-    {
-        $this->clock = $clock;
-        $this->format = $format;
+    private function __construct(
+        private Clock $clock,
+        private Formats $format,
+    ) {
     }
 
     /**

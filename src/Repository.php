@@ -245,7 +245,7 @@ final class Repository
     }
 
     /**
-     * @return 0|positive-int
+     * @return int<0, max>
      */
     public function size(?Specification $specification = null): int
     {

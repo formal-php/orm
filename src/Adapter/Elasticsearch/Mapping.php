@@ -11,11 +11,8 @@ use Innmind\Immutable\Sequence;
  */
 final class Mapping
 {
-    private MapType $mapType;
-
-    private function __construct()
+    private function __construct(private MapType $mapType)
     {
-        $this->mapType = MapType::new();
     }
 
     public function __invoke(Definition $definition): array
@@ -61,7 +58,7 @@ final class Mapping
      */
     public static function new(): self
     {
-        return new self;
+        return new self(MapType::new());
     }
 
     /**

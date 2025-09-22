@@ -20,11 +20,8 @@ use Innmind\Immutable\{
  */
 final class Transaction implements TransactionInterface
 {
-    private Connection $connection;
-
-    private function __construct(Connection $connection)
+    private function __construct(private Connection $connection)
     {
-        $this->connection = $connection;
     }
 
     /**
