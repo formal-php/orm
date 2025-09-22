@@ -48,8 +48,8 @@ interface Repository
     public function removeAll(Specification $specification): Attempt;
 
     /**
-     * @param ?positive-int $drop
-     * @param ?positive-int $take
+     * @param ?int<1, max> $drop
+     * @param ?int<1, max> $take
      *
      * @return Sequence<Aggregate>
      */
@@ -61,7 +61,7 @@ interface Repository
     ): Sequence;
 
     /**
-     * @return 0|positive-int
+     * @return int<0, max>
      */
     public function size(?Specification $specification = null): int;
 

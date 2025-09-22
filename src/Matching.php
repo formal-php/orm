@@ -46,9 +46,9 @@ final class Matching
     private Sort $sort;
     private ?Specification $specification;
     private null|SortedBy\Property|SortedBy\Entity $sorted;
-    /** @var ?positive-int */
+    /** @var ?int<1, max> */
     private ?int $drop;
-    /** @var null|0|positive-int */
+    /** @var ?int<0, max> */
     private ?int $take;
 
     /**
@@ -60,8 +60,8 @@ final class Matching
      * @param ?Normalize<T> $normalizeSpecification
      * @param Loaded<T> $loaded
      * @param Sort<T> $sort
-     * @param ?positive-int $drop
-     * @param null|0|positive-int $take
+     * @param ?int<1, max> $drop
+     * @param ?int<0, max> $take
      */
     private function __construct(
         Repository $repository,
@@ -181,7 +181,7 @@ final class Matching
     /**
      * @psalm-mutation-free
      *
-     * @param positive-int $size
+     * @param int<1, max> $size
      *
      * @return self<T>
      */
@@ -214,7 +214,7 @@ final class Matching
     /**
      * @psalm-mutation-free
      *
-     * @param positive-int $size
+     * @param int<1, max> $size
      *
      * @return self<T>
      */
