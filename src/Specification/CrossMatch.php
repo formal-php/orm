@@ -18,19 +18,13 @@ final class CrossMatch implements Comparator
 {
     use Composable;
 
-    /** @var non-empty-string */
-    private string $property;
-    private SubMatch $value;
-
     /**
      * @param non-empty-string $property
      */
     private function __construct(
-        string $property,
-        SubMatch $value,
+        private string $property,
+        private SubMatch $value,
     ) {
-        $this->property = $property;
-        $this->value = $value;
     }
 
     /**

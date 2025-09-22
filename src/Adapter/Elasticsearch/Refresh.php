@@ -13,11 +13,8 @@ use Innmind\Immutable\{
 
 final class Refresh implements Transport
 {
-    private Transport $transport;
-
-    private function __construct(Transport $transport)
+    private function __construct(private Transport $transport)
     {
-        $this->transport = $transport;
     }
 
     #[\Override]

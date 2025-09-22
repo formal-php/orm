@@ -21,15 +21,11 @@ use Innmind\Immutable\Maybe;
  */
 final class MaybeType implements Type
 {
-    /** @var Type<I> */
-    private Type $inner;
-
     /**
      * @param Type<I> $inner
      */
-    private function __construct(Type $inner)
+    private function __construct(private Type $inner)
     {
-        $this->inner = $inner;
     }
 
     /**

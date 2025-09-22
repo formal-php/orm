@@ -5,17 +5,13 @@ namespace Formal\ORM\Definition;
 
 final class Aggregates
 {
-    private Types $types;
-    /** @var ?callable(class-string): non-empty-string  */
-    private $mapName;
-
     /**
-     * @param callable(class-string): non-empty-string $mapName
+     * @param ?\Closure(class-string): non-empty-string $mapName
      */
-    private function __construct(Types $types, ?callable $mapName)
-    {
-        $this->types = $types;
-        $this->mapName = $mapName;
+    private function __construct(
+        private Types $types,
+        private ?\Closure $mapName,
+    ) {
     }
 
     public static function of(Types $types): self
@@ -30,7 +26,7 @@ final class Aggregates
      */
     public function mapName(callable $map): self
     {
-        return new self($this->types, $map);
+        return new self($this->types, \Closure::fromCallable($map));
     }
 
     /**

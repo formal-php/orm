@@ -29,15 +29,11 @@ use Innmind\Immutable\Sequence;
  */
 final class Fold
 {
-    /** @var Definition<T> */
-    private Definition $definition;
-
     /**
      * @param Definition<T> $definition
      */
-    private function __construct(Definition $definition)
+    private function __construct(private Definition $definition)
     {
-        $this->definition = $definition;
     }
 
     /**

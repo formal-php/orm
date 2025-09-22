@@ -15,17 +15,13 @@ final class Just implements Specification
 {
     use Composable;
 
-    /** @var non-empty-string */
-    private string $optional;
-    private Specification $specification;
-
     /**
      * @param non-empty-string $optional
      */
-    private function __construct(string $optional, Specification $specification)
-    {
-        $this->optional = $optional;
-        $this->specification = $specification;
+    private function __construct(
+        private string $optional,
+        private Specification $specification,
+    ) {
     }
 
     /**

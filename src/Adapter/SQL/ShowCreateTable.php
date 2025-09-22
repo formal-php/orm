@@ -14,21 +14,14 @@ use Innmind\Immutable\Sequence;
 
 final class ShowCreateTable
 {
-    private Aggregates $aggregates;
-    private MapType $mapType;
-    private bool $ifNotExists;
-
     /**
      * @psalm-mutation-free
      */
     private function __construct(
-        Aggregates $aggregates,
-        MapType $mapType,
-        bool $ifNotExists,
+        private Aggregates $aggregates,
+        private MapType $mapType,
+        private bool $ifNotExists,
     ) {
-        $this->aggregates = $aggregates;
-        $this->mapType = $mapType;
-        $this->ifNotExists = $ifNotExists;
     }
 
     /**

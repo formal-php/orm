@@ -10,16 +10,6 @@ use Innmind\Immutable\Sequence;
  */
 final class Aggregate
 {
-    private Aggregate\Id $id;
-    /** @var Sequence<Aggregate\Property> */
-    private Sequence $properties;
-    /** @var Sequence<Aggregate\Entity> */
-    private Sequence $entities;
-    /** @var Sequence<Aggregate\Optional> */
-    private Sequence $optionals;
-    /** @var Sequence<Aggregate\Collection> */
-    private Sequence $collections;
-
     /**
      * @param Sequence<Aggregate\Property> $properties
      * @param Sequence<Aggregate\Entity> $entities
@@ -27,17 +17,12 @@ final class Aggregate
      * @param Sequence<Aggregate\Collection> $collections
      */
     private function __construct(
-        Aggregate\Id $id,
-        Sequence $properties,
-        Sequence $entities,
-        Sequence $optionals,
-        Sequence $collections,
+        private Aggregate\Id $id,
+        private Sequence $properties,
+        private Sequence $entities,
+        private Sequence $optionals,
+        private Sequence $collections,
     ) {
-        $this->id = $id;
-        $this->properties = $properties;
-        $this->entities = $entities;
-        $this->optionals = $optionals;
-        $this->collections = $collections;
     }
 
     /**

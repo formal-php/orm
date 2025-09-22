@@ -11,21 +11,14 @@ use Innmind\Immutable\Set;
  */
 final class Collection
 {
-    /** @var non-empty-string */
-    private string $name;
-    /** @var Set<Entity> */
-    private Set $entities;
-
     /**
      * @param non-empty-string $name
      * @param Set<Entity> $entities
      */
     private function __construct(
-        string $name,
-        Set $entities,
+        private string $name,
+        private Set $entities,
     ) {
-        $this->name = $name;
-        $this->entities = $entities;
     }
 
     /**

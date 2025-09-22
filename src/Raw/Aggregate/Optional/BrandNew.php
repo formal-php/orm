@@ -20,11 +20,8 @@ use Innmind\Immutable\{
  */
 final class BrandNew
 {
-    private Optional $optional;
-
-    private function __construct(Optional $optional)
+    private function __construct(private Optional $optional)
     {
-        $this->optional = $optional;
     }
 
     /**

@@ -26,20 +26,12 @@ use Innmind\Immutable\{
 
 final class CreateIndex
 {
-    private Transport $http;
-    private Aggregates $aggregates;
-    private Mapping $mapping;
-    private Url $url;
-
     private function __construct(
-        Transport $http,
-        Aggregates $aggregates,
-        Url $url,
+        private Transport $http,
+        private Aggregates $aggregates,
+        private Mapping $mapping,
+        private Url $url,
     ) {
-        $this->http = $http;
-        $this->aggregates = $aggregates;
-        $this->mapping = Mapping::new();
-        $this->url = $url;
     }
 
     /**
@@ -73,6 +65,11 @@ final class CreateIndex
         Aggregates $aggregates,
         Url $url,
     ): self {
-        return new self($transport, $aggregates, $url);
+        return new self(
+            $transport,
+            $aggregates,
+            Mapping::new(),
+            $url,
+        );
     }
 }

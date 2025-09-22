@@ -10,17 +10,13 @@ use Formal\ORM\Sort as Direction;
  */
 final class Property
 {
-    /** @var non-empty-string */
-    private string $name;
-    private Direction $direction;
-
     /**
      * @param non-empty-string $name
      */
-    private function __construct(string $name, Direction $direction)
-    {
-        $this->name = $name;
-        $this->direction = $direction;
+    private function __construct(
+        private string $name,
+        private Direction $direction,
+    ) {
     }
 
     /**

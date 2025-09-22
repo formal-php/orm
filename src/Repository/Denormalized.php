@@ -13,19 +13,14 @@ use Innmind\Immutable\Map;
  */
 final class Denormalized
 {
-    /** @var Id<T> */
-    private Id $id;
-    /** @var Map<non-empty-string, mixed> */
-    private Map $properties;
-
     /**
      * @param Id<T> $id
      * @param Map<non-empty-string, mixed> $properties
      */
-    private function __construct(Id $id, Map $properties)
-    {
-        $this->id = $id;
-        $this->properties = $properties;
+    private function __construct(
+        private Id $id,
+        private Map $properties,
+    ) {
     }
 
     /**

@@ -19,24 +19,15 @@ final class Property implements Comparator
 {
     use Composable;
 
-    /** @var non-empty-string */
-    private string $property;
-    private Sign $sign;
-    /** @var null|string|int|float|bool|list<string|int|float|bool|null> */
-    private null|string|int|float|bool|array $value;
-
     /**
      * @param non-empty-string $property
      * @param null|string|int|float|bool|list<string|int|float|bool|null> $value
      */
     private function __construct(
-        string $property,
-        Sign $sign,
-        null|string|int|float|bool|array $value,
+        private string $property,
+        private Sign $sign,
+        private null|string|int|float|bool|array $value,
     ) {
-        $this->property = $property;
-        $this->sign = $sign;
-        $this->value = $value;
     }
 
     /**
