@@ -399,6 +399,27 @@ final class Matching
     }
 
     /**
+     * @experimental
+     *
+     * @param non-empty-string $property
+     */
+    public function property(string $property): Matching\Property
+    {
+        return Matching\Property::of(
+            $this->adapter,
+            $this->context,
+            $this->denormalize,
+            $this->normalizeSpecification,
+            $this->sort,
+            $this->specification,
+            $this->sorted,
+            $this->drop,
+            $this->take,
+            $property,
+        );
+    }
+
+    /**
      * @internal
      * @psalm-mutation-free
      *
