@@ -37,7 +37,7 @@ use Innmind\Immutable\{
  * @template T of object
  * @implements RepositoryInterface<T>
  */
-final class Repository implements RepositoryInterface, CrossAggregateMatching, Effectful
+final class Repository implements RepositoryInterface, CrossAggregateMatching, CrossAggregateMatching\Property, Effectful
 {
     private Connection $connection;
     /** @var Definition<T> */
@@ -225,12 +225,44 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching, E
         return Maybe::just(SubMatch::of($select));
     }
 
+    /**
+     * @psalm-mutation-free
+     */
+    #[\Override]
+    public function crossAggregateMatchingOnProperty(
+        string $property,
+        ?Specification $specification,
+        null|Sort\Property|Sort\Entity $sort,
+        ?int $drop,
+        ?int $take,
+    ): Maybe {
+        if (\is_int($drop) && \is_null($take)) {
+            // SQL doesn't allow to create an offset without a limit. This means
+            // this search can't be optimised. Returning nothing will tell the
+            // ORM to do the `in` search in memory.
+            /** @var Maybe<SubMatch> */
+            return Maybe::nothing();
+        }
+
+        $select = $this->mainTable->search($specification, $property);
+
+        if ($sort) {
+            $select = $this->sort($select, $sort);
+        }
+
+        if (\is_int($take)) {
+            $select = $select->limit($take, $drop);
+        }
+
+        return Maybe::just(SubMatch::of($select));
+    }
+
     #[\Override]
     public function size(?Specification $specification = null): int
     {
         $count = $this->mainTable->count($specification);
 
-        /** @var 0|positive-int SQL count() should never return a negative value */
+        /** @var int<0, max> SQL count() should never return a negative value */
         return ($this->connection)($count)
             ->first()
             ->flatMap(static fn($row) => $row->column('count'))

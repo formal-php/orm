@@ -23,15 +23,11 @@ use Innmind\Immutable\{
  */
 final class EnumType implements Type
 {
-    /** @var class-string<T> */
-    private string $class;
-
     /**
      * @param class-string<T> $class
      */
-    private function __construct(string $class)
+    private function __construct(private string $class)
     {
-        $this->class = $class;
     }
 
     /**

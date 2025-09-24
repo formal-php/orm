@@ -13,19 +13,14 @@ use Innmind\Immutable\{
  */
 final class Optional
 {
-    /** @var non-empty-string */
-    private string $name;
-    /** @var Maybe<Sequence<Property>> */
-    private Maybe $properties;
-
     /**
      * @param non-empty-string $name
      * @param Maybe<Sequence<Property>> $properties
      */
-    private function __construct(string $name, Maybe $properties)
-    {
-        $this->name = $name;
-        $this->properties = $properties;
+    private function __construct(
+        private string $name,
+        private Maybe $properties,
+    ) {
     }
 
     /**

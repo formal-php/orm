@@ -8,17 +8,13 @@ namespace Formal\ORM\Raw\Aggregate;
  */
 final class Property
 {
-    /** @var non-empty-string */
-    private string $name;
-    private null|string|int|float|bool $value;
-
     /**
      * @param non-empty-string $name
      */
-    private function __construct(string $name, null|string|int|float|bool $value)
-    {
-        $this->name = $name;
-        $this->value = $value;
+    private function __construct(
+        private string $name,
+        private null|string|int|float|bool $value,
+    ) {
     }
 
     /**

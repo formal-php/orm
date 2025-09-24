@@ -18,19 +18,13 @@ final class SubQuery implements Comparator
 {
     use Composable;
 
-    /** @var non-empty-string */
-    private string $property;
-    private Query $query;
-
     /**
      * @param non-empty-string $property
      */
     private function __construct(
-        string $property,
-        Query $query,
+        private string $property,
+        private Query $query,
     ) {
-        $this->property = $property;
-        $this->query = $query;
     }
 
     /**

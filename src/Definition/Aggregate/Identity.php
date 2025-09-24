@@ -18,21 +18,16 @@ use Innmind\Immutable\{
  */
 final class Identity
 {
-    /** @var non-empty-string */
-    private string $property;
-    /** @var class-string<T> */
-    private string $class;
-
     /**
      * @psalm-mutation-free
      *
      * @param non-empty-string $property
      * @param class-string<T> $class
      */
-    private function __construct(string $property, string $class)
-    {
-        $this->property = $property;
-        $this->class = $class;
+    private function __construct(
+        private string $property,
+        private string $class,
+    ) {
     }
 
     /**

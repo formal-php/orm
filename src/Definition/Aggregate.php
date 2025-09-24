@@ -17,21 +17,6 @@ use Innmind\Immutable\{
  */
 final class Aggregate
 {
-    /** @var class-string<T> */
-    private string $class;
-    /** @var non-empty-string */
-    private string $name;
-    /** @var Aggregate\Identity<T> */
-    private Aggregate\Identity $id;
-    /** @var Sequence<Aggregate\Property<T, mixed>> */
-    private Sequence $properties;
-    /** @var Sequence<Aggregate\Entity> */
-    private Sequence $entities;
-    /** @var Sequence<Aggregate\Optional> */
-    private Sequence $optionals;
-    /** @var Sequence<Aggregate\Collection> */
-    private Sequence $collections;
-
     /**
      * @param class-string<T> $class
      * @param non-empty-string $name
@@ -42,21 +27,14 @@ final class Aggregate
      * @param Sequence<Aggregate\Collection> $collections
      */
     private function __construct(
-        string $class,
-        string $name,
-        Aggregate\Identity $id,
-        Sequence $properties,
-        Sequence $entities,
-        Sequence $optionals,
-        Sequence $collections,
+        private string $class,
+        private string $name,
+        private Aggregate\Identity $id,
+        private Sequence $properties,
+        private Sequence $entities,
+        private Sequence $optionals,
+        private Sequence $collections,
     ) {
-        $this->class = $class;
-        $this->name = $name;
-        $this->id = $id;
-        $this->properties = $properties;
-        $this->entities = $entities;
-        $this->optionals = $optionals;
-        $this->collections = $collections;
     }
 
     /**

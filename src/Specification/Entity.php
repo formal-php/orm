@@ -15,17 +15,13 @@ final class Entity implements Specification
 {
     use Composable;
 
-    /** @var non-empty-string */
-    private string $entity;
-    private Specification $specification;
-
     /**
      * @param non-empty-string $entity
      */
-    private function __construct(string $entity, Specification $specification)
-    {
-        $this->entity = $entity;
-        $this->specification = $specification;
+    private function __construct(
+        private string $entity,
+        private Specification $specification,
+    ) {
     }
 
     /**

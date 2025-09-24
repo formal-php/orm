@@ -11,15 +11,11 @@ use Innmind\Immutable\Sequence;
  */
 final class Entity
 {
-    /** @var Sequence<Property> */
-    private Sequence $properties;
-
     /**
      * @param Sequence<Property> $properties
      */
-    private function __construct(Sequence $properties)
+    private function __construct(private Sequence $properties)
     {
-        $this->properties = $properties;
     }
 
     /**

@@ -14,17 +14,13 @@ use Innmind\Immutable\{
  */
 final class Types
 {
-    /** @var list<callable(self, Concrete, Contains|Contains\Primitive|null): Maybe<Type>> */
-    private array $builders;
-
     /**
      * @no-named-arguments
      *
-     * @param callable(self, Concrete, Contains|Contains\Primitive|null): Maybe<Type> $builders
+     * @param list<callable(self, Concrete, Contains|Contains\Primitive|null): Maybe<Type>> $builders
      */
-    private function __construct(callable ...$builders)
+    private function __construct(private array $builders)
     {
-        $this->builders = $builders;
     }
 
     /**
@@ -52,7 +48,7 @@ final class Types
      */
     public static function of(callable ...$builders): self
     {
-        return new self(
+        return new self([
             Type\NullableType::of(...),
             Type\MaybeType::of(...),
             Type\StringType::of(...),
@@ -65,7 +61,7 @@ final class Types
             Type\IdType::of(...),
             Type\EnumType::of(...),
             ...$builders,
-        );
+        ]);
     }
 
     /**
@@ -73,7 +69,7 @@ final class Types
      */
     public static function default(): self
     {
-        return new self(
+        return new self([
             Type\NullableType::of(...),
             Type\MaybeType::of(...),
             Type\StringType::of(...),
@@ -85,6 +81,6 @@ final class Types
             Type\BoolType::of(...),
             Type\IdType::of(...),
             Type\EnumType::of(...),
-        );
+        ]);
     }
 }

@@ -8,19 +8,14 @@ namespace Formal\ORM\Raw\Aggregate;
  */
 final class Id
 {
-    /** @var non-empty-string */
-    private string $name;
-    /** @var non-empty-string */
-    private string $value;
-
     /**
      * @param non-empty-string $name
      * @param non-empty-string $value
      */
-    private function __construct(string $name, string $value)
-    {
-        $this->name = $name;
-        $this->value = $value;
+    private function __construct(
+        private string $name,
+        private string $value,
+    ) {
     }
 
     /**

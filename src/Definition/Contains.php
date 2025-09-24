@@ -11,15 +11,11 @@ use Innmind\Type\ClassName;
 #[\Attribute(\Attribute::TARGET_PROPERTY)]
 final class Contains
 {
-    /** @var class-string */
-    private string $type;
-
     /**
      * @param class-string $type
      */
-    public function __construct(string $type)
+    public function __construct(private string $type)
     {
-        $this->type = $type;
     }
 
     /**

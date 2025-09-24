@@ -29,6 +29,8 @@ final class Repository
 {
     /** @var Adapter\Repository<T> */
     private Adapter\Repository $adapter;
+    /** @var Aggregate<T> */
+    private Aggregate $definition;
     private Repository\Context $context;
     /** @var Aggregate\Identity<T> */
     private Aggregate\Identity $id;
@@ -66,6 +68,7 @@ final class Repository
         Repository\Context $context,
     ) {
         $this->adapter = $adapter;
+        $this->definition = $definition;
         $this->context = $context;
         $this->id = $definition->id();
         $this->inTransaction = $inTransaction;
@@ -233,6 +236,7 @@ final class Repository
         return Matching::of(
             $this,
             $this->adapter,
+            $this->definition,
             $this->id,
             $this->context,
             $this->denormalize,
@@ -245,7 +249,7 @@ final class Repository
     }
 
     /**
-     * @return 0|positive-int
+     * @return int<0, max>
      */
     public function size(?Specification $specification = null): int
     {
@@ -276,6 +280,7 @@ final class Repository
         return Matching::all(
             $this,
             $this->adapter,
+            $this->definition,
             $this->id,
             $this->context,
             $this->denormalize,

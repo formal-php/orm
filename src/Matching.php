@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace Formal\ORM;
 
 use Formal\ORM\{
+    Definition\Aggregate,
     Definition\Aggregate\Identity,
     Sort as SortedBy,
     Repository\Loaded,
@@ -27,70 +28,35 @@ use Innmind\Immutable\{
  */
 final class Matching
 {
-    /** @var Repository<T> */
-    private Repository $repository;
-    /** @var Adapter\Repository<T> */
-    private Adapter\Repository $adapter;
-    /** @var Identity<T> */
-    private Identity $identity;
-    private Repository\Context $context;
-    /** @var Denormalize<T> */
-    private Denormalize $denormalize;
-    /** @var Instanciate<T> */
-    private Instanciate $instanciate;
-    /** @var ?Normalize<T> */
-    private ?Normalize $normalizeSpecification;
-    /** @var Loaded<T> */
-    private Loaded $loaded;
-    /** @var Sort<T> */
-    private Sort $sort;
-    private ?Specification $specification;
-    private null|SortedBy\Property|SortedBy\Entity $sorted;
-    /** @var ?positive-int */
-    private ?int $drop;
-    /** @var null|0|positive-int */
-    private ?int $take;
-
     /**
      * @param Repository<T> $repository
      * @param Adapter\Repository<T> $adapter
+     * @param Aggregate<T> $definition
      * @param Identity<T> $identity
      * @param Denormalize<T> $denormalize
      * @param Instanciate<T> $instanciate
      * @param ?Normalize<T> $normalizeSpecification
      * @param Loaded<T> $loaded
      * @param Sort<T> $sort
-     * @param ?positive-int $drop
-     * @param null|0|positive-int $take
+     * @param ?int<1, max> $drop
+     * @param ?int<0, max> $take
      */
     private function __construct(
-        Repository $repository,
-        Adapter\Repository $adapter,
-        Identity $identity,
-        Repository\Context $context,
-        Denormalize $denormalize,
-        Instanciate $instanciate,
-        ?Normalize $normalizeSpecification,
-        Loaded $loaded,
-        Sort $sort,
-        ?Specification $specification,
-        null|SortedBy\Property|SortedBy\Entity $sorted,
-        ?int $drop,
-        ?int $take,
+        private Repository $repository,
+        private Adapter\Repository $adapter,
+        private Aggregate $definition,
+        private Identity $identity,
+        private Repository\Context $context,
+        private Denormalize $denormalize,
+        private Instanciate $instanciate,
+        private ?Normalize $normalizeSpecification,
+        private Loaded $loaded,
+        private Sort $sort,
+        private ?Specification $specification,
+        private null|SortedBy\Property|SortedBy\Entity $sorted,
+        private ?int $drop,
+        private ?int $take,
     ) {
-        $this->repository = $repository;
-        $this->adapter = $adapter;
-        $this->identity = $identity;
-        $this->context = $context;
-        $this->denormalize = $denormalize;
-        $this->instanciate = $instanciate;
-        $this->normalizeSpecification = $normalizeSpecification;
-        $this->loaded = $loaded;
-        $this->sort = $sort;
-        $this->specification = $specification;
-        $this->sorted = $sorted;
-        $this->drop = $drop;
-        $this->take = $take;
     }
 
     /**
@@ -99,6 +65,7 @@ final class Matching
      *
      * @param Repository<A> $repository
      * @param Adapter\Repository<A> $adapter
+     * @param Aggregate<A> $definition
      * @param Identity<A> $identity
      * @param Denormalize<A> $denormalize
      * @param Instanciate<A> $instanciate
@@ -111,6 +78,7 @@ final class Matching
     public static function of(
         Repository $repository,
         Adapter\Repository $adapter,
+        Aggregate $definition,
         Identity $identity,
         Repository\Context $context,
         Denormalize $denormalize,
@@ -123,6 +91,7 @@ final class Matching
         return new self(
             $repository,
             $adapter,
+            $definition,
             $identity,
             $context,
             $denormalize,
@@ -143,6 +112,7 @@ final class Matching
      *
      * @param Repository<A> $repository
      * @param Adapter\Repository<A> $adapter
+     * @param Aggregate<A> $definition
      * @param Identity<A> $identity
      * @param Denormalize<A> $denormalize
      * @param Instanciate<A> $instanciate
@@ -154,6 +124,7 @@ final class Matching
     public static function all(
         Repository $repository,
         Adapter\Repository $adapter,
+        Aggregate $definition,
         Identity $identity,
         Repository\Context $context,
         Denormalize $denormalize,
@@ -164,6 +135,7 @@ final class Matching
         return new self(
             $repository,
             $adapter,
+            $definition,
             $identity,
             $context,
             $denormalize,
@@ -181,7 +153,7 @@ final class Matching
     /**
      * @psalm-mutation-free
      *
-     * @param positive-int $size
+     * @param int<1, max> $size
      *
      * @return self<T>
      */
@@ -194,6 +166,7 @@ final class Matching
         return new self(
             $this->repository,
             $this->adapter,
+            $this->definition,
             $this->identity,
             $this->context,
             $this->denormalize,
@@ -214,7 +187,7 @@ final class Matching
     /**
      * @psalm-mutation-free
      *
-     * @param positive-int $size
+     * @param int<1, max> $size
      *
      * @return self<T>
      */
@@ -227,6 +200,7 @@ final class Matching
         return new self(
             $this->repository,
             $this->adapter,
+            $this->definition,
             $this->identity,
             $this->context,
             $this->denormalize,
@@ -263,6 +237,7 @@ final class Matching
         return new self(
             $this->repository,
             $this->adapter,
+            $this->definition,
             $this->identity,
             $this->context,
             $this->denormalize,
@@ -433,6 +408,41 @@ final class Matching
     public function find(callable $predicate): Maybe
     {
         return $this->sequence()->find($predicate);
+    }
+
+    /**
+     * @experimental
+     *
+     * @param non-empty-string $property
+     */
+    public function property(string $property): Matching\Property
+    {
+        $_ = $this
+            ->definition
+            ->properties()
+            ->find(static fn($prop) => $prop->name() === $property)
+            ->otherwise(fn() => Maybe::just($this->identity)->filter(
+                static fn($identity) => $identity->property() === $property,
+            ))
+            ->attempt(static fn() => new \LogicException(\sprintf(
+                'Unknown property %s',
+                $property,
+            )))
+            ->unwrap();
+
+        return Matching\Property::of(
+            $this->adapter,
+            $this->identity,
+            $this->context,
+            $this->denormalize,
+            $this->normalizeSpecification,
+            $this->sort,
+            $this->specification,
+            $this->sorted,
+            $this->drop,
+            $this->take,
+            $property,
+        );
     }
 
     /**

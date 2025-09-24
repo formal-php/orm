@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.1.0 - 2025-09-24
+
+### Added
+
+- (Experimental) `Formal\ORM\Matching::property()` to do cross aggregate matching
+
 ## 5.0.0 - 2025-06-04
 
 ### Changed

@@ -11,16 +11,13 @@ use Innmind\Filesystem\Adapter as Storage;
 
 final class Filesystem implements Adapter
 {
-    private Filesystem\Transaction $transaction;
-
-    private function __construct(Storage $adapter)
+    private function __construct(private Filesystem\Transaction $transaction)
     {
-        $this->transaction = Filesystem\Transaction::of($adapter);
     }
 
     public static function of(Storage $adapter): self
     {
-        return new self($adapter);
+        return new self(Filesystem\Transaction::of($adapter));
     }
 
     #[\Override]
