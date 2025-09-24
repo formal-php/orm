@@ -332,7 +332,10 @@ final class Normalize
             return Either::left($specification->value());
         }
 
-        if (!($specification->value() instanceof Matching)) {
+        if (
+            !($specification->value() instanceof Matching) &&
+            !($specification->value() instanceof Matching\Property)
+        ) {
             return Either::left($specification->value());
         }
 

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace Formal\ORM;
 
 use Formal\ORM\{
+    Definition\Aggregate,
     Definition\Aggregate\Identity,
     Sort as SortedBy,
     Repository\Loaded,
@@ -30,6 +31,7 @@ final class Matching
     /**
      * @param Repository<T> $repository
      * @param Adapter\Repository<T> $adapter
+     * @param Aggregate<T> $definition
      * @param Identity<T> $identity
      * @param Denormalize<T> $denormalize
      * @param Instanciate<T> $instanciate
@@ -42,6 +44,7 @@ final class Matching
     private function __construct(
         private Repository $repository,
         private Adapter\Repository $adapter,
+        private Aggregate $definition,
         private Identity $identity,
         private Repository\Context $context,
         private Denormalize $denormalize,
@@ -62,6 +65,7 @@ final class Matching
      *
      * @param Repository<A> $repository
      * @param Adapter\Repository<A> $adapter
+     * @param Aggregate<A> $definition
      * @param Identity<A> $identity
      * @param Denormalize<A> $denormalize
      * @param Instanciate<A> $instanciate
@@ -74,6 +78,7 @@ final class Matching
     public static function of(
         Repository $repository,
         Adapter\Repository $adapter,
+        Aggregate $definition,
         Identity $identity,
         Repository\Context $context,
         Denormalize $denormalize,
@@ -86,6 +91,7 @@ final class Matching
         return new self(
             $repository,
             $adapter,
+            $definition,
             $identity,
             $context,
             $denormalize,
@@ -106,6 +112,7 @@ final class Matching
      *
      * @param Repository<A> $repository
      * @param Adapter\Repository<A> $adapter
+     * @param Aggregate<A> $definition
      * @param Identity<A> $identity
      * @param Denormalize<A> $denormalize
      * @param Instanciate<A> $instanciate
@@ -117,6 +124,7 @@ final class Matching
     public static function all(
         Repository $repository,
         Adapter\Repository $adapter,
+        Aggregate $definition,
         Identity $identity,
         Repository\Context $context,
         Denormalize $denormalize,
@@ -127,6 +135,7 @@ final class Matching
         return new self(
             $repository,
             $adapter,
+            $definition,
             $identity,
             $context,
             $denormalize,
@@ -157,6 +166,7 @@ final class Matching
         return new self(
             $this->repository,
             $this->adapter,
+            $this->definition,
             $this->identity,
             $this->context,
             $this->denormalize,
@@ -190,6 +200,7 @@ final class Matching
         return new self(
             $this->repository,
             $this->adapter,
+            $this->definition,
             $this->identity,
             $this->context,
             $this->denormalize,
@@ -226,6 +237,7 @@ final class Matching
         return new self(
             $this->repository,
             $this->adapter,
+            $this->definition,
             $this->identity,
             $this->context,
             $this->denormalize,
@@ -396,6 +408,41 @@ final class Matching
     public function find(callable $predicate): Maybe
     {
         return $this->sequence()->find($predicate);
+    }
+
+    /**
+     * @experimental
+     *
+     * @param non-empty-string $property
+     */
+    public function property(string $property): Matching\Property
+    {
+        $_ = $this
+            ->definition
+            ->properties()
+            ->find(static fn($prop) => $prop->name() === $property)
+            ->otherwise(fn() => Maybe::just($this->identity)->filter(
+                static fn($identity) => $identity->property() === $property,
+            ))
+            ->attempt(static fn() => new \LogicException(\sprintf(
+                'Unknown property %s',
+                $property,
+            )))
+            ->unwrap();
+
+        return Matching\Property::of(
+            $this->adapter,
+            $this->identity,
+            $this->context,
+            $this->denormalize,
+            $this->normalizeSpecification,
+            $this->sort,
+            $this->specification,
+            $this->sorted,
+            $this->drop,
+            $this->take,
+            $property,
+        );
     }
 
     /**
