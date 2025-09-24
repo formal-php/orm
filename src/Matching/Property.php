@@ -160,18 +160,14 @@ final class Property
                 $this->take,
             )
             ->map($denormalize)
-            ->map(
+            ->flatMap(
                 fn($aggregate) => match ($this->property) {
-                    $this->identity->property() => $aggregate->id(),
+                    $this->identity->property() => Sequence::of($aggregate->id()),
                     default => $aggregate
                         ->properties()
                         ->get($this->property)
                         ->keep(Instance::of(Id::class))
-                        ->attempt(fn() => new \LogicException(\sprintf(
-                            'Unknown property %s',
-                            $this->property,
-                        )))
-                        ->unwrap(),
+                        ->toSequence(),
                 },
             );
     }
