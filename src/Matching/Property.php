@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace Formal\ORM\Matching;
 
 use Formal\ORM\{
+    Definition\Aggregate\Identity,
     Sort as SortedBy,
     Repository,
     Repository\Denormalize,
@@ -28,6 +29,7 @@ final class Property
 {
     /**
      * @param Adapter\Repository<T> $adapter
+     * @param Identity<T> $identity
      * @param Denormalize<T> $denormalize
      * @param ?Normalize<T> $normalizeSpecification
      * @param Sort<T> $sort
@@ -37,6 +39,7 @@ final class Property
      */
     private function __construct(
         private Adapter\Repository $adapter,
+        private Identity $identity,
         private Repository\Context $context,
         private Denormalize $denormalize,
         private ?Normalize $normalizeSpecification,
@@ -54,6 +57,7 @@ final class Property
      * @template A of object
      *
      * @param Adapter\Repository<A> $adapter
+     * @param Identity<A> $identity
      * @param Denormalize<A> $denormalize
      * @param Normalize<A> $normalizeSpecification
      * @param Sort<A> $sort
@@ -65,6 +69,7 @@ final class Property
      */
     public static function of(
         Adapter\Repository $adapter,
+        Identity $identity,
         Repository\Context $context,
         Denormalize $denormalize,
         ?Normalize $normalizeSpecification,
@@ -77,6 +82,7 @@ final class Property
     ): self {
         return new self(
             $adapter,
+            $identity,
             $context,
             $denormalize,
             $normalizeSpecification,
@@ -155,15 +161,18 @@ final class Property
             )
             ->map($denormalize)
             ->map(
-                fn($aggregate) => $aggregate
-                    ->properties()
-                    ->get($this->property)
-                    ->keep(Instance::of(Id::class))
-                    ->attempt(fn() => new \LogicException(\sprintf(
-                        'Unknown property %s',
-                        $this->property,
-                    )))
-                    ->unwrap(),
+                fn($aggregate) => match ($this->property) {
+                    $this->identity->property() => $aggregate->id(),
+                    default => $aggregate
+                        ->properties()
+                        ->get($this->property)
+                        ->keep(Instance::of(Id::class))
+                        ->attempt(fn() => new \LogicException(\sprintf(
+                            'Unknown property %s',
+                            $this->property,
+                        )))
+                        ->unwrap(),
+                },
             );
     }
 }

@@ -407,6 +407,7 @@ final class Matching
     {
         return Matching\Property::of(
             $this->adapter,
+            $this->identity,
             $this->context,
             $this->denormalize,
             $this->normalizeSpecification,
