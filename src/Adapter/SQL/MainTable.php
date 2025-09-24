@@ -194,15 +194,18 @@ final class MainTable
 
     /**
      * @internal
+     *
+     * @param ?non-empty-string $property
      */
-    public function search(?Specification $specification = null): Select
-    {
+    public function search(
+        ?Specification $specification = null,
+        ?string $property = null,
+    ): Select {
+        $column = $property ?? $this->definition->id()->property();
+
         $select = $this
             ->select
-            ->columns(
-                Column\Name::of($this->definition->id()->property())
-                    ->in($this->name),
-            );
+            ->columns(Column\Name::of($column)->in($this->name));
 
         return match ($specification) {
             null => $select,

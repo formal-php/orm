@@ -37,7 +37,7 @@ use Innmind\Immutable\{
  * @template T of object
  * @implements RepositoryInterface<T>
  */
-final class Repository implements RepositoryInterface, CrossAggregateMatching, Effectful
+final class Repository implements RepositoryInterface, CrossAggregateMatching, CrossAggregateMatching\Property, Effectful
 {
     private Connection $connection;
     /** @var Definition<T> */
@@ -213,6 +213,38 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching, E
         }
 
         $select = $this->mainTable->search($specification);
+
+        if ($sort) {
+            $select = $this->sort($select, $sort);
+        }
+
+        if (\is_int($take)) {
+            $select = $select->limit($take, $drop);
+        }
+
+        return Maybe::just(SubMatch::of($select));
+    }
+
+    /**
+     * @psalm-mutation-free
+     */
+    #[\Override]
+    public function crossAggregateMatchingOnProperty(
+        string $property,
+        ?Specification $specification,
+        null|Sort\Property|Sort\Entity $sort,
+        ?int $drop,
+        ?int $take,
+    ): Maybe {
+        if (\is_int($drop) && \is_null($take)) {
+            // SQL doesn't allow to create an offset without a limit. This means
+            // this search can't be optimised. Returning nothing will tell the
+            // ORM to do the `in` search in memory.
+            /** @var Maybe<SubMatch> */
+            return Maybe::nothing();
+        }
+
+        $select = $this->mainTable->search($specification, $property);
 
         if ($sort) {
             $select = $this->sort($select, $sort);
