@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Missing template on returned object of `Matching::property()`
+
 ## 5.1.0 - 2025-09-24
 
 ### Added

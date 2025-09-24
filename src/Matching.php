@@ -414,6 +414,8 @@ final class Matching
      * @experimental
      *
      * @param non-empty-string $property
+     *
+     * @return Matching\Property<T>
      */
     public function property(string $property): Matching\Property
     {
