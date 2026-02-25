@@ -54,7 +54,7 @@ final class Aggregate
         $mapName ??= static fn(string $class): string =>  Str::of($class)
             ->split('\\')
             ->takeEnd(1)
-            ->fold(new Concat)
+            ->fold(Concat::monoid)
             ->toLower()
             ->toString();
         /** @var Parsing<A> Type lost due to the reduce */

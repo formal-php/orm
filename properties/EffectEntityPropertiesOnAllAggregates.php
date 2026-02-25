@@ -13,7 +13,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -40,7 +40,7 @@ final class EffectEntityPropertiesOnAllAggregates implements Property
                 ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->atLeast(10), // to limit collisions
             Set::of(true, false),
-            PointInTime::any(),
+            Point::any(),
         );
     }
 

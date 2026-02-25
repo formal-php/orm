@@ -9,9 +9,9 @@ use Formal\ORM\{
     Definition\Types,
 };
 use Formal\AccessLayer\Driver;
-use Innmind\TimeContinuum\{
+use Innmind\Time\{
     Clock,
-    PointInTime,
+    Point,
 };
 use Fixtures\Formal\ORM\{
     User,
@@ -25,7 +25,7 @@ return static function() {
             $show = ShowCreateTable::of(
                 Aggregates::of(Types::of(
                     Type\Support::class(
-                        PointInTime::class,
+                        Point::class,
                         Type\PointInTimeType::new(Clock::live()),
                     ),
                     CreatedAtType::of(...),
@@ -33,7 +33,7 @@ return static function() {
             );
 
             $queries = $show(User::class)
-                ->map(static fn($query) => $query->sql(Driver::mysql))
+                ->map(static fn($query) => $query->normalize(Driver::mysql)->sql())
                 ->toList();
 
             $assert
@@ -60,7 +60,7 @@ return static function() {
                 ->same($queries);
 
             $queries = $show->ifNotExists()(User::class)
-                ->map(static fn($query) => $query->sql(Driver::mysql))
+                ->map(static fn($query) => $query->normalize(Driver::mysql)->sql())
                 ->toList();
 
             $assert
@@ -94,7 +94,7 @@ return static function() {
             $show = ShowCreateTable::of(
                 Aggregates::of(Types::of(
                     Type\Support::class(
-                        PointInTime::class,
+                        Point::class,
                         Type\PointInTimeType::new(Clock::live()),
                     ),
                     CreatedAtType::of(...),
@@ -107,7 +107,7 @@ return static function() {
             // aggregate classes and not entities or pproperties
 
             $queries = $show(User::class)
-                ->map(static fn($query) => $query->sql(Driver::mysql))
+                ->map(static fn($query) => $query->normalize(Driver::mysql)->sql())
                 ->toList();
 
             $assert

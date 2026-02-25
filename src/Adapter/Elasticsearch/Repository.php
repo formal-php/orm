@@ -14,7 +14,10 @@ use Formal\ORM\{
 };
 use Innmind\Filesystem\File\Content;
 use Innmind\HttpTransport\Transport;
-use Innmind\MediaType\MediaType;
+use Innmind\MediaType\{
+    MediaType,
+    TopLevel,
+};
 use Innmind\Http\{
     Request,
     Method,
@@ -169,7 +172,7 @@ final class Repository implements RepositoryInterface, Effectful
             Method::put,
             ProtocolVersion::v11,
             Headers::of(
-                ContentType::of(new MediaType('application', 'json')),
+                ContentType::of(MediaType::from(TopLevel::application, 'json')),
             ),
             ($this->encode)($data),
         ))
@@ -192,7 +195,7 @@ final class Repository implements RepositoryInterface, Effectful
             Method::post,
             ProtocolVersion::v11,
             Headers::of(
-                ContentType::of(new MediaType('application', 'json')),
+                ContentType::of(MediaType::from(TopLevel::application, 'json')),
             ),
             ($this->encode)($data),
         ))
@@ -224,7 +227,7 @@ final class Repository implements RepositoryInterface, Effectful
             Method::post,
             ProtocolVersion::v11,
             Headers::of(
-                ContentType::of(new MediaType('application', 'json')),
+                ContentType::of(MediaType::from(TopLevel::application, 'json')),
             ),
             Content::ofString(Json::encode($payload)),
         ))
@@ -266,7 +269,7 @@ final class Repository implements RepositoryInterface, Effectful
             Method::post,
             ProtocolVersion::v11,
             Headers::of(
-                ContentType::of(new MediaType('application', 'json')),
+                ContentType::of(MediaType::from(TopLevel::application, 'json')),
             ),
             Content::ofString(Json::encode([
                 'query' => ($this->query)($specification),
@@ -356,7 +359,7 @@ final class Repository implements RepositoryInterface, Effectful
             match ($content) {
                 null => null,
                 default => Headers::of(
-                    ContentType::of(new MediaType('application', 'json')),
+                    ContentType::of(MediaType::from(TopLevel::application, 'json')),
                 ),
             },
             match ($content) {
@@ -394,14 +397,16 @@ final class Repository implements RepositoryInterface, Effectful
     ): Url {
         /** @var Map<non-empty-string, non-empty-string> */
         $map = Map::of(['action', $action]);
+        $expansion = $path
+            ->expansion()
+            ->with('action', $action);
+        $expansion = match ($id) {
+            null => $expansion,
+            default => $expansion->with('id', $id),
+        };
 
         return $url->withPath(
-            $path
-                ->expand(match ($id) {
-                    null => $map,
-                    default => ($map)('id', $id),
-                })
-                ->path(),
+            $expansion->expand()->path(),
         );
     }
 
@@ -506,7 +511,7 @@ final class Repository implements RepositoryInterface, Effectful
             Method::post,
             ProtocolVersion::v11,
             Headers::of(
-                ContentType::of(new MediaType('application', 'json')),
+                ContentType::of(MediaType::from(TopLevel::application, 'json')),
             ),
             Content::ofString(Json::encode($payload)),
         ))

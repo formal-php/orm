@@ -22,7 +22,7 @@ final class Encode
     }
 
     /**
-     * @return Sequence<Query>
+     * @return Sequence<Query\Builder>
      */
     public function __invoke(Aggregate $data): Sequence
     {
@@ -52,7 +52,7 @@ final class Encode
     }
 
     /**
-     * @return Sequence<Query>
+     * @return Sequence<Query\Builder>
      */
     private function entities(Aggregate $data): Sequence
     {
@@ -71,7 +71,7 @@ final class Encode
     }
 
     /**
-     * @return Sequence<Query>
+     * @return Sequence<Query\Builder>
      */
     private function optionals(Aggregate $data): Sequence
     {
@@ -91,7 +91,7 @@ final class Encode
             );
     }
 
-    private function main(Aggregate $data): Query
+    private function main(Aggregate $data): Query\Builder
     {
         return $this->mainTable->insert(
             $data->id(),
@@ -100,7 +100,7 @@ final class Encode
     }
 
     /**
-     * @return Sequence<Query>
+     * @return Sequence<Query\Builder>
      */
     private function collections(Aggregate $data): Sequence
     {

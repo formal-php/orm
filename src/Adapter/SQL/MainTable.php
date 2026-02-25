@@ -101,7 +101,7 @@ final class MainTable
             ),
         );
         $select = $joins->reduce(
-            Select::onDemand($this->name),
+            Select::lazily($this->name),
             static fn(Select $select, $join) => $select->join($join),
         );
         $this->select = $select
@@ -240,7 +240,7 @@ final class MainTable
     public function insert(
         Id $id,
         Sequence $properties,
-    ): Query {
+    ): Query\Builder {
         return Query\Insert::into(
             $this->name->name(),
             Row::new(
@@ -261,7 +261,7 @@ final class MainTable
     /**
      * @internal
      *
-     * @return Maybe<Query>
+     * @return Maybe<Query\Builder>
      */
     public function update(Diff $data): Maybe
     {
@@ -295,7 +295,7 @@ final class MainTable
     public function effect(
         Effect\Normalized $effect,
         ?Specification $specification,
-    ): Query {
+    ): Query\Builder {
         return $effect->match(
             fn($properties) => $this->effectProperties($properties, $specification),
             fn($entity, $properties) => $this->effectEntity($entity, $properties, $specification),
@@ -514,7 +514,7 @@ final class MainTable
         string $entity,
         Sequence $properties,
         ?Specification $specification,
-    ): Query {
+    ): Query\Builder {
         $select = match ($specification) {
             null => null,
             default => $this
@@ -541,7 +541,7 @@ final class MainTable
         string $optional,
         Sequence $properties,
         ?Specification $specification,
-    ): Query {
+    ): Query\Builder {
         $select = match ($specification) {
             null => null,
             default => $this
@@ -566,7 +566,7 @@ final class MainTable
     private function effectOptionalNothing(
         string $optional,
         ?Specification $specification,
-    ): Query {
+    ): Query\Builder {
         $select = match ($specification) {
             null => null,
             default => $this
@@ -593,7 +593,7 @@ final class MainTable
         string $collection,
         Sequence $entities,
         ?Specification $specification,
-    ): Query {
+    ): Query\Builder {
         $select = match ($specification) {
             null => null,
             default => $this
@@ -626,7 +626,7 @@ final class MainTable
         string $collection,
         Property $comparator,
         ?Specification $specification,
-    ): Query {
+    ): Query\Builder {
         $select = match ($specification) {
             null => null,
             default => $this
@@ -654,7 +654,7 @@ final class MainTable
     private function effectProperties(
         Sequence $properties,
         ?Specification $specification,
-    ): Query {
+    ): Query\Builder {
         $update = Update::set(
             $this->name,
             Row::new(

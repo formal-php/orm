@@ -11,7 +11,7 @@ use Formal\ORM\{
     Adapter,
 };
 use Innmind\OperatingSystem\Factory;
-use Innmind\TimeContinuum\PointInTime;
+use Innmind\Time\Point;
 use Innmind\Url\Url;
 use Innmind\BlackBox\{
     Set,
@@ -19,13 +19,13 @@ use Innmind\BlackBox\{
 };
 use Innmind\Immutable\Either;
 use Fixtures\Formal\ORM\User;
-use Fixtures\Innmind\TimeContinuum\Earth\PointInTime as FPointInTime;
+use Fixtures\Innmind\Time\Point as FPointInTime;
 
 $os = Factory::build();
 $connection = $os->remote()->sql(Url::of("mysql://root:root@127.0.0.1:3306/example"));
 $aggregates = Aggregates::of(Types::of(
     Type\Support::class(
-        PointInTime::class,
+        Point::class,
         Type\PointInTimeType::new($os->clock()),
     ),
 ));

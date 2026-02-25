@@ -7,14 +7,14 @@ use Formal\ORM\Definition\{
     Type,
     Type\PointInTimeType\Formats,
 };
-use Innmind\TimeContinuum\{
+use Innmind\Time\{
     Clock,
-    PointInTime,
+    Point,
 };
 
 /**
  * @psalm-immutable
- * @implements Type<PointInTime>
+ * @implements Type<Point>
  */
 final class PointInTimeType implements Type
 {
@@ -52,9 +52,6 @@ final class PointInTimeType implements Type
         return $this
             ->clock
             ->at($value, $this->format)
-            ->match(
-                static fn($point) => $point,
-                static fn() => throw new \LogicException("'$value' is not a date"),
-            );
+            ->unwrap();
     }
 }

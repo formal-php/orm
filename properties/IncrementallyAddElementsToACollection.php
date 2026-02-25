@@ -13,7 +13,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -35,7 +35,7 @@ final class IncrementallyAddElementsToACollection implements Property
     {
         return Set::compose(
             static fn(...$args) => new self(...$args),
-            PointInTime::any(),
+            Point::any(),
             Set::sequence(
                 Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()),
             )->atLeast(1),
@@ -67,9 +67,9 @@ final class IncrementallyAddElementsToACollection implements Property
                     );
 
                     $assert->not()->null($user);
-                    $assert->count(
+                    $assert->same(
                         $index,
-                        $user->addresses(),
+                        $user->addresses()->size(),
                         'Previous addresses have been lost',
                     );
 

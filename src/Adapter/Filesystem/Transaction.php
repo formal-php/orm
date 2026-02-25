@@ -107,6 +107,7 @@ final class Transaction implements TransactionInterface
                 static fn() => Directory::of($directory),
             );
 
+        /** @psalm-suppress InternalMethod */
         $merged = $notCommitted->removed()->reduce(
             $committed,
             static fn(Directory $committed, $name) => $committed->remove($name),
@@ -120,6 +121,6 @@ final class Transaction implements TransactionInterface
 
     private function reset(): Adapter
     {
-        return Adapter\InMemory::emulateFilesystem();
+        return Adapter::inMemory();
     }
 }

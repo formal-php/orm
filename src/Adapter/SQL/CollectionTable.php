@@ -115,7 +115,7 @@ final class CollectionTable
     /**
      * @internal
      */
-    public function select(Id $id): Query
+    public function select(Id $id): Query\Builder
     {
         return $this->select->where(PropertySpecification::of(
             \sprintf(
@@ -133,7 +133,7 @@ final class CollectionTable
      *
      * @param Set<Entity> $collection
      *
-     * @return Sequence<Query>
+     * @return Sequence<Query\Builder>
      */
     public function insert(Id $id, Set $collection): Sequence
     {
@@ -164,7 +164,7 @@ final class CollectionTable
      *
      * @param Set<Entity> $entities
      *
-     * @return Sequence<Query>
+     * @return Sequence<Query\Builder>
      */
     public function update(
         Id $id,
@@ -186,7 +186,7 @@ final class CollectionTable
         );
     }
 
-    public function where(Specification $specification): Query
+    public function where(Specification $specification): Query\Builder
     {
         return Select::from($this->name)
             ->columns($this->id)
@@ -203,7 +203,7 @@ final class CollectionTable
         Column\Name $id,
         Table\Name\Aliased $main,
         ?Select $select,
-    ): Query {
+    ): Query\Builder {
         $insertSelect = Select::from($main)->columns(
             $id->in($main)->as($this->id->column()->toString()),
             ...$entities
@@ -232,7 +232,7 @@ final class CollectionTable
     public function effectRemoveChildren(
         PropertySpecification $comparator,
         ?Select $select,
-    ): Query {
+    ): Query\Builder {
         $where = match ($select) {
             null => $comparator,
             default => $comparator->and(SubQuery::of(

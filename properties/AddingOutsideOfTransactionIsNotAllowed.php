@@ -10,7 +10,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -26,7 +26,7 @@ final class AddingOutsideOfTransactionIsNotAllowed implements Property
 
     public static function any(): Set
     {
-        return PointInTime::any()->map(static fn($createdAt) => new self($createdAt));
+        return Point::any()->map(static fn($createdAt) => new self($createdAt));
     }
 
     public function applicableTo(object $manager): bool

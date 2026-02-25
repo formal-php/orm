@@ -6,9 +6,7 @@ namespace Formal\ORM\Adapter\SQL;
 use Formal\ORM\Adapter\Transaction as TransactionInterface;
 use Formal\AccessLayer\{
     Connection,
-    Query\StartTransaction,
-    Query\Commit,
-    Query\Rollback,
+    Query\Transaction as Query,
 };
 use Innmind\Immutable\{
     Attempt,
@@ -37,7 +35,7 @@ final class Transaction implements TransactionInterface
     {
         return Attempt::of(
             // memoize to force unwrap the monad
-            fn() => ($this->connection)(new StartTransaction)->memoize(),
+            fn() => ($this->connection)(Query::start)->memoize(),
         )->map(static fn() => SideEffect::identity());
     }
 
@@ -55,7 +53,7 @@ final class Transaction implements TransactionInterface
 
         return Attempt::of(
             // memoize to force unwrap the monad
-            static fn() =>  $connection(new Commit)->memoize(),
+            static fn() =>  $connection(Query::commit)->memoize(),
         )->map(static fn() => $value);
     }
 
@@ -73,7 +71,7 @@ final class Transaction implements TransactionInterface
 
         return Attempt::of(
             // memoize to force unwrap the monad
-            static fn() =>  $connection(new Rollback)->memoize(),
+            static fn() =>  $connection(Query::rollback)->memoize(),
         )->map(static fn() => $value);
     }
 }

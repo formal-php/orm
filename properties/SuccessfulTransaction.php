@@ -11,7 +11,7 @@ use Innmind\BlackBox\{
     Runner\Assert,
 };
 use Innmind\Immutable\Either;
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -27,7 +27,7 @@ final class SuccessfulTransaction implements Property
 
     public static function any(): Set
     {
-        return PointInTime::any()->map(static fn($createdAt) => new self($createdAt));
+        return Point::any()->map(static fn($createdAt) => new self($createdAt));
     }
 
     public function applicableTo(object $manager): bool
@@ -42,7 +42,7 @@ final class SuccessfulTransaction implements Property
 
         $manager->transactional(
             function() use ($manager, $user, $assert, $initialSize) {
-                $manager
+                $_ = $manager
                     ->repository(User::class)
                     ->put($user)
                     ->unwrap();

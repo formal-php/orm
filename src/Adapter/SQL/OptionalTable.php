@@ -57,7 +57,7 @@ final class OptionalTable
                     ->as($definition->name().'_'.$property->name()),
             );
         $this->id = Column\Name::of('aggregateId')->in($this->name);
-        $this->select = Select::onDemand($this->name)->columns(
+        $this->select = Select::lazily($this->name)->columns(
             $this->id,
             ...$this->columns->toList(),
         );
@@ -131,7 +131,7 @@ final class OptionalTable
      *
      * @param Sequence<Property> $properties
      */
-    public function insert(Id $id, Sequence $properties): Query
+    public function insert(Id $id, Sequence $properties): Query\Builder
     {
         return self::insertInto(
             $this->name->name(),
@@ -143,7 +143,7 @@ final class OptionalTable
     /**
      * @internal
      *
-     * @return Sequence<Query>
+     * @return Sequence<Query\Builder>
      */
     public function update(Id $id, Optional|Optional\BrandNew $optional): Sequence
     {
@@ -202,7 +202,7 @@ final class OptionalTable
     public function effectProperties(
         Sequence $properties,
         ?Select $select,
-    ): Query {
+    ): Query\Builder {
         $update = Update::set(
             $this->name,
             Row::new(
@@ -228,7 +228,7 @@ final class OptionalTable
     /**
      * @internal
      */
-    public function effectNothing(?Select $select): Query
+    public function effectNothing(?Select $select): Query\Builder
     {
         $delete = Delete::from($this->name);
 
@@ -242,14 +242,14 @@ final class OptionalTable
         return $delete;
     }
 
-    public function where(Specification $specification): Query
+    public function where(Specification $specification): Query\Builder
     {
         return Select::from($this->name)
             ->columns($this->id)
             ->where($specification);
     }
 
-    public function whereAny(): Query
+    public function whereAny(): Query\Builder
     {
         return Select::from($this->name)->columns($this->id);
     }
@@ -263,7 +263,7 @@ final class OptionalTable
         Table\Name $name,
         Id $id,
         Sequence $properties,
-    ): Query {
+    ): Query\Builder {
         return Query\Insert::into(
             $name,
             Row::new(
