@@ -11,6 +11,7 @@ use Innmind\Filesystem\{
 };
 use Innmind\Immutable\{
     Attempt,
+    Sequence,
     SideEffect,
     Predicate\Instance,
 };
@@ -21,12 +22,13 @@ use Innmind\Immutable\{
 final class Transaction implements TransactionInterface
 {
     private Adapter $committed;
-    private Adapter $notCommitted;
+    /** @var Sequence<callable(Adapter): Attempt<SideEffect>> */
+    private Sequence $mutations;
 
     private function __construct(Adapter $committed)
     {
         $this->committed = $committed;
-        $this->notCommitted = $this->reset();
+        $this->mutations = Sequence::of();
     }
 
     /**
@@ -40,7 +42,7 @@ final class Transaction implements TransactionInterface
     #[\Override]
     public function start(): Attempt
     {
-        $this->notCommitted = $this->reset();
+        $this->mutations = $this->mutations->clear();
 
         return Attempt::result(SideEffect::identity());
     }
@@ -56,12 +58,8 @@ final class Transaction implements TransactionInterface
     public function commit(mixed $value): Attempt
     {
         return $this
-            ->notCommitted
-            ->root()
-            ->all()
-            ->sink(SideEffect::identity())
-            ->attempt(fn($_, $file) => $this->committed->add($file))
-            ->map(fn() => $this->notCommitted = $this->reset())
+            ->apply($this->committed)
+            ->map(fn() => $this->mutations = $this->mutations->clear())
             ->map(static fn() => $value);
     }
 
@@ -75,29 +73,25 @@ final class Transaction implements TransactionInterface
     #[\Override]
     public function rollback(mixed $value): Attempt
     {
-        $this->notCommitted = $this->reset();
+        $this->mutations = $this->mutations->clear();
 
         return Attempt::result($value);
     }
 
     /**
-     * @param callable(Adapter): void $mutate
+     * @param callable(Adapter): Attempt<SideEffect> $mutate
+     *
+     * @return Attempt<SideEffect>
      */
-    public function mutate(callable $mutate): void
+    public function mutate(callable $mutate): Attempt
     {
-        $mutate($this->notCommitted);
+        $this->mutations = ($this->mutations)($mutate);
+
+        return Attempt::result(SideEffect::identity);
     }
 
     public function get(Name $directory): Directory
     {
-        $notCommitted = $this
-            ->notCommitted
-            ->get($directory)
-            ->keep(Instance::of(Directory::class))
-            ->match(
-                static fn($directory) => $directory,
-                static fn() => Directory::of($directory),
-            );
         $committed = $this
             ->committed
             ->get($directory)
@@ -106,21 +100,32 @@ final class Transaction implements TransactionInterface
                 static fn($directory) => $directory,
                 static fn() => Directory::of($directory),
             );
+        $notCommitted = Adapter::inMemory();
+        $_ = $notCommitted
+            ->add($committed)
+            ->unwrap();
 
-        /** @psalm-suppress InternalMethod */
-        $merged = $notCommitted->removed()->reduce(
-            $committed,
-            static fn(Directory $committed, $name) => $committed->remove($name),
-        );
+        $_ = $this
+            ->apply($notCommitted)
+            ->unwrap();
 
-        return $notCommitted->all()->reduce(
-            $merged,
-            static fn(Directory $merged, $file) => $merged->add($file),
-        );
+        return $notCommitted
+            ->get($directory)
+            ->keep(Instance::of(Directory::class))
+            ->match(
+                static fn($directory) => $directory,
+                static fn() => Directory::of($directory),
+            );
     }
 
-    private function reset(): Adapter
+    /**
+     * @return Attempt<SideEffect>
+     */
+    private function apply(Adapter $adapter): Attempt
     {
-        return Adapter::inMemory();
+        return $this
+            ->mutations
+            ->sink(SideEffect::identity)
+            ->attempt(static fn($_, $mutate) => $mutate($adapter));
     }
 }
