@@ -133,7 +133,9 @@ return static function() {
         $_ = $connection(DropTable::ifExists(Table\Name::of('user_billingAddress')));
         $_ = $connection(DropTable::ifExists(Table\Name::of('user_sibling')));
         $_ = $connection(DropTable::ifExists(Table\Name::of('user')));
-        $_ = Adapter\SQL\ShowCreateTable::of($aggregates)(User::class)->foreach($connection);
+        $_ = Adapter\SQL\ShowCreateTable::of($aggregates)(User::class)->foreach(
+            static fn($query) => $connection($query)->memoize(),
+        );
 
         $setup = static function() use ($connection, $aggregates) {
             $_ = $connection(Delete::from(Table\Name::of('user_roles')));
