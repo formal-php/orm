@@ -80,7 +80,7 @@ return static function() {
         },
     )->tag(Storage::filesystem);
 
-    properties(
+    yield properties(
         'Filesystem properties',
         Properties::any(),
         Set::call(static fn() => Manager::filesystem(
