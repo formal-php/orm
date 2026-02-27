@@ -46,6 +46,10 @@ Application::new($argv)
         \getenv('CI') !== false,
         static fn($app) => $app->allowProofsToNotMakeAnyAssertions(),
     )
+    ->when(
+        \getenv('EXTENSIVE_CI') !== false,
+        static fn($app) => $app->scenariiPerProof(1_000),
+    )
     ->parseTagWith(Storage::of(...))
     ->disableShrinking()
     ->tryToProve(Load::everythingIn(__DIR__.'/proofs/'))
