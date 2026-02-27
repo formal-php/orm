@@ -12,6 +12,8 @@ use Innmind\Filesystem\{
 use Innmind\Immutable\{
     Attempt,
     Sequence,
+    Map,
+    Set,
     SideEffect,
     Predicate\Instance,
 };
@@ -22,13 +24,18 @@ use Innmind\Immutable\{
 final class Transaction implements TransactionInterface
 {
     private Adapter $committed;
-    /** @var Sequence<callable(Adapter): Attempt<SideEffect>> */
+    private Adapter $notCommitted;
+    /** @var Sequence<Directory> */
     private Sequence $mutations;
+    /** @var Map<non-empty-string, Set<Name>> */
+    private Map $removals;
 
     private function __construct(Adapter $committed)
     {
         $this->committed = $committed;
+        $this->notCommitted = Adapter::inMemory();
         $this->mutations = Sequence::of();
+        $this->removals = Map::of();
     }
 
     /**
@@ -42,7 +49,7 @@ final class Transaction implements TransactionInterface
     #[\Override]
     public function start(): Attempt
     {
-        $this->mutations = $this->mutations->clear();
+        $this->reset();
 
         return Attempt::result(SideEffect::identity());
     }
@@ -59,7 +66,7 @@ final class Transaction implements TransactionInterface
     {
         return $this
             ->apply($this->committed)
-            ->map(fn() => $this->mutations = $this->mutations->clear())
+            ->map($this->reset(...))
             ->map(static fn() => $value);
     }
 
@@ -73,25 +80,42 @@ final class Transaction implements TransactionInterface
     #[\Override]
     public function rollback(mixed $value): Attempt
     {
-        $this->mutations = $this->mutations->clear();
+        $this->reset();
 
         return Attempt::result($value);
     }
 
     /**
-     * @param callable(Adapter): Attempt<SideEffect> $mutate
-     *
      * @return Attempt<SideEffect>
      */
-    public function mutate(callable $mutate): Attempt
+    public function mutate(Directory $directory): Attempt
     {
-        $this->mutations = ($this->mutations)($mutate);
+        $this->mutations = ($this->mutations)($directory);
+        /** @psalm-suppress InternalMethod */
+        $this->removals = ($this->removals)(
+            $directory->name()->toString(),
+            $this
+                ->removals
+                ->get($directory->name()->toString())
+                ->match(
+                    static fn($removed) => $removed->merge($directory->removed()),
+                    static fn() => $directory->removed(),
+                ),
+        );
 
-        return Attempt::result(SideEffect::identity);
+        return $this->notCommitted->add($directory);
     }
 
     public function get(Name $directory): Directory
     {
+        $notCommitted = $this
+            ->notCommitted
+            ->get($directory)
+            ->keep(Instance::of(Directory::class))
+            ->match(
+                static fn($directory) => $directory,
+                static fn() => Directory::of($directory),
+            );
         $committed = $this
             ->committed
             ->get($directory)
@@ -100,22 +124,22 @@ final class Transaction implements TransactionInterface
                 static fn($directory) => $directory,
                 static fn() => Directory::of($directory),
             );
-        $notCommitted = Adapter::inMemory();
-        $_ = $notCommitted
-            ->add($committed)
-            ->unwrap();
 
-        $_ = $this
-            ->apply($notCommitted)
-            ->unwrap();
-
-        return $notCommitted
-            ->get($directory)
-            ->keep(Instance::of(Directory::class))
+        $merged = $this
+            ->removals
+            ->get($directory->toString())
             ->match(
-                static fn($directory) => $directory,
-                static fn() => Directory::of($directory),
+                static fn($removed) => $removed->reduce(
+                    $committed,
+                    static fn(Directory $committed, $name) => $committed->remove($name),
+                ),
+                static fn() => $committed,
             );
+
+        return $notCommitted->all()->reduce(
+            $merged,
+            static fn(Directory $merged, $file) => $merged->add($file),
+        );
     }
 
     /**
@@ -126,6 +150,13 @@ final class Transaction implements TransactionInterface
         return $this
             ->mutations
             ->sink(SideEffect::identity)
-            ->attempt(static fn($_, $mutate) => $mutate($adapter));
+            ->attempt(static fn($_, $mutation) => $adapter->add($mutation));
+    }
+
+    private function reset(): void
+    {
+        $this->notCommitted = Adapter::inMemory();
+        $this->mutations = $this->mutations->clear();
+        $this->removals = $this->removals->clear();
     }
 }

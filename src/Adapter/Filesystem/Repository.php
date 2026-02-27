@@ -93,9 +93,7 @@ final class Repository implements RepositoryInterface, Effectful
             ($this->encode)($data),
         );
 
-        return $this->transaction->mutate(
-            static fn($adapter) => $adapter->add($encoded),
-        );
+        return $this->transaction->mutate($encoded);
     }
 
     #[\Override]
@@ -105,9 +103,7 @@ final class Repository implements RepositoryInterface, Effectful
             ($this->encode)($data),
         );
 
-        return $this->transaction->mutate(
-            static fn($adapter) => $adapter->add($encoded),
-        );
+        return $this->transaction->mutate($encoded);
     }
 
     #[\Override]
@@ -136,9 +132,7 @@ final class Repository implements RepositoryInterface, Effectful
             Name::of($id->value()),
         );
 
-        return $this->transaction->mutate(
-            static fn($adapter) => $adapter->add($mutated),
-        );
+        return $this->transaction->mutate($mutated);
     }
 
     #[\Override]
