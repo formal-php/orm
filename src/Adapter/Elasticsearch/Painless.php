@@ -61,7 +61,7 @@ final class Painless
 
         return [
             'lang' => 'painless',
-            'source' => $source->map(Str::of(...))->fold(new Concat)->toString(),
+            'source' => $source->map(Str::of(...))->fold(Concat::monoid)->toString(),
             'params' => $params->reduce(
                 [],
                 static function(array $params, $param) {
@@ -93,7 +93,7 @@ final class Painless
 
         return [
             'lang' => 'painless',
-            'source' => $source->map(Str::of(...))->fold(new Concat)->toString(),
+            'source' => $source->map(Str::of(...))->fold(Concat::monoid)->toString(),
             'params' => $params->reduce(
                 [],
                 static function(array $params, $param) {
@@ -132,7 +132,7 @@ final class Painless
                     '}',
                 ))
                 ->map(Str::of(...))
-                ->fold(new Concat)
+                ->fold(Concat::monoid)
                 ->toString(),
             'params' => $params->reduce(
                 [],
@@ -186,7 +186,7 @@ final class Painless
 
         return [
             'lang' => 'painless',
-            'source' => $source->map(Str::of(...))->fold(new Concat)->toString(),
+            'source' => $source->map(Str::of(...))->fold(Concat::monoid)->toString(),
             'params' => $params->reduce(
                 [],
                 static function(array $params, $param) {

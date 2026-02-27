@@ -8,9 +8,9 @@ use Formal\ORM\{
     Definition\Type,
     Definition\Types,
 };
-use Innmind\TimeContinuum\{
+use Innmind\Time\{
     Clock,
-    PointInTime,
+    Point,
 };
 use Fixtures\Formal\ORM\{
     User,
@@ -23,7 +23,7 @@ return static function() {
         static function($assert) {
             $aggregates = Aggregates::of(Types::of(
                 Type\Support::class(
-                    PointInTime::class,
+                    Point::class,
                     Type\PointInTimeType::new(Clock::live()),
                 ),
                 CreatedAtType::of(...),

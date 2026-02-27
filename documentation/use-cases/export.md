@@ -25,7 +25,9 @@ $file = File::named(
 $os
     ->filesystem()
     ->mount(Path::of('somewhere'))
-    ->add($file);
+    ->unwrap()
+    ->add($file)
+    ->unwrap();
 ```
 
 This create a `users.csv` file where each line contains the name of a user.

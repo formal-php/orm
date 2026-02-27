@@ -91,8 +91,10 @@ use Innmind\Immutable\SideEffect;
 
 $os = Factory::build();
 $sql = Manager::sql(
-    $os->remote()->sql(
-        Url::of('mysql://user:password@host:3306/database?charset=utf8mb4'),
+    $os
+        ->remote()
+        ->sql(Url::of('mysql://user:password@host:3306/database?charset=utf8mb4'))
+        ->unwrap(),
     ),
 );
 $elasticsearch = Manager::of(

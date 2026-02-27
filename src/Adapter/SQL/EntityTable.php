@@ -110,7 +110,7 @@ final class EntityTable
      *
      * @param Sequence<Property> $properties
      */
-    public function insert(Id $id, Sequence $properties): Query
+    public function insert(Id $id, Sequence $properties): Query\Builder
     {
         return Query\Insert::into(
             $this->name->name(),
@@ -134,7 +134,7 @@ final class EntityTable
      *
      * @param Sequence<Property> $properties
      *
-     * @return Maybe<Query>
+     * @return Maybe<Query\Builder>
      */
     public function update(Id $id, Sequence $properties): Maybe
     {
@@ -169,7 +169,7 @@ final class EntityTable
     public function effect(
         Sequence $properties,
         ?Select $select,
-    ): Query {
+    ): Query\Builder {
         $update = Update::set(
             $this->name,
             Row::new(

@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        php-version: ['8.4']
+        php-version: ['8.5']
         dependency-versions: ['highest']
         mariadb: ['11']
         elasticsearch: ['7.17.18']

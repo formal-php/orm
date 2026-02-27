@@ -17,7 +17,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -54,7 +54,7 @@ final class EffectChildRemoveOnAllAggregates implements Property
                 Sign::contains,
                 Sign::in,
             ),
-            PointInTime::any(),
+            Point::any(),
         );
     }
 

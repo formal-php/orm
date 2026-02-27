@@ -28,11 +28,11 @@ This allows:
         Manager,
         Sort,
     };
-    use Formal\AccessLayer\Connection\PDO;
+    use Formal\AccessLayer\Connection;
     use Innmind\Url\Url;
 
     $manager = Manager::sql(
-        PDO::of(Url::of('mysql://user:pwd@host:3306/database?charset=utf8mb4')),
+        Connection::new(Url::of('mysql://user:pwd@host:3306/database?charset=utf8mb4'))->unwrap(),
     );
     $_ = $manager
         ->repository(YourAggregate::class)

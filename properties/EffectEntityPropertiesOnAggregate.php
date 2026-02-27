@@ -18,7 +18,7 @@ use Innmind\Specification\{
     Comparator,
     Sign,
 };
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -45,7 +45,7 @@ final class EffectEntityPropertiesOnAggregate implements Property
                 ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->atLeast(10), // to limit collisions
             Set::of(true, false),
-            PointInTime::any(),
+            Point::any(),
         );
     }
 

@@ -28,10 +28,10 @@ use Formal\AccessLayer\{
     Table,
 };
 use Innmind\OperatingSystem\Factory;
-use Innmind\Filesystem\Adapter\InMemory;
-use Innmind\TimeContinuum\{
+use Innmind\Filesystem\Adapter as Filesystem;
+use Innmind\Time\{
     Clock,
-    PointInTime,
+    Point,
 };
 use Innmind\Url\Url;
 use Innmind\Immutable\Either;
@@ -41,7 +41,7 @@ return static function() {
     yield test(
         'Manager::repository() returns a single instance as long as it is used',
         static function($assert) {
-            $manager = Manager::filesystem(InMemory::emulateFilesystem());
+            $manager = Manager::filesystem(Filesystem::inMemory());
 
             $repository1 = $manager->repository(User::class);
             $repository2 = $manager->repository(User::class);
@@ -52,7 +52,7 @@ return static function() {
     yield test(
         'Manager::repository() returns an instance per class',
         static function($assert) {
-            $manager = Manager::filesystem(InMemory::emulateFilesystem());
+            $manager = Manager::filesystem(Filesystem::inMemory());
             $repositoryA = $manager->repository(User::class);
             $repositoryB = $manager->repository(Random::class);
 
@@ -66,7 +66,7 @@ return static function() {
     yield test(
         'Nested transactions are forbidden',
         static function($assert) {
-            $manager = Manager::filesystem(InMemory::emulateFilesystem());
+            $manager = Manager::filesystem(Filesystem::inMemory());
 
             $assert->throws(
                 static fn() => $manager->transactional(
@@ -84,10 +84,10 @@ return static function() {
         'Filesystem properties',
         Properties::any(),
         Set::call(static fn() => Manager::filesystem(
-            InMemory::emulateFilesystem(),
+            Filesystem::inMemory(),
             Aggregates::of(Types::of(
                 Type\Support::class(
-                    PointInTime::class,
+                    Point::class,
                     Type\PointInTimeType::new(Clock::live()),
                 ),
                 SortableType::of(...),
@@ -100,10 +100,10 @@ return static function() {
         yield property(
             $property,
             Set::call(static fn() => Manager::filesystem(
-                InMemory::emulateFilesystem(),
+                Filesystem::inMemory(),
                 Aggregates::of(Types::of(
                     Type\Support::class(
-                        PointInTime::class,
+                        Point::class,
                         Type\PointInTimeType::new(Clock::live()),
                     ),
                     SortableType::of(...),
@@ -118,7 +118,7 @@ return static function() {
     $os = Factory::build();
     $aggregates = Aggregates::of(Types::of(
         Type\Support::class(
-            PointInTime::class,
+            Point::class,
             Type\PointInTimeType::new($os->clock()),
         ),
         SortableType::of(...),
@@ -126,22 +126,24 @@ return static function() {
     ));
 
     $sql = static function(Url $dsn, string $driver) use ($os, $aggregates) {
-        $connection = $os->remote()->sql($dsn);
-        $connection(DropTable::ifExists(Table\Name::of('user_roles')));
-        $connection(DropTable::ifExists(Table\Name::of('user_addresses')));
-        $connection(DropTable::ifExists(Table\Name::of('user_mainAddress')));
-        $connection(DropTable::ifExists(Table\Name::of('user_billingAddress')));
-        $connection(DropTable::ifExists(Table\Name::of('user_sibling')));
-        $connection(DropTable::ifExists(Table\Name::of('user')));
-        $_ = Adapter\SQL\ShowCreateTable::of($aggregates)(User::class)->foreach($connection);
+        $_ = $connection = $os->remote()->sql($dsn)->unwrap();
+        $_ = $connection(DropTable::ifExists(Table\Name::of('user_roles')));
+        $_ = $connection(DropTable::ifExists(Table\Name::of('user_addresses')));
+        $_ = $connection(DropTable::ifExists(Table\Name::of('user_mainAddress')));
+        $_ = $connection(DropTable::ifExists(Table\Name::of('user_billingAddress')));
+        $_ = $connection(DropTable::ifExists(Table\Name::of('user_sibling')));
+        $_ = $connection(DropTable::ifExists(Table\Name::of('user')));
+        $_ = Adapter\SQL\ShowCreateTable::of($aggregates)(User::class)->foreach(
+            static fn($query) => $connection($query)->memoize(),
+        );
 
         $setup = static function() use ($connection, $aggregates) {
-            $connection(Delete::from(Table\Name::of('user_roles')));
-            $connection(Delete::from(Table\Name::of('user_addresses')));
-            $connection(Delete::from(Table\Name::of('user_mainAddress')));
-            $connection(Delete::from(Table\Name::of('user_billingAddress')));
-            $connection(Delete::from(Table\Name::of('user_sibling')));
-            $connection(Delete::from(Table\Name::of('user')));
+            $_ = $connection(Delete::from(Table\Name::of('user_roles')));
+            $_ = $connection(Delete::from(Table\Name::of('user_addresses')));
+            $_ = $connection(Delete::from(Table\Name::of('user_mainAddress')));
+            $_ = $connection(Delete::from(Table\Name::of('user_billingAddress')));
+            $_ = $connection(Delete::from(Table\Name::of('user_sibling')));
+            $_ = $connection(Delete::from(Table\Name::of('user')));
 
             return Manager::sql($connection, $aggregates);
         };

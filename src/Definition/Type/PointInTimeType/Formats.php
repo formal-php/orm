@@ -3,7 +3,7 @@ declare(strict_types = 1);
 
 namespace Formal\ORM\Definition\Type\PointInTimeType;
 
-use Innmind\TimeContinuum\{
+use Innmind\Time\{
     Format,
     Format\Custom
 };
