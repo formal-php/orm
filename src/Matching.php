@@ -268,6 +268,7 @@ final class Matching
     /**
      * @return Sequence<T>
      */
+    #[\NoDiscard]
     public function sequence(): Sequence
     {
         if ($this->take === 0) {
@@ -307,6 +308,7 @@ final class Matching
      *
      * @return Sequence<T>
      */
+    #[\NoDiscard]
     public function filter(callable $predicate): Sequence
     {
         return $this->sequence()->filter($predicate);
@@ -319,6 +321,7 @@ final class Matching
      *
      * @return Sequence<T>
      */
+    #[\NoDiscard]
     public function exclude(callable $predicate): Sequence
     {
         return $this->sequence()->exclude($predicate);
@@ -329,6 +332,7 @@ final class Matching
      *
      * @param callable(T): void $function
      */
+    #[\NoDiscard]
     public function foreach(callable $function): SideEffect
     {
         return $this->sequence()->foreach($function);
@@ -339,6 +343,7 @@ final class Matching
      *
      * @return Maybe<T>
      */
+    #[\NoDiscard]
     public function first(): Maybe
     {
         return $this->sequence()->first();
@@ -353,6 +358,7 @@ final class Matching
      *
      * @return Sequence<S>
      */
+    #[\NoDiscard]
     public function map(callable $function): Sequence
     {
         return $this->sequence()->map($function);
@@ -367,6 +373,7 @@ final class Matching
      *
      * @return Sequence<S>
      */
+    #[\NoDiscard]
     public function flatMap(callable $map): Sequence
     {
         return $this->sequence()->flatMap($map);
@@ -383,6 +390,7 @@ final class Matching
      *
      * @return I|R
      */
+    #[\NoDiscard]
     public function reduce(mixed $carry, callable $reducer): mixed
     {
         return $this->sequence()->reduce($carry, $reducer);
@@ -393,6 +401,7 @@ final class Matching
      *
      * @return list<T>
      */
+    #[\NoDiscard]
     public function toList(): array
     {
         return $this->sequence()->toList();
@@ -405,6 +414,7 @@ final class Matching
      *
      * @return Maybe<T>
      */
+    #[\NoDiscard]
     public function find(callable $predicate): Maybe
     {
         return $this->sequence()->find($predicate);
