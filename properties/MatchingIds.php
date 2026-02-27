@@ -46,7 +46,7 @@ final class MatchingIds implements Property
         $user3 = User::new($this->createdAt);
 
         $repository = $manager->repository(User::class);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static function() use ($repository, $user1, $user2, $user3) {
                 $_ = $repository->put($user1)->unwrap();
                 $_ = $repository->put($user2)->unwrap();

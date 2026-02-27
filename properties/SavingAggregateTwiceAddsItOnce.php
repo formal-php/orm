@@ -43,7 +43,7 @@ final class SavingAggregateTwiceAddsItOnce implements Property
 
         $user = User::new($this->createdAt);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static function() use ($manager, $user) {
                 $_ = $manager
                     ->repository(User::class)

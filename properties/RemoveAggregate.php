@@ -41,14 +41,14 @@ final class RemoveAggregate implements Property
             ->size();
 
         $user = User::new($this->createdAt);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $manager
                 ->repository(User::class)
                 ->put($user)
                 ->either(),
         );
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $manager
                 ->repository(User::class)
                 ->remove($user->id())

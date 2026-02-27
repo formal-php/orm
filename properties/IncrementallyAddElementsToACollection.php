@@ -52,14 +52,14 @@ final class IncrementallyAddElementsToACollection implements Property
         $repository = $manager->repository(User::class);
         $user = User::new($this->createdAt);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository->put($user)->either(),
         );
         $id = $user->id()->toString();
         unset($user); // to make sure there is no in memory cache somewhere
 
         foreach ($this->addresses as $index => $address) {
-            $manager->transactional(
+            $_ = $manager->transactional(
                 static function() use ($assert, $repository, $index, $address, $id) {
                     $user = $repository->get(Id::of(User::class, $id))->match(
                         static fn($user) => $user,

@@ -40,7 +40,7 @@ final class FailingTransactionDueToLeftSide implements Property
         $user = User::new($this->createdAt);
         $initialSize = $manager->repository(User::class)->size();
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             function() use ($manager, $user, $assert, $initialSize) {
                 $_ = $manager
                     ->repository(User::class)

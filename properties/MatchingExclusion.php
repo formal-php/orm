@@ -54,7 +54,7 @@ final class MatchingExclusion implements Property
         $user = User::new($this->createdAt, $this->name);
 
         $repository = $manager->repository(User::class);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),

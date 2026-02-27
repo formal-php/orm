@@ -53,7 +53,7 @@ final class UpdateEntity implements Property
         $repository = $manager->repository(User::class);
         $user = User::new($this->createdAt, $this->name);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),
@@ -71,7 +71,7 @@ final class UpdateEntity implements Property
 
         $user = $loaded->changeAddress($this->address);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),

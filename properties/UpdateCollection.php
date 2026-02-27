@@ -71,7 +71,7 @@ final class UpdateCollection implements Property
         $repository = $manager->repository(User::class);
         $user = User::new($this->createdAt, $this->name);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),
@@ -93,7 +93,7 @@ final class UpdateCollection implements Property
             ->addAddress($this->address2)
             ->addAddress($this->address3);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),
@@ -139,7 +139,7 @@ final class UpdateCollection implements Property
 
         $user = $reloaded->removeAddress($this->address2);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),

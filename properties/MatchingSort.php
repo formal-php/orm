@@ -71,7 +71,7 @@ final class MatchingSort implements Property
         $user2 = User::new($this->createdAt, $this->prefix.'b'.$this->name2);
 
         $repository = $manager->repository(User::class);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static function() use ($repository, $user1, $user2) {
                 $_ = $repository->put($user1)->unwrap();
                 $_ = $repository->put($user2)->unwrap();

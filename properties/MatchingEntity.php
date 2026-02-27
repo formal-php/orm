@@ -68,7 +68,7 @@ final class MatchingEntity implements Property
         $user3 = User::new($this->createdAt)->changeAddress($this->prefix.$this->name1);
 
         $repository = $manager->repository(User::class);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static function() use ($repository, $user1, $user2, $user3) {
                 $_ = $repository->put($user1)->unwrap();
                 $_ = $repository->put($user2)->unwrap();

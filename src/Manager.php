@@ -89,6 +89,7 @@ final class Manager
      *
      * @return Either<E|Failure, R>
      */
+    #[\NoDiscard]
     public function transactional(callable $transaction): Either
     {
         if ($this->inTransaction) {

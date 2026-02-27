@@ -63,7 +63,7 @@ final class UpdateAggregate implements Property
         $repository = $manager->repository(User::class);
         $user = User::new($this->createdAt, $this->name);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),
@@ -83,7 +83,7 @@ final class UpdateAggregate implements Property
         $user = $loaded
             ->rename($this->newName)
             ->useRole($this->role);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $manager
                 ->repository(User::class)
                 ->put($user)
@@ -125,7 +125,7 @@ final class UpdateAggregate implements Property
         // make sure the diff is correctly updated
         $user = $reloaded->rename($this->name);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),

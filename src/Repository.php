@@ -117,6 +117,7 @@ final class Repository
      *
      * @return Maybe<T>
      */
+    #[\NoDiscard]
     public function get(Id $id): Maybe
     {
         return $this
@@ -148,6 +149,7 @@ final class Repository
      *
      * @return Attempt<SideEffect>
      */
+    #[\NoDiscard]
     public function put(object $aggregate): Attempt
     {
         if (!($this->inTransaction)()) {
@@ -172,6 +174,7 @@ final class Repository
     /**
      * @return Attempt<SideEffect>
      */
+    #[\NoDiscard]
     public function effect(
         Effect|Effect\Provider $effect,
         ?Specification $specification = null,
@@ -206,6 +209,7 @@ final class Repository
      *
      * @return Attempt<SideEffect>
      */
+    #[\NoDiscard]
     public function remove(Id|Specification $criteria): Attempt
     {
         if (!($this->inTransaction)()) {
@@ -231,6 +235,7 @@ final class Repository
     /**
      * @return Matching<T>
      */
+    #[\NoDiscard]
     public function matching(Specification $specification): Matching
     {
         return Matching::of(

@@ -72,7 +72,7 @@ final class CrossAggregateMatchingOnProperty implements Property
         $parent2 = User::new($this->createdAt)->isSiblingOf($child1->id());
 
         $repository = $manager->repository(User::class);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static function() use ($repository, $child1, $child2, $parent1, $parent2) {
                 $_ = $repository->put($child1)->unwrap();
                 $_ = $repository->put($child2)->unwrap();

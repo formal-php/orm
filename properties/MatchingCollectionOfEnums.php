@@ -48,7 +48,7 @@ final class MatchingCollectionOfEnums implements Property
         $user = User::new($this->createdAt)->useRoles(Role::user);
         $guest = User::new($this->createdAt)->useRoles(Role::guest);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($admin)
                 ->either()
