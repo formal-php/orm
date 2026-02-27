@@ -16,7 +16,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -33,7 +33,7 @@ final class MatchingCollectionOfEnums implements Property
 
     public static function any(): Set
     {
-        return PointInTime::any()->map(static fn(...$args) => new self(...$args));
+        return Point::any()->map(static fn(...$args) => new self(...$args));
     }
 
     public function applicableTo(object $manager): bool
@@ -48,7 +48,7 @@ final class MatchingCollectionOfEnums implements Property
         $user = User::new($this->createdAt)->useRoles(Role::user);
         $guest = User::new($this->createdAt)->useRoles(Role::guest);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($admin)
                 ->either()

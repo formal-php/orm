@@ -18,7 +18,7 @@ use Innmind\Specification\{
     Comparator,
     Sign,
 };
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -47,7 +47,7 @@ final class EffectEntityPropertyOnAggregate implements Property
             Set::strings()
                 ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->atLeast(10), // to limit collisions
-            PointInTime::any(),
+            Point::any(),
         );
     }
 
@@ -59,7 +59,7 @@ final class EffectEntityPropertyOnAggregate implements Property
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
         $user = User::new($this->createdAt, $this->name);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $manager
                 ->repository(User::class)
                 ->put($user)
@@ -74,7 +74,7 @@ final class EffectEntityPropertyOnAggregate implements Property
             Id::of(User::class, $id),
         );
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             fn() => $manager
                 ->repository(User::class)
                 ->effect(
@@ -88,7 +88,7 @@ final class EffectEntityPropertyOnAggregate implements Property
                 ->either(),
         );
 
-        $manager
+        $_ = $manager
             ->repository(User::class)
             ->matching($specification)
             ->foreach(
@@ -97,7 +97,7 @@ final class EffectEntityPropertyOnAggregate implements Property
                     ->same($this->address),
             );
 
-        $manager
+        $_ = $manager
             ->repository(User::class)
             ->matching($specification->not())
             ->foreach(

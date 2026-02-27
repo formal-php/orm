@@ -18,7 +18,7 @@ use Innmind\Specification\{
     Comparator,
     Sign,
 };
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -43,7 +43,7 @@ final class EffectChildAddOnAggregate implements Property
             Set::strings()
                 ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->atLeast(10), // to limit collisions
-            PointInTime::any(),
+            Point::any(),
         );
     }
 
@@ -55,7 +55,7 @@ final class EffectChildAddOnAggregate implements Property
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
         $user = User::new($this->createdAt, $this->name);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $manager
                 ->repository(User::class)
                 ->put($user)
@@ -70,7 +70,7 @@ final class EffectChildAddOnAggregate implements Property
             Id::of(User::class, $id),
         );
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             fn() => $manager
                 ->repository(User::class)
                 ->effect(
@@ -82,7 +82,7 @@ final class EffectChildAddOnAggregate implements Property
                 ->either(),
         );
 
-        $manager
+        $_ = $manager
             ->repository(User::class)
             ->matching($specification)
             ->foreach(
@@ -96,7 +96,7 @@ final class EffectChildAddOnAggregate implements Property
                     ->contains($this->address),
             );
 
-        $manager
+        $_ = $manager
             ->repository(User::class)
             ->matching($specification->not())
             ->foreach(

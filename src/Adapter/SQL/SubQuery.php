@@ -23,7 +23,7 @@ final class SubQuery implements Comparator
      */
     private function __construct(
         private string $property,
-        private Query $query,
+        private Query|Query\Builder $query,
     ) {
     }
 
@@ -33,7 +33,7 @@ final class SubQuery implements Comparator
      *
      * @param non-empty-string $property
      */
-    public static function of(string $property, Query $query): self
+    public static function of(string $property, Query|Query\Builder $query): self
     {
         return new self($property, $query);
     }
@@ -51,7 +51,7 @@ final class SubQuery implements Comparator
     }
 
     #[\Override]
-    public function value(): Query
+    public function value(): Query|Query\Builder
     {
         return $this->query;
     }

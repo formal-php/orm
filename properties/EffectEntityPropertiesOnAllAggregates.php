@@ -13,7 +13,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -40,7 +40,7 @@ final class EffectEntityPropertiesOnAllAggregates implements Property
                 ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->atLeast(10), // to limit collisions
             Set::of(true, false),
-            PointInTime::any(),
+            Point::any(),
         );
     }
 
@@ -52,7 +52,7 @@ final class EffectEntityPropertiesOnAllAggregates implements Property
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
         $user = User::new($this->createdAt, $this->name);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $manager
                 ->repository(User::class)
                 ->put($user)
@@ -60,7 +60,7 @@ final class EffectEntityPropertiesOnAllAggregates implements Property
         );
         unset($user); // to make sure there is no in memory cache somewhere
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             fn() => $manager
                 ->repository(User::class)
                 ->effect(
@@ -77,7 +77,7 @@ final class EffectEntityPropertiesOnAllAggregates implements Property
                 ->either(),
         );
 
-        $manager
+        $_ = $manager
             ->repository(User::class)
             ->all()
             ->foreach(
@@ -86,7 +86,7 @@ final class EffectEntityPropertiesOnAllAggregates implements Property
                     ->same($this->address),
             );
 
-        $manager
+        $_ = $manager
             ->repository(User::class)
             ->all()
             ->foreach(

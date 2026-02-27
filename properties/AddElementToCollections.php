@@ -11,7 +11,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -33,7 +33,7 @@ final class AddElementToCollections implements Property
     {
         return Set::compose(
             static fn(...$args) => new self(...$args),
-            PointInTime::any(),
+            Point::any(),
             Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()),
         );
     }
@@ -48,7 +48,7 @@ final class AddElementToCollections implements Property
         $repository = $manager->repository(User::class);
         $user = User::new($this->createdAt);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             fn() => $repository
                 ->all()
                 ->map(fn($user) => $user->addAddress($this->address))
@@ -57,7 +57,7 @@ final class AddElementToCollections implements Property
                 ->either(),
         );
 
-        $repository
+        $_ = $repository
             ->all()
             ->foreach(fn($user) => $assert->true(
                 $user

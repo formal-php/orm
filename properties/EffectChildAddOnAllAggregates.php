@@ -13,7 +13,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -38,7 +38,7 @@ final class EffectChildAddOnAllAggregates implements Property
             Set::strings()
                 ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->atLeast(10), // to limit collisions
-            PointInTime::any(),
+            Point::any(),
         );
     }
 
@@ -50,7 +50,7 @@ final class EffectChildAddOnAllAggregates implements Property
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
         $user = User::new($this->createdAt, $this->name);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $manager
                 ->repository(User::class)
                 ->put($user)
@@ -58,7 +58,7 @@ final class EffectChildAddOnAllAggregates implements Property
         );
         unset($user); // to make sure there is no in memory cache somewhere
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             fn() => $manager
                 ->repository(User::class)
                 ->effect(
@@ -69,7 +69,7 @@ final class EffectChildAddOnAllAggregates implements Property
                 ->either(),
         );
 
-        $manager
+        $_ = $manager
             ->repository(User::class)
             ->all()
             ->foreach(

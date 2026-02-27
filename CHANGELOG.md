@@ -1,5 +1,13 @@
 # Changelog
 
+## 6.0.0 - 2026-02-27
+
+### Changed
+
+- Requires PHP `8.4`
+- Requires `innmind/foundation:~2.1`
+- Requires `formal/access-layer:~5.0`
+
 ## 5.1.1 - 2025-09-24
 
 ### Fixed

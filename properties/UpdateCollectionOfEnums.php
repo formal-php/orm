@@ -16,7 +16,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -51,7 +51,7 @@ final class UpdateCollectionOfEnums implements Property
 
         return Set::compose(
             static fn(...$args) => new self(...$args),
-            PointInTime::any(),
+            Point::any(),
             $roles,
             $roles,
         );
@@ -67,7 +67,7 @@ final class UpdateCollectionOfEnums implements Property
         $repository = $manager->repository(User::class);
         $user = User::new($this->createdAt)->useRoles(...$this->roles);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),
@@ -82,7 +82,7 @@ final class UpdateCollectionOfEnums implements Property
                 static fn() => null,
             );
         $assert->not()->null($loaded);
-        $assert->count(\count($this->roles), $loaded->roles());
+        $assert->same(\count($this->roles), $loaded->roles()->size());
 
         foreach ($this->roles as $role) {
             $assert->true($loaded->roles()->contains($role));
@@ -90,7 +90,7 @@ final class UpdateCollectionOfEnums implements Property
 
         $user = $loaded->useRoles(...$this->newRoles);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),
@@ -103,7 +103,7 @@ final class UpdateCollectionOfEnums implements Property
                 static fn() => null,
             );
         $assert->not()->null($reloaded);
-        $assert->count(\count($this->newRoles), $reloaded->roles());
+        $assert->same(\count($this->newRoles), $reloaded->roles()->size());
 
         foreach ($this->newRoles as $role) {
             $assert->true($reloaded->roles()->contains($role));

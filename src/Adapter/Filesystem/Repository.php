@@ -93,11 +93,7 @@ final class Repository implements RepositoryInterface, Effectful
             ($this->encode)($data),
         );
 
-        return Attempt::of(
-            fn() => $this->transaction->mutate(
-                static fn($adapter) => $adapter->add($encoded)->unwrap(),
-            ),
-        )->map(static fn() => SideEffect::identity());
+        return $this->transaction->mutate($encoded);
     }
 
     #[\Override]
@@ -107,11 +103,7 @@ final class Repository implements RepositoryInterface, Effectful
             ($this->encode)($data),
         );
 
-        return Attempt::of(
-            fn() => $this->transaction->mutate(
-                static fn($adapter) => $adapter->add($encoded)->unwrap(),
-            ),
-        )->map(static fn() => SideEffect::identity());
+        return $this->transaction->mutate($encoded);
     }
 
     #[\Override]
@@ -140,11 +132,7 @@ final class Repository implements RepositoryInterface, Effectful
             Name::of($id->value()),
         );
 
-        return Attempt::of(
-            fn() => $this->transaction->mutate(
-                static fn($adapter) => $adapter->add($mutated)->unwrap(),
-            ),
-        )->map(static fn() => SideEffect::identity());
+        return $this->transaction->mutate($mutated);
     }
 
     #[\Override]

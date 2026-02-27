@@ -12,13 +12,16 @@ use Formal\ORM\{
 use Innmind\OperatingSystem\Factory;
 use Innmind\Url\Url;
 use Fixtures\Formal\ORM\User;
-use Innmind\TimeContinuum\PointInTime;
+use Innmind\Time\Point;
 
 $os = Factory::build();
-$connection = $os->remote()->sql(Url::of("mysql://root:root@127.0.0.1:3306/example"));
+$connection = $os
+    ->remote()
+    ->sql(Url::of("mysql://root:root@127.0.0.1:3306/example"))
+    ->unwrap();
 $aggregates = Aggregates::of(Types::of(
     Type\Support::class(
-        PointInTime::class,
+        Point::class,
         Type\PointInTimeType::new($os->clock()),
     ),
 ));

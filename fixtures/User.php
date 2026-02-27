@@ -7,7 +7,7 @@ use Formal\ORM\{
     Id,
     Definition\Contains,
 };
-use Innmind\TimeContinuum\PointInTime;
+use Innmind\Time\Point;
 use Innmind\Immutable\{
     Str,
     Maybe,
@@ -18,7 +18,7 @@ final class User
 {
     /** @var Id<self> */
     private Id $id;
-    private PointInTime $createdAt;
+    private Point $createdAt;
     // To show by default floats are not supported on purpose
     private float $createdAtFloat;
     private CreatedAt $wrappedCreatedAt;
@@ -61,7 +61,7 @@ final class User
      */
     private function __construct(
         Id $id,
-        PointInTime $createdAt,
+        Point $createdAt,
         ?string $name,
         User\Address $mainAddress,
         Maybe $billingAddress,
@@ -91,8 +91,8 @@ final class User
     }
 
     public static function new(
-        PointInTime $createdAt,
-        string $name = null,
+        Point $createdAt,
+        ?string $name = null,
     ): self {
         /** @var Maybe<User\Address> */
         $billingAddress = Maybe::nothing();
@@ -119,7 +119,7 @@ final class User
         return $this->id;
     }
 
-    public function createdAt(): PointInTime
+    public function createdAt(): Point
     {
         return $this->createdAt;
     }

@@ -117,7 +117,9 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching, C
     public function add(Aggregate $data): Attempt
     {
         return Attempt::of(
-            fn() => ($this->encode)($data)->foreach($this->connection),
+            fn() => ($this->encode)($data)->foreach(
+                fn($query) => ($this->connection)($query)->memoize(),
+            ),
         );
     }
 
@@ -125,7 +127,9 @@ final class Repository implements RepositoryInterface, CrossAggregateMatching, C
     public function update(Diff $data): Attempt
     {
         return Attempt::of(
-            fn() => ($this->update)($data)->foreach($this->connection),
+            fn() => ($this->update)($data)->foreach(
+                fn($query) => ($this->connection)($query)->memoize(),
+            ),
         );
     }
 

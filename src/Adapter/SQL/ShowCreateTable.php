@@ -27,7 +27,7 @@ final class ShowCreateTable
     /**
      * @param class-string $class
      *
-     * @return Sequence<Query>
+     * @return Sequence<Query\Builder>
      */
     public function __invoke(string $class): Sequence
     {

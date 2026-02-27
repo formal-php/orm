@@ -37,7 +37,7 @@ final class StreamUpdate implements Property
 
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
-        $manager->transactional(
+        $_ = $manager->transactional(
             fn() => $manager
                 ->repository(User::class)
                 ->all()

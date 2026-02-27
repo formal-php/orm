@@ -14,9 +14,9 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\TimeContinuum\Offset;
+use Innmind\Time\Offset;
 use Innmind\Immutable\Str;
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -40,7 +40,7 @@ final class AddAggregate implements Property
                 ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->toSet()
                 ->nullable(),
-            PointInTime::any(),
+            Point::any(),
         );
     }
 
@@ -55,7 +55,7 @@ final class AddAggregate implements Property
             ->repository(User::class)
             ->size();
         $user = User::new($this->createdAt, $this->name);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $manager
                 ->repository(User::class)
                 ->put($user)

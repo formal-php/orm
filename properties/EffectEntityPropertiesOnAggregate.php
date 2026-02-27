@@ -18,7 +18,7 @@ use Innmind\Specification\{
     Comparator,
     Sign,
 };
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -45,7 +45,7 @@ final class EffectEntityPropertiesOnAggregate implements Property
                 ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->atLeast(10), // to limit collisions
             Set::of(true, false),
-            PointInTime::any(),
+            Point::any(),
         );
     }
 
@@ -57,7 +57,7 @@ final class EffectEntityPropertiesOnAggregate implements Property
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
         $user = User::new($this->createdAt, $this->name);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $manager
                 ->repository(User::class)
                 ->put($user)
@@ -72,7 +72,7 @@ final class EffectEntityPropertiesOnAggregate implements Property
             Id::of(User::class, $id),
         );
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             fn() => $manager
                 ->repository(User::class)
                 ->effect(
@@ -90,7 +90,7 @@ final class EffectEntityPropertiesOnAggregate implements Property
                 ->either(),
         );
 
-        $manager
+        $_ = $manager
             ->repository(User::class)
             ->matching($specification)
             ->foreach(
@@ -99,7 +99,7 @@ final class EffectEntityPropertiesOnAggregate implements Property
                     ->same($this->address),
             );
 
-        $manager
+        $_ = $manager
             ->repository(User::class)
             ->matching($specification)
             ->foreach(
@@ -108,7 +108,7 @@ final class EffectEntityPropertiesOnAggregate implements Property
                     ->same($this->enabled),
             );
 
-        $manager
+        $_ = $manager
             ->repository(User::class)
             ->matching($specification->not())
             ->foreach(

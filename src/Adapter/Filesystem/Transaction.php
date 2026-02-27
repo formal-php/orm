@@ -11,6 +11,9 @@ use Innmind\Filesystem\{
 };
 use Innmind\Immutable\{
     Attempt,
+    Sequence,
+    Map,
+    Set,
     SideEffect,
     Predicate\Instance,
 };
@@ -22,11 +25,17 @@ final class Transaction implements TransactionInterface
 {
     private Adapter $committed;
     private Adapter $notCommitted;
+    /** @var Sequence<Directory> */
+    private Sequence $mutations;
+    /** @var Map<non-empty-string, Set<Name>> */
+    private Map $removals;
 
     private function __construct(Adapter $committed)
     {
         $this->committed = $committed;
-        $this->notCommitted = $this->reset();
+        $this->notCommitted = Adapter::inMemory();
+        $this->mutations = Sequence::of();
+        $this->removals = Map::of();
     }
 
     /**
@@ -40,7 +49,7 @@ final class Transaction implements TransactionInterface
     #[\Override]
     public function start(): Attempt
     {
-        $this->notCommitted = $this->reset();
+        $this->reset();
 
         return Attempt::result(SideEffect::identity());
     }
@@ -56,12 +65,8 @@ final class Transaction implements TransactionInterface
     public function commit(mixed $value): Attempt
     {
         return $this
-            ->notCommitted
-            ->root()
-            ->all()
-            ->sink(SideEffect::identity())
-            ->attempt(fn($_, $file) => $this->committed->add($file))
-            ->map(fn() => $this->notCommitted = $this->reset())
+            ->apply($this->committed)
+            ->map($this->reset(...))
             ->map(static fn() => $value);
     }
 
@@ -75,17 +80,30 @@ final class Transaction implements TransactionInterface
     #[\Override]
     public function rollback(mixed $value): Attempt
     {
-        $this->notCommitted = $this->reset();
+        $this->reset();
 
         return Attempt::result($value);
     }
 
     /**
-     * @param callable(Adapter): void $mutate
+     * @return Attempt<SideEffect>
      */
-    public function mutate(callable $mutate): void
+    public function mutate(Directory $directory): Attempt
     {
-        $mutate($this->notCommitted);
+        $this->mutations = ($this->mutations)($directory);
+        /** @psalm-suppress InternalMethod */
+        $this->removals = ($this->removals)(
+            $directory->name()->toString(),
+            $this
+                ->removals
+                ->get($directory->name()->toString())
+                ->match(
+                    static fn($removed) => $removed->merge($directory->removed()),
+                    static fn() => $directory->removed(),
+                ),
+        );
+
+        return $this->notCommitted->add($directory);
     }
 
     public function get(Name $directory): Directory
@@ -107,10 +125,16 @@ final class Transaction implements TransactionInterface
                 static fn() => Directory::of($directory),
             );
 
-        $merged = $notCommitted->removed()->reduce(
-            $committed,
-            static fn(Directory $committed, $name) => $committed->remove($name),
-        );
+        $merged = $this
+            ->removals
+            ->get($directory->toString())
+            ->match(
+                static fn($removed) => $removed->reduce(
+                    $committed,
+                    static fn(Directory $committed, $name) => $committed->remove($name),
+                ),
+                static fn() => $committed,
+            );
 
         return $notCommitted->all()->reduce(
             $merged,
@@ -118,8 +142,21 @@ final class Transaction implements TransactionInterface
         );
     }
 
-    private function reset(): Adapter
+    /**
+     * @return Attempt<SideEffect>
+     */
+    private function apply(Adapter $adapter): Attempt
     {
-        return Adapter\InMemory::emulateFilesystem();
+        return $this
+            ->mutations
+            ->sink(SideEffect::identity)
+            ->attempt(static fn($_, $mutation) => $adapter->add($mutation));
+    }
+
+    private function reset(): void
+    {
+        $this->notCommitted = Adapter::inMemory();
+        $this->mutations = $this->mutations->clear();
+        $this->removals = $this->removals->clear();
     }
 }

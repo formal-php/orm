@@ -16,7 +16,7 @@ use Innmind\BlackBox\{
     Runner\Assert,
 };
 use Innmind\Immutable\Either;
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -44,7 +44,7 @@ final class SizeWithSpecification implements Property
     {
         return Set::compose(
             static fn(...$args) => new self(...$args),
-            PointInTime::any(),
+            Point::any(),
             Set::strings()
                 ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->between(10, 100),
@@ -69,11 +69,11 @@ final class SizeWithSpecification implements Property
         $user3 = User::new($this->createdAt, $this->prefix.$this->name1);
 
         $repository = $manager->repository(User::class);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static function() use ($repository, $user1, $user2, $user3) {
-                $repository->put($user1)->unwrap();
-                $repository->put($user2)->unwrap();
-                $repository->put($user3)->unwrap();
+                $_ = $repository->put($user1)->unwrap();
+                $_ = $repository->put($user2)->unwrap();
+                $_ = $repository->put($user3)->unwrap();
 
                 return Either::right(null);
             },

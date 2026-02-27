@@ -20,13 +20,13 @@ By default Formal also supports:
 
 <div class="annotate" markdown>
 - `Innmind\Immutable\Str` from [`innmind/immutable`](https://packagist.org/packages/innmind/immutable) (1)
-- `Innmind\TimeContinuum\PointInTime` from [`innmind/time-continuum`](https://packagist.org/packages/innmind/time-continuum)
+- `Innmind\Time\Point` from [`innmind/time`](https://packagist.org/packages/innmind/time)
 </div>
 
 1. Beware! It won't store the encoding, when fetched it will use `#!php Innmind\Immutable\Str\Encoding::utf8`
 
 ??? note
-    Formal can support the `PointInTime` type but you still need to declare it like this:
+    Formal can support the `Innmind\Time\Point` type but you still need to declare it like this:
 
     ```php
     use Formal\ORM\{
@@ -36,14 +36,14 @@ By default Formal also supports:
         Definition\Type\Support,
         Definition\Type\PointInTimeType,
     };
-    use Innmind\TimeContinuum\PointInTime;
+    use Innmind\Time\Point;
 
     $orm = Manager::of(
         /* any adapter (1) */,
         Aggregates::of(
             Types::of(
                 Support::class(
-                    PointInTime::class,
+                    Point::class,
                     PointInTimeType::new($os->clock()),
                 ),
             ),

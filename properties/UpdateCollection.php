@@ -14,8 +14,8 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\TimeContinuum\Offset;
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Innmind\Time\Offset;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -47,7 +47,7 @@ final class UpdateCollection implements Property
         return Set::compose(
             static fn($name, $createdAt, $addresses) => new self($name, $createdAt, ...$addresses),
             Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()),
-            PointInTime::any(),
+            Point::any(),
             Set::compose(
                 static fn(...$addresses) => $addresses,
                 Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()),
@@ -71,7 +71,7 @@ final class UpdateCollection implements Property
         $repository = $manager->repository(User::class);
         $user = User::new($this->createdAt, $this->name);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),
@@ -93,7 +93,7 @@ final class UpdateCollection implements Property
             ->addAddress($this->address2)
             ->addAddress($this->address3);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),
@@ -139,7 +139,7 @@ final class UpdateCollection implements Property
 
         $user = $reloaded->removeAddress($this->address2);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),

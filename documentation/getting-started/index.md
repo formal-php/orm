@@ -11,18 +11,18 @@ composer require formal/orm
 === "Ephemeral storage"
     ```php
     use Formal\ORM\Manager;
-    use Innmind\Filesystem\Adapter\InMemory;
+    use Innmind\Filesystem\Adapter;
 
-    $orm = Manager::filesystem(InMemory::emulateFilesystem());
+    $orm = Manager::filesystem(Adapter::inMemory());
     ```
 
 === "Persistent storage"
     ```php
     use Formal\ORM\Manager;
-    use Innmind\Filesystem\Adapter\Filesystem;
+    use Innmind\Filesystem\Adapter;
     use Innmind\Url\Path;
 
-    $orm = Manager::filesystem(Filesystem::mount(Path::of('some/directory/')));
+    $orm = Manager::filesystem(Adapter::mount(Path::of('some/directory/'))->unwrap());
     ```
 
 !!! info ""

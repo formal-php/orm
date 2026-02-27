@@ -13,7 +13,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -42,7 +42,7 @@ final class EffectOptionalPropertiesOnAllAggregates implements Property
             Set::strings()
                 ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->atLeast(10), // to limit collisions
-            PointInTime::any(),
+            Point::any(),
         );
     }
 
@@ -56,7 +56,7 @@ final class EffectOptionalPropertiesOnAllAggregates implements Property
         $user = User::new($this->createdAt, $this->name)->changeBillingAddress(
             $this->address,
         );
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $manager
                 ->repository(User::class)
                 ->put($user)
@@ -65,7 +65,7 @@ final class EffectOptionalPropertiesOnAllAggregates implements Property
         $id = $user->id()->toString();
         unset($user); // to make sure there is no in memory cache somewhere
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             fn() => $manager
                 ->repository(User::class)
                 ->effect(
@@ -76,7 +76,7 @@ final class EffectOptionalPropertiesOnAllAggregates implements Property
                 ->either(),
         );
 
-        $manager
+        $_ = $manager
             ->repository(User::class)
             ->all()
             ->foreach(

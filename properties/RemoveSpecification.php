@@ -19,7 +19,7 @@ use Innmind\BlackBox\{
     Runner\Assert,
 };
 use Innmind\Immutable\Either;
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -42,7 +42,7 @@ final class RemoveSpecification implements Property
     {
         return Set::compose(
             static fn(...$args) => new self(...$args),
-            PointInTime::any(),
+            Point::any(),
             Set\MutuallyExclusive::of(
                 Set::strings()
                     ->madeOf(Set::strings()->chars()->alphanumerical())
@@ -65,10 +65,10 @@ final class RemoveSpecification implements Property
         $user2 = User::new($this->createdAt, $this->name2);
 
         $repository = $manager->repository(User::class);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static function() use ($repository, $user1, $user2) {
-                $repository->put($user1)->unwrap();
-                $repository->put($user2)->unwrap();
+                $_ = $repository->put($user1)->unwrap();
+                $_ = $repository->put($user2)->unwrap();
 
                 return Either::right(null);
             },
@@ -78,9 +78,9 @@ final class RemoveSpecification implements Property
         unset($user1);
         unset($user2);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             function() use ($repository) {
-                $repository->remove(Username::of(
+                $_ = $repository->remove(Username::of(
                     Sign::equality,
                     Str::of($this->name1),
                 ))->unwrap();

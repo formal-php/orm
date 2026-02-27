@@ -14,8 +14,8 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\TimeContinuum\Offset;
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Innmind\Time\Offset;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -39,7 +39,7 @@ final class UpdateOptional implements Property
             static fn(...$args) => new self(...$args),
             Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()),
             Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()),
-            PointInTime::any(),
+            Point::any(),
         );
     }
 
@@ -53,7 +53,7 @@ final class UpdateOptional implements Property
         $repository = $manager->repository(User::class);
         $user = User::new($this->createdAt, $this->name);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),
@@ -71,7 +71,7 @@ final class UpdateOptional implements Property
 
         $user = $loaded->changeBillingAddress($this->address);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),
@@ -113,7 +113,7 @@ final class UpdateOptional implements Property
 
         $user = $reloaded->removeBillingAddress();
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),

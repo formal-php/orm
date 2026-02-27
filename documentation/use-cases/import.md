@@ -21,7 +21,8 @@ $orm->transactional(
     static fn() => $os
         ->filesystem()
         ->mount(Path::of('somewhere'))
-        ->get(FileName::of('users.csv'))
+        ->maybe()
+        ->flatMap(static fn($adapter) => $adapter->get(FileName::of('users.csv')))
         ->keep(Instance::of(File::class))
         ->toSequence()
         ->flatMap(static fn(File $users) => $users->content()->lines())
@@ -58,7 +59,8 @@ $repository = $orm->repository(User::class);
 $_ = $os
     ->filesystem()
     ->mount(Path::of('somewhere'))
-    ->get(FileName::of('users.csv'))
+    ->maybe()
+    ->flatMap(static fn($adapter) => $adapter->get(FileName::of('users.csv')))
     ->keep(Instance::of(File::class))
     ->toSequence()
     ->flatMap(static fn(File $users) => $users->content()->lines())

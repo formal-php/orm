@@ -15,7 +15,7 @@ use Innmind\BlackBox\{
     Runner\Assert,
 };
 use Innmind\Immutable\Either;
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -31,7 +31,7 @@ final class MatchingIds implements Property
 
     public static function any(): Set
     {
-        return PointInTime::any()->map(static fn($createdAt) => new self($createdAt));
+        return Point::any()->map(static fn($createdAt) => new self($createdAt));
     }
 
     public function applicableTo(object $manager): bool
@@ -46,11 +46,11 @@ final class MatchingIds implements Property
         $user3 = User::new($this->createdAt);
 
         $repository = $manager->repository(User::class);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static function() use ($repository, $user1, $user2, $user3) {
-                $repository->put($user1)->unwrap();
-                $repository->put($user2)->unwrap();
-                $repository->put($user3)->unwrap();
+                $_ = $repository->put($user1)->unwrap();
+                $_ = $repository->put($user2)->unwrap();
+                $_ = $repository->put($user3)->unwrap();
 
                 return Either::right(null);
             },
