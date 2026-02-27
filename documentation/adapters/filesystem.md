@@ -16,10 +16,10 @@ You can persist your aggregates to the filesystem via:
 
 ```php
 use Formal\ORM\Manager;
-use Innmind\Filesystem\Adapter\Filesystem;
+use Innmind\Filesystem\Adapter;
 use Innmind\Url\Path;
 
-$orm = Manager::filesystem(Filesystem::mount(Path::of('somewhere/')));
+$orm = Manager::filesystem(Adapter::mount(Path::of('somewhere/'))->unwrap());
 ```
 
 You should use this storage for proof of concept kind of apps. Or for small CLI apps you use locally.
