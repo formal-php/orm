@@ -47,7 +47,7 @@ final class DropIndex
             ProtocolVersion::v11,
         ))
             ->maybe()
-            ->map(static fn() => new SideEffect);
+            ->map(SideEffect::identity(...));
     }
 
     public static function of(

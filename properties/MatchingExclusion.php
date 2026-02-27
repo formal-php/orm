@@ -15,7 +15,7 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -37,7 +37,7 @@ final class MatchingExclusion implements Property
     {
         return Set::compose(
             static fn(...$args) => new self(...$args),
-            PointInTime::any(),
+            Point::any(),
             Set::strings()
                 ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->between(10, 100),

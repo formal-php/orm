@@ -14,8 +14,8 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\TimeContinuum\Offset;
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Innmind\Time\Offset;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -39,7 +39,7 @@ final class UpdateOptional implements Property
             static fn(...$args) => new self(...$args),
             Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()),
             Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()),
-            PointInTime::any(),
+            Point::any(),
         );
     }
 

@@ -14,7 +14,8 @@ You should use this storage for production mainly.
     $orm = Manager::sql(
         $os
             ->remote()
-            ->sql(Url::of('mysql://user:password@127.0.0.1:3306/database_name')),
+            ->sql(Url::of('mysql://user:password@127.0.0.1:3306/database_name'))
+            ->unwrap(),
     );
     ```
 
@@ -30,7 +31,8 @@ You should use this storage for production mainly.
     $orm = Manager::sql(
         $os
             ->remote()
-            ->sql(Url::of('pgsql://user:password@127.0.0.1:5432/database_name')),
+            ->sql(Url::of('pgsql://user:password@127.0.0.1:5432/database_name'))
+            ->unwrap(),
     );
     ```
 
@@ -57,7 +59,7 @@ final class NameType implements Type, SQLType
 {
     public function sqlType(): Column\Type
     {
-        return Column\type::varchar(100);
+        return Column\Type::varchar(100);
     }
 
     public function normalize(mixed $value): null|string|int|bool
@@ -130,11 +132,12 @@ $aggregates = Aggregates::of(Types::of(
     Support::class(Name::class, new NameType),
 ));
 $show = ShowCreateTable::of($aggregates);
-$connection = $os->remote()->sql(
-    Url::of('mysql://user:password@host:3306/database?charset=utf8mb4'),
-);
+$connection = $os
+    ->remote()
+    ->sql(Url::of('mysql://user:password@host:3306/database?charset=utf8mb4'))
+    ->unwrap();
 
-$_ = $show(User::class)->foreach($connection);
+$_ = $show(User::class)->foreach(static fn() => $connection->memoize());
 ```
 
 ## Migrations

@@ -14,9 +14,9 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\TimeContinuum\Offset;
+use Innmind\Time\Offset;
 use Innmind\Immutable\Str;
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -40,7 +40,7 @@ final class AddAggregate implements Property
                 ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->toSet()
                 ->nullable(),
-            PointInTime::any(),
+            Point::any(),
         );
     }
 

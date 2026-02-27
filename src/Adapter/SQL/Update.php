@@ -22,7 +22,7 @@ final class Update
     }
 
     /**
-     * @return Sequence<Query>
+     * @return Sequence<Query\Builder>
      */
     public function __invoke(Diff $data): Sequence
     {

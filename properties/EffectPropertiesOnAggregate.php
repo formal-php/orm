@@ -22,7 +22,7 @@ use Innmind\Immutable\{
     Maybe,
     Str,
 };
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -51,7 +51,7 @@ final class EffectPropertiesOnAggregate implements Property
             Set::strings() // not nullable to avoid collisions
                 ->madeOf(Set::strings()->chars()->alphanumerical())
                 ->atLeast(10), // to limit collisions
-            PointInTime::any(),
+            Point::any(),
         );
     }
 

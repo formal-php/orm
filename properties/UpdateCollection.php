@@ -14,8 +14,8 @@ use Innmind\BlackBox\{
     Property,
     Runner\Assert,
 };
-use Innmind\TimeContinuum\Offset;
-use Fixtures\Innmind\TimeContinuum\PointInTime;
+use Innmind\Time\Offset;
+use Fixtures\Innmind\Time\Point;
 
 /**
  * @implements Property<Manager>
@@ -47,7 +47,7 @@ final class UpdateCollection implements Property
         return Set::compose(
             static fn($name, $createdAt, $addresses) => new self($name, $createdAt, ...$addresses),
             Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()),
-            PointInTime::any(),
+            Point::any(),
             Set::compose(
                 static fn(...$addresses) => $addresses,
                 Set::strings()->madeOf(Set::strings()->chars()->alphanumerical()),
