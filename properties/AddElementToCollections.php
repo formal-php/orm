@@ -48,7 +48,7 @@ final class AddElementToCollections implements Property
         $repository = $manager->repository(User::class);
         $user = User::new($this->createdAt);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             fn() => $repository
                 ->all()
                 ->map(fn($user) => $user->addAddress($this->address))
@@ -57,7 +57,7 @@ final class AddElementToCollections implements Property
                 ->either(),
         );
 
-        $repository
+        $_ = $repository
             ->all()
             ->foreach(fn($user) => $assert->true(
                 $user

@@ -64,7 +64,7 @@ final class RemoveWhereEntity implements Property
         $user2 = User::new($this->createdAt)->changeAddress($this->name2);
 
         $repository = $manager->repository(User::class);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static function() use ($repository, $user1, $user2) {
                 $_ = $repository->put($user1)->unwrap();
                 $_ = $repository->put($user2)->unwrap();
@@ -77,7 +77,7 @@ final class RemoveWhereEntity implements Property
         unset($user1);
         unset($user2);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             function() use ($repository) {
                 $_ = $repository->remove(MainAddress::of(
                     Sign::equality,

@@ -67,7 +67,7 @@ final class UpdateCollectionOfEnums implements Property
         $repository = $manager->repository(User::class);
         $user = User::new($this->createdAt)->useRoles(...$this->roles);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),
@@ -90,7 +90,7 @@ final class UpdateCollectionOfEnums implements Property
 
         $user = $loaded->useRoles(...$this->newRoles);
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $repository
                 ->put($user)
                 ->either(),

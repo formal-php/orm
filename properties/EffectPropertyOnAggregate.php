@@ -59,7 +59,7 @@ final class EffectPropertyOnAggregate implements Property
     public function ensureHeldBy(Assert $assert, object $manager): object
     {
         $user = User::new($this->createdAt, $this->name);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $manager
                 ->repository(User::class)
                 ->put($user)
@@ -74,7 +74,7 @@ final class EffectPropertyOnAggregate implements Property
             Id::of(User::class, $id),
         );
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             fn() => $manager
                 ->repository(User::class)
                 ->effect(
@@ -86,7 +86,7 @@ final class EffectPropertyOnAggregate implements Property
                 ->either(),
         );
 
-        $manager
+        $_ = $manager
             ->repository(User::class)
             ->matching($specification)
             ->foreach(
@@ -95,7 +95,7 @@ final class EffectPropertyOnAggregate implements Property
                     ->same($this->newName),
             );
 
-        $manager
+        $_ = $manager
             ->repository(User::class)
             ->matching($specification->not())
             ->foreach(

@@ -55,7 +55,7 @@ final class AddAggregate implements Property
             ->repository(User::class)
             ->size();
         $user = User::new($this->createdAt, $this->name);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $manager
                 ->repository(User::class)
                 ->put($user)

@@ -50,7 +50,7 @@ final class UpdateOptionalWithoutChangingInnerProperties implements Property
         $user = User::new($this->createdAt)->changeBillingAddress($this->name);
 
         $repository = $manager->repository(User::class);
-        $manager->transactional(
+        $_ = $manager->transactional(
             static function() use ($repository, $user) {
                 $_ = $repository->put($user)->unwrap();
 

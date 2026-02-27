@@ -41,7 +41,7 @@ final class FailingTransactionDueToException implements Property
 
         try {
             $expected = new \Exception;
-            $manager->transactional(
+            $_ = $manager->transactional(
                 function() use ($manager, $user, $assert, $initialSize, $expected) {
                     $_ = $manager
                         ->repository(User::class)

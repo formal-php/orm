@@ -44,7 +44,7 @@ final class ContainsAggregate implements Property
                 ->contains($user->id()),
         );
 
-        $manager->transactional(
+        $_ = $manager->transactional(
             static fn() => $manager
                 ->repository(User::class)
                 ->put($user)
