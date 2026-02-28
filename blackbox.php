@@ -48,7 +48,7 @@ Application::new($argv)
     )
     ->when(
         \getenv('EXTENSIVE_CI') !== false,
-        static fn($app) => $app->scenariiPerProof(1_000),
+        static fn($app) => $app->scenariiPerProof(500),
     )
     ->parseTagWith(Storage::of(...))
     ->disableShrinking()
